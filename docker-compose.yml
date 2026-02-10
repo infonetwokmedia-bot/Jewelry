@@ -1,0 +1,91 @@
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: jewelry_mysql
+    restart: always
+    ports:
+      - "127.0.0.1:3307:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    volumes:
+      - ./data/mysql:/var/lib/mysql
+    networks:
+      - jewelry_network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  wordpress:
+    image: wordpress:latest
+    container_name: jewelry_wordpress
+    restart: always
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      WORDPRESS_DB_HOST: ${WORDPRESS_DB_HOST}
+      WORDPRESS_DB_NAME: ${WORDPRESS_DB_NAME}
+      WORDPRESS_DB_USER: ${WORDPRESS_DB_USER}
+      WORDPRESS_DB_PASSWORD: ${WORDPRESS_DB_PASSWORD}
+      WORDPRESS_TABLE_PREFIX: ${WORDPRESS_TABLE_PREFIX}
+    volumes:
+      - ./data/wordpress:/var/www/html
+    networks:
+      - jewelry_network
+      - traefik-public
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik-public"
+      - "traefik.http.routers.jewelry.rule=Host(`jewelry.local.dev`)"
+      - "traefik.http.routers.jewelry.entrypoints=websecure"
+      - "traefik.http.routers.jewelry.tls=true"
+      - "traefik.http.services.jewelry.loadbalancer.server.port=80"
+
+  phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: jewelry_phpmyadmin
+    restart: always
+    depends_on:
+      - mysql
+    environment:
+      PMA_HOST: mysql
+      PMA_USER: root
+      PMA_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      UPLOAD_LIMIT: 100M
+    networks:
+      - jewelry_network
+      - traefik-public
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik-public"
+      - "traefik.http.routers.jewelry-phpmyadmin.rule=Host(`phpmyadmin.jewelry.local.dev`)"
+      - "traefik.http.routers.jewelry-phpmyadmin.entrypoints=websecure"
+      - "traefik.http.routers.jewelry-phpmyadmin.tls=true"
+      - "traefik.http.services.jewelry-phpmyadmin.loadbalancer.server.port=80"
+
+  wpcli:
+    image: wordpress:cli
+    container_name: jewelry_wpcli
+    depends_on:
+      - mysql
+      - wordpress
+    volumes:
+      - ./data/wordpress:/var/www/html
+    networks:
+      - jewelry_network
+    environment:
+      WORDPRESS_DB_HOST: ${WORDPRESS_DB_HOST}
+      WORDPRESS_DB_NAME: ${WORDPRESS_DB_NAME}
+      WORDPRESS_DB_USER: ${WORDPRESS_DB_USER}
+      WORDPRESS_DB_PASSWORD: ${WORDPRESS_DB_PASSWORD}
+
+networks:
+  jewelry_network:
+    driver: bridge
+  traefik-public:
+    external: true

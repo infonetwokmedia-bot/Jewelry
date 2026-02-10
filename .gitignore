@@ -1,0 +1,54 @@
+# WordPress core files
+data/wordpress/wp-admin/
+data/wordpress/wp-includes/
+data/wordpress/license.txt
+data/wordpress/readme.html
+data/wordpress/wp-*.php
+data/wordpress/index.php
+data/wordpress/xmlrpc.php
+data/wordpress/wp-content/upgrade/
+data/wordpress/wp-content/uploads/
+data/wordpress/wp-content/cache/
+
+# Database
+data/mysql/
+
+# Logs
+*.log
+data/wordpress/wp-content/debug.log
+
+# Environment files
+.env
+
+# Credentials
+.wp-credentials
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Backup files
+*.bak
+*.swp
+*.swo
+*~
+
+# Keep structure
+!data/wordpress/wp-content/
+!data/wordpress/wp-content/themes/
+!data/wordpress/wp-content/plugins/
+!data/wordpress/wp-content/mu-plugins/
+
+# Keep custom theme files
+data/wordpress/wp-content/themes/kadence/functions-custom.php
+
+# Keep uploaded plugins (non-standard)
+data/wordpress/wp-content/plugins/bogo/
+
+# Documentation
+!*.md
+!PROYECTO-ESTADO.md
