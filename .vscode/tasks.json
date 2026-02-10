@@ -1,0 +1,302 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    // ============================================
+    // Docker Tasks
+    // ============================================
+    {
+      "label": "Docker: Start All Containers",
+      "type": "shell",
+      "command": "docker compose up -d",
+      "problemMatcher": [],
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      }
+    },
+    {
+      "label": "Docker: Stop All Containers",
+      "type": "shell",
+      "command": "docker compose down",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      }
+    },
+    {
+      "label": "Docker: Restart All Containers",
+      "type": "shell",
+      "command": "docker compose restart",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      }
+    },
+    {
+      "label": "Docker: View WordPress Logs",
+      "type": "shell",
+      "command": "docker compose logs -f wordpress",
+      "problemMatcher": [],
+      "isBackground": true,
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      }
+    },
+    {
+      "label": "Docker: View MySQL Logs",
+      "type": "shell",
+      "command": "docker compose logs -f mysql",
+      "problemMatcher": [],
+      "isBackground": true,
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      }
+    },
+    {
+      "label": "Docker: View All Logs",
+      "type": "shell",
+      "command": "docker compose logs -f",
+      "problemMatcher": [],
+      "isBackground": true,
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      }
+    },
+    {
+      "label": "Docker: Container Status",
+      "type": "shell",
+      "command": "docker compose ps",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      }
+    },
+
+    // ============================================
+    // WP-CLI Tasks
+    // ============================================
+    {
+      "label": "WP-CLI: List Plugins",
+      "type": "shell",
+      "command": "docker exec jewelry_wordpress wp plugin list --allow-root",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      }
+    },
+    {
+      "label": "WP-CLI: List Products",
+      "type": "shell",
+      "command": "docker exec jewelry_wordpress wp post list --post_type=product --allow-root",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      }
+    },
+    {
+      "label": "WP-CLI: List Pages",
+      "type": "shell",
+      "command": "docker exec jewelry_wordpress wp post list --post_type=page --allow-root",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      }
+    },
+    {
+      "label": "WP-CLI: Flush Rewrite Rules",
+      "type": "shell",
+      "command": "docker exec jewelry_wordpress wp rewrite flush --allow-root",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      }
+    },
+    {
+      "label": "WP-CLI: Clear Cache",
+      "type": "shell",
+      "command": "docker exec jewelry_wordpress wp cache flush --allow-root",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      }
+    },
+    {
+      "label": "WP-CLI: Regenerate Thumbnails",
+      "type": "shell",
+      "command": "docker exec jewelry_wordpress wp media regenerate --yes --allow-root",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      }
+    },
+    {
+      "label": "WP-CLI: Check WordPress Version",
+      "type": "shell",
+      "command": "docker exec jewelry_wordpress wp core version --allow-root",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      }
+    },
+    {
+      "label": "WP-CLI: Update All Plugins",
+      "type": "shell",
+      "command": "docker exec jewelry_wordpress wp plugin update --all --allow-root",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      }
+    },
+    {
+      "label": "WP-CLI: List Users",
+      "type": "shell",
+      "command": "docker exec jewelry_wordpress wp user list --allow-root",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      }
+    },
+
+    // ============================================
+    // Database Tasks
+    // ============================================
+    {
+      "label": "Backup: Database (with timestamp)",
+      "type": "shell",
+      "command": "docker exec jewelry_mysql mysqldump -u jewelry_user -p${input:mysqlPassword} jewelry_db > backup_$(date +%Y%m%d_%H%M%S).sql && echo 'Backup completed successfully!'",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      }
+    },
+    {
+      "label": "Database: Import SQL File",
+      "type": "shell",
+      "command": "docker exec -i jewelry_mysql mysql -u jewelry_user -p${input:mysqlPassword} jewelry_db < ${input:sqlFile}",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      }
+    },
+
+    // ============================================
+    // Browser Tasks
+    // ============================================
+    {
+      "label": "Open: Site Frontend",
+      "type": "shell",
+      "command": "echo 'Opening https://jewelry.local.dev' && ${input:browser} https://jewelry.local.dev",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "never",
+        "panel": "new"
+      }
+    },
+    {
+      "label": "Open: WordPress Admin",
+      "type": "shell",
+      "command": "echo 'Opening WordPress Admin' && ${input:browser} https://jewelry.local.dev/wp-admin",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "never",
+        "panel": "new"
+      }
+    },
+    {
+      "label": "Open: phpMyAdmin",
+      "type": "shell",
+      "command": "echo 'Opening phpMyAdmin' && ${input:browser} https://phpmyadmin.jewelry.local.dev",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "never",
+        "panel": "new"
+      }
+    },
+
+    // ============================================
+    // Development Tasks
+    // ============================================
+    {
+      "label": "Dev: Full Restart",
+      "type": "shell",
+      "command": "docker compose down && docker compose up -d && docker exec jewelry_wordpress wp rewrite flush --allow-root && docker exec jewelry_wordpress wp cache flush --allow-root",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      }
+    },
+    {
+      "label": "Dev: Clear All Caches",
+      "type": "shell",
+      "command": "docker exec jewelry_wordpress wp cache flush --allow-root && docker exec jewelry_wordpress wp rewrite flush --allow-root && echo 'All caches cleared!'",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      }
+    },
+    {
+      "label": "Dev: Watch Theme Files",
+      "type": "shell",
+      "command": "watch -n 2 'ls -lh data/wordpress/wp-content/themes/kadence/functions-custom.php'",
+      "problemMatcher": [],
+      "isBackground": true,
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      }
+    }
+  ],
+
+  // ============================================
+  // Input Definitions
+  // ============================================
+  "inputs": [
+    {
+      "id": "mysqlPassword",
+      "type": "promptString",
+      "description": "MySQL Password",
+      "default": "",
+      "password": true
+    },
+    {
+      "id": "sqlFile",
+      "type": "promptString",
+      "description": "SQL file path to import",
+      "default": "backup.sql"
+    },
+    {
+      "id": "browser",
+      "type": "pickString",
+      "description": "Select browser to open",
+      "options": [
+        "xdg-open",
+        "open",
+        "start"
+      ],
+      "default": "xdg-open"
+    }
+  ]
+}

@@ -1,0 +1,387 @@
+{
+  // ============================================
+  // Editor Settings
+  // ============================================
+  "editor.formatOnSave": true,
+  "editor.formatOnPaste": false,
+  "editor.tabSize": 4,
+  "editor.insertSpaces": true,
+  "editor.rulers": [80, 100],
+  "editor.wordWrap": "on",
+  "editor.detectIndentation": true,
+  "editor.trimAutoWhitespace": true,
+  "editor.bracketPairColorization.enabled": true,
+  "editor.guides.bracketPairs": true,
+  "editor.suggestSelection": "first",
+  "editor.quickSuggestions": {
+    "strings": true
+  },
+  "editor.minimap.enabled": true,
+  "editor.renderWhitespace": "boundary",
+
+  // ============================================
+  // GitHub Copilot Settings
+  // ============================================
+  "github.copilot.enable": {
+    "*": true,
+    "php": true,
+    "javascript": true,
+    "typescript": true,
+    "css": true,
+    "scss": true,
+    "markdown": true,
+    "yaml": true,
+    "json": true
+  },
+  "github.copilot.editor.enableAutoCompletions": true,
+  "github.copilot.advanced": {
+    "debug.overrideEngine": "copilot-chat",
+    "authProvider": "github"
+  },
+
+  // ============================================
+  // Files Settings
+  // ============================================
+  "files.encoding": "utf8",
+  "files.eol": "\n",
+  "files.insertFinalNewline": true,
+  "files.trimTrailingWhitespace": true,
+  "files.trimFinalNewlines": true,
+  "files.associations": {
+    "*.php": "php",
+    ".env*": "dotenv",
+    "docker-compose.yml": "yaml"
+  },
+  "files.exclude": {
+    "**/data/mysql": true,
+    "**/data/wordpress/wp-content/uploads": true,
+    "**/.git": true,
+    "**/.DS_Store": true,
+    "**/Thumbs.db": true,
+    "**/*.log": true
+  },
+  "files.watcherExclude": {
+    "**/data/mysql/**": true,
+    "**/data/wordpress/wp-content/uploads/**": true,
+    "**/node_modules/**": true,
+    "**/.git/objects/**": true,
+    "**/.git/subtree-cache/**": true
+  },
+
+  // ============================================
+  // Search Settings
+  // ============================================
+  "search.exclude": {
+    "**/data/mysql": true,
+    "**/data/wordpress/wp-admin": true,
+    "**/data/wordpress/wp-includes": true,
+    "**/data/wordpress/wp-content/uploads": true,
+    "**/data/wordpress/wp-content/cache": true,
+    "**/node_modules": true,
+    "**/vendor": true,
+    "**/*.sql": true,
+    "**/*.log": true
+  },
+  "search.useIgnoreFiles": true,
+  "search.followSymlinks": false,
+
+  // ============================================
+  // PHP Settings (Intelephense)
+  // ============================================
+  "php.validate.enable": true,
+  "php.validate.run": "onType",
+  "php.suggest.basic": true,
+  
+  // Intelephense
+  "intelephense.stubs": [
+    "apache",
+    "bcmath",
+    "Core",
+    "ctype",
+    "curl",
+    "date",
+    "dom",
+    "fileinfo",
+    "filter",
+    "ftp",
+    "gd",
+    "gettext",
+    "hash",
+    "iconv",
+    "imagick",
+    "json",
+    "libxml",
+    "mbstring",
+    "mysqli",
+    "mysqlnd",
+    "openssl",
+    "pcre",
+    "PDO",
+    "pdo_mysql",
+    "Phar",
+    "SimpleXML",
+    "soap",
+    "sockets",
+    "sodium",
+    "SPL",
+    "standard",
+    "tokenizer",
+    "xml",
+    "xmlreader",
+    "xmlwriter",
+    "zip",
+    "zlib",
+    "wordpress",
+    "woocommerce"
+  ],
+  "intelephense.environment.phpVersion": "8.1.0",
+  "intelephense.environment.includePaths": [
+    "data/wordpress/wp-content"
+  ],
+  "intelephense.files.maxSize": 5000000,
+  "intelephense.files.exclude": [
+    "**/.git/**",
+    "**/.svn/**",
+    "**/.hg/**",
+    "**/CVS/**",
+    "**/.DS_Store/**",
+    "**/node_modules/**",
+    "**/vendor/**/{Tests,tests}/**",
+    "**/*.sql",
+    "**/data/mysql/**"
+  ],
+  "intelephense.completion.triggerParameterHints": true,
+  "intelephense.completion.insertUseDeclaration": true,
+  "intelephense.diagnostics.enable": true,
+  "intelephense.diagnostics.run": "onType",
+  "intelephense.format.enable": true,
+
+  // ============================================
+  // JavaScript/TypeScript Settings
+  // ============================================
+  "[javascript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.tabSize": 2,
+    "editor.formatOnSave": true
+  },
+  "[javascriptreact]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.tabSize": 2
+  },
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.tabSize": 2
+  },
+  "[typescriptreact]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.tabSize": 2
+  },
+
+  // ============================================
+  // JSON Settings
+  // ============================================
+  "[json]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.tabSize": 2,
+    "editor.formatOnSave": true
+  },
+  "[jsonc]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.tabSize": 2
+  },
+
+  // ============================================
+  // CSS/SCSS Settings
+  // ============================================
+  "[css]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.tabSize": 2,
+    "editor.formatOnSave": true
+  },
+  "[scss]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.tabSize": 2,
+    "editor.formatOnSave": true
+  },
+  
+  "css.validate": true,
+  "scss.validate": true,
+
+  // ============================================
+  // PHP Formatting
+  // ============================================
+  "[php]": {
+    "editor.defaultFormatter": "bmewburn.vscode-intelephense-client",
+    "editor.tabSize": 4,
+    "editor.formatOnSave": true
+  },
+
+  // ============================================
+  // Markdown Settings
+  // ============================================
+  "[markdown]": {
+    "editor.defaultFormatter": "yzhang.markdown-all-in-one",
+    "editor.tabSize": 2,
+    "editor.wordWrap": "on",
+    "editor.quickSuggestions": {
+      "comments": "off",
+      "strings": "off",
+      "other": "off"
+    },
+    "files.trimTrailingWhitespace": false
+  },
+  "markdown.preview.fontSize": 14,
+  "markdown.preview.lineHeight": 1.6,
+
+  // ============================================
+  // YAML Settings
+  // ============================================
+  "[yaml]": {
+    "editor.tabSize": 2,
+    "editor.insertSpaces": true,
+    "editor.autoIndent": "advanced"
+  },
+
+  // ============================================
+  // Terminal Settings
+  // ============================================
+  "terminal.integrated.defaultProfile.linux": "bash",
+  "terminal.integrated.fontSize": 13,
+  "terminal.integrated.scrollback": 10000,
+  "terminal.integrated.copyOnSelection": true,
+  "terminal.integrated.cursorBlinking": true,
+
+  // ============================================
+  // Docker Settings
+  // ============================================
+  "docker.containers.description": ["ContainerName", "Status"],
+  "docker.containers.label": "ContainerName",
+  "docker.containers.sortBy": "Label",
+  "docker.languageserver.diagnostics.deprecatedMaintainer": "warning",
+  "docker.languageserver.diagnostics.instructionCasing": "warning",
+  "docker.languageserver.diagnostics.instructionWorkdir": "warning",
+
+  // ============================================
+  // Git Settings
+  // ============================================
+  "git.autofetch": true,
+  "git.confirmSync": false,
+  "git.enableSmartCommit": true,
+  "git.ignoreMissingGitWarning": false,
+  "git.showPushSuccessNotification": true,
+  "git.suggestSmartCommit": true,
+
+  // GitLens
+  "gitlens.currentLine.enabled": true,
+  "gitlens.hovers.currentLine.over": "line",
+  "gitlens.codeLens.enabled": true,
+
+  // ============================================
+  // Prettier Settings
+  // ============================================
+  "prettier.singleQuote": true,
+  "prettier.semi": true,
+  "prettier.tabWidth": 2,
+  "prettier.useTabs": false,
+  "prettier.printWidth": 100,
+  "prettier.trailingComma": "es5",
+  "prettier.arrowParens": "always",
+
+  // ============================================
+  // Breadcrumbs Settings
+  // ============================================
+  "breadcrumbs.enabled": true,
+  "breadcrumbs.filePath": "on",
+  "breadcrumbs.symbolPath": "on",
+
+  // ============================================
+  // Emmet Settings
+  // ============================================
+  "emmet.includeLanguages": {
+    "php": "html",
+    "javascript": "javascriptreact"
+  },
+  "emmet.triggerExpansionOnTab": true,
+  "emmet.showSuggestionsAsSnippets": true,
+
+  // ============================================
+  // Explorer Settings
+  // ============================================
+  "explorer.confirmDelete": true,
+  "explorer.confirmDragAndDrop": true,
+  "explorer.compactFolders": false,
+
+  // ============================================
+  // Code Spell Checker Settings
+  // ============================================
+  "cSpell.enabled": true,
+  "cSpell.language": "en,es",
+  "cSpell.words": [
+    "Jewelry",
+    "Joyería",
+    "Remedio",
+    "WooCommerce",
+    "WordPress",
+    "Kadence",
+    "Bogo",
+    "Traefik",
+    "phpmyadmin",
+    "mysqldump",
+    "wpcli",
+    "jewelry",
+    "Intelephense",
+    "Gutenberg"
+  ],
+  "cSpell.ignoreWords": [
+    "jewelryapp",
+    "wpdb"
+  ],
+
+  // ============================================
+  // Path Intellisense Settings
+  // ============================================
+  "path-intellisense.mappings": {
+    "/": "${workspaceFolder}",
+    "data": "${workspaceFolder}/data"
+  },
+
+  // ============================================
+  // Auto Rename Tag
+  // ============================================
+  "auto-rename-tag.activationOnLanguage": [
+    "html",
+    "xml",
+    "php",
+    "javascript",
+    "javascriptreact",
+    "typescript",
+    "typescriptreact"
+  ],
+
+  // ============================================
+  // WordPress Specific
+  // ============================================
+  "wordpress.projectType": "theme-plugin",
+  "wordpress.validate": true,
+
+  // ============================================
+  // Security
+  // ============================================
+  "security.workspace.trust.untrustedFiles": "prompt",
+  "security.workspace.trust.enabled": true,
+
+  // ============================================
+  // Window Settings
+  // ============================================
+  "window.title": "${dirty}${activeEditorShort}${separator}${rootName}",
+  "window.zoomLevel": 0,
+
+  // ============================================
+  // Workbench Settings
+  // ============================================
+  "workbench.colorTheme": "Default Dark+",
+  "workbench.iconTheme": "vs-seti",
+  "workbench.startupEditor": "welcomePage",
+  "workbench.editor.enablePreview": true,
+  "workbench.editor.highlightModifiedTabs": true
+}

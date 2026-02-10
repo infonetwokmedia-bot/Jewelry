@@ -28,8 +28,13 @@ data/wordpress/wp-content/debug.log
 Thumbs.db
 
 # IDE
-.vscode/
 .idea/
+# Allow VSCode configuration files for project setup
+!.vscode/
+!.vscode/settings.json
+!.vscode/extensions.json
+!.vscode/tasks.json
+!.vscode/jewelry.code-snippets
 
 # Backup files
 *.bak

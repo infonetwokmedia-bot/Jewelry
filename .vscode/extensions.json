@@ -1,0 +1,76 @@
+{
+  "recommendations": [
+    // ============================================
+    // GitHub Copilot
+    // ============================================
+    "github.copilot",
+    "github.copilot-chat",
+
+    // ============================================
+    // PHP & WordPress
+    // ============================================
+    "bmewburn.vscode-intelephense-client",
+    "wordpresstoolbox.wordpress-toolbox",
+    "wpprojectools.wpprojectools",
+    "johnbillion.vscode-wordpress-hooks",
+
+    // ============================================
+    // WooCommerce
+    // ============================================
+    "claudiosanches.woocommerce",
+
+    // ============================================
+    // Docker
+    // ============================================
+    "ms-azuretools.vscode-docker",
+    "ms-vscode-remote.remote-containers",
+
+    // ============================================
+    // JavaScript & Web Development
+    // ============================================
+    "dbaeumer.vscode-eslint",
+    "esbenp.prettier-vscode",
+    "formulahendry.auto-rename-tag",
+    "bradlc.vscode-tailwindcss",
+
+    // ============================================
+    // Git Tools
+    // ============================================
+    "eamodio.gitlens",
+    "github.vscode-pull-request-github",
+    "mhutchie.git-graph",
+
+    // ============================================
+    // Markdown
+    // ============================================
+    "yzhang.markdown-all-in-one",
+    "davidanson.vscode-markdownlint",
+
+    // ============================================
+    // Utilities
+    // ============================================
+    "streetsidesoftware.code-spell-checker",
+    "streetsidesoftware.code-spell-checker-spanish",
+    "editorconfig.editorconfig",
+    "mikestead.dotenv",
+    "christian-kohler.path-intellisense",
+    "visualstudioexptteam.vscodeintellicode",
+
+    // ============================================
+    // Code Snippets
+    // ============================================
+    "tungvn.wordpress-snippet",
+    "wordpresstoolbox.wordpress-hooks-intellisense",
+
+    // ============================================
+    // Database
+    // ============================================
+    "cweijan.vscode-mysql-client2",
+
+    // ============================================
+    // Formatting & Linting
+    // ============================================
+    "shardulm94.trailing-spaces",
+    "editorconfig.editorconfig"
+  ]
+}

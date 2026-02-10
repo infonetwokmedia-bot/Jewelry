@@ -1,0 +1,300 @@
+{
+  "PHP WordPress Jewelry Snippets": {
+    "prefix": "jfunc",
+    "body": [
+      "/**",
+      " * ${1:Description}",
+      " *",
+      " * @param ${2:type} \\$${3:param} ${4:Description}",
+      " * @return ${5:type} ${6:Description}",
+      " */",
+      "function jewelry_${7:function_name}( \\$${3:param} ) {",
+      "\t${8:// Implementation}",
+      "\t$0",
+      "}"
+    ],
+    "description": "Create function with jewelry_ prefix and PHPDoc"
+  },
+  
+  "Add Action Hook": {
+    "prefix": "jaction",
+    "body": [
+      "/**",
+      " * ${1:Description}",
+      " */",
+      "add_action( '${2:hook_name}', 'jewelry_${3:function_name}' );",
+      "function jewelry_${3:function_name}() {",
+      "\t${4:// Implementation}",
+      "\t$0",
+      "}"
+    ],
+    "description": "Add WordPress action hook"
+  },
+  
+  "Add Filter Hook": {
+    "prefix": "jfilter",
+    "body": [
+      "/**",
+      " * ${1:Description}",
+      " *",
+      " * @param ${2:type} \\$${3:param} ${4:Description}",
+      " * @return ${2:type} ${5:Modified value}",
+      " */",
+      "add_filter( '${6:filter_name}', 'jewelry_${7:function_name}' );",
+      "function jewelry_${7:function_name}( \\$${3:param} ) {",
+      "\t${8:// Implementation}",
+      "\t$0",
+      "\treturn \\$${3:param};",
+      "}"
+    ],
+    "description": "Add WordPress filter hook"
+  },
+  
+  "Create Bilingual Product": {
+    "prefix": "jproduct",
+    "body": [
+      "// Producto en español",
+      "\\$product_es = new WC_Product_Simple();",
+      "\\$product_es->set_name( '${1:Nombre del Producto}' );",
+      "\\$product_es->set_description( '${2:Descripción completa en español}' );",
+      "\\$product_es->set_short_description( '${3:Descripción corta ES}' );",
+      "\\$product_es->set_regular_price( '${4:499.99}' );",
+      "\\$product_es->set_sku( '${5:SKU}-ES' );",
+      "\\$product_id_es = \\$product_es->save();",
+      "",
+      "update_post_meta( \\$product_id_es, '_locale', 'es_ES' );",
+      "",
+      "// Producto en inglés",
+      "\\$product_en = new WC_Product_Simple();",
+      "\\$product_en->set_name( '${6:Product Name}' );",
+      "\\$product_en->set_description( '${7:Full description in English}' );",
+      "\\$product_en->set_short_description( '${8:Short description EN}' );",
+      "\\$product_en->set_regular_price( '${4:499.99}' );",
+      "\\$product_en->set_sku( '${5:SKU}-EN' );",
+      "\\$product_id_en = \\$product_en->save();",
+      "",
+      "update_post_meta( \\$product_id_en, '_locale', 'en_US' );",
+      "",
+      "// Vincular con Bogo",
+      "\\$translations = array(",
+      "\t'es_ES' => \\$product_id_es,",
+      "\t'en_US' => \\$product_id_en",
+      ");",
+      "update_post_meta( \\$product_id_es, '_bogo_translations', \\$translations );",
+      "update_post_meta( \\$product_id_en, '_bogo_translations', \\$translations );",
+      "$0"
+    ],
+    "description": "Create complete bilingual WooCommerce product with Bogo"
+  },
+  
+  "Create Bilingual Page": {
+    "prefix": "jpage",
+    "body": [
+      "// Página en español",
+      "\\$page_es = array(",
+      "\t'post_title'   => '${1:Título de la Página}',",
+      "\t'post_content' => '${2:Contenido en español}',",
+      "\t'post_status'  => 'publish',",
+      "\t'post_type'    => 'page',",
+      ");",
+      "\\$page_id_es = wp_insert_post( \\$page_es );",
+      "update_post_meta( \\$page_id_es, '_locale', 'es_ES' );",
+      "",
+      "// Página en inglés",
+      "\\$page_en = array(",
+      "\t'post_title'   => '${3:Page Title}',",
+      "\t'post_content' => '${4:Content in English}',",
+      "\t'post_status'  => 'publish',",
+      "\t'post_type'    => 'page',",
+      ");",
+      "\\$page_id_en = wp_insert_post( \\$page_en );",
+      "update_post_meta( \\$page_id_en, '_locale', 'en_US' );",
+      "",
+      "// Vincular con Bogo",
+      "\\$translations = array(",
+      "\t'es_ES' => \\$page_id_es,",
+      "\t'en_US' => \\$page_id_en",
+      ");",
+      "update_post_meta( \\$page_id_es, '_bogo_translations', \\$translations );",
+      "update_post_meta( \\$page_id_en, '_bogo_translations', \\$translations );",
+      "$0"
+    ],
+    "description": "Create bilingual page with Bogo linking"
+  },
+  
+  "WP-CLI Command in Docker": {
+    "prefix": "jwpcli",
+    "body": [
+      "docker exec jewelry_wordpress wp ${1:command} --allow-root$0"
+    ],
+    "description": "Execute WP-CLI command in Docker container"
+  },
+  
+  "Sanitize Text Field": {
+    "prefix": "jsanitize",
+    "body": [
+      "\\$${1:variable} = sanitize_text_field( \\$_POST['${2:field_name}'] );$0"
+    ],
+    "description": "Sanitize text field input"
+  },
+  
+  "Verify Nonce": {
+    "prefix": "jnonce",
+    "body": [
+      "if ( ! isset( \\$_POST['jewelry_nonce'] ) || ! wp_verify_nonce( \\$_POST['jewelry_nonce'], '${1:action_name}' ) ) {",
+      "\twp_die( '${2:Unauthorized action}' );",
+      "}",
+      "$0"
+    ],
+    "description": "Verify WordPress nonce"
+  },
+  
+  "WP_Query for Products": {
+    "prefix": "jquery",
+    "body": [
+      "\\$args = array(",
+      "\t'post_type'      => 'product',",
+      "\t'posts_per_page' => ${1:10},",
+      "\t'meta_query'     => array(",
+      "\t\tarray(",
+      "\t\t\t'key'   => '_locale',",
+      "\t\t\t'value' => jewelry_get_current_locale(),",
+      "\t\t),",
+      "\t),",
+      ");",
+      "",
+      "\\$query = new WP_Query( \\$args );",
+      "",
+      "if ( \\$query->have_posts() ) {",
+      "\twhile ( \\$query->have_posts() ) {",
+      "\t\t\\$query->the_post();",
+      "\t\t${2:// Display product}",
+      "\t\t$0",
+      "\t}",
+      "\twp_reset_postdata();",
+      "}"
+    ],
+    "description": "WP_Query for products in current language"
+  },
+  
+  "Get Bogo Translation": {
+    "prefix": "jtrans",
+    "body": [
+      "\\$translations = get_post_meta( \\$${1:post_id}, '_bogo_translations', true );",
+      "if ( isset( \\$translations['${2:en_US}'] ) ) {",
+      "\t\\$translated_id = \\$translations['${2:en_US}'];",
+      "\t$0",
+      "}"
+    ],
+    "description": "Get Bogo translation of a post"
+  },
+  
+  "Get Current Locale": {
+    "prefix": "jlocale",
+    "body": [
+      "\\$locale = jewelry_get_current_locale();$0"
+    ],
+    "description": "Get current locale using Bogo"
+  },
+  
+  "Checkout Custom Field": {
+    "prefix": "jcheckout",
+    "body": [
+      "/**",
+      " * Add custom checkout field.",
+      " */",
+      "add_action( 'woocommerce_after_order_notes', 'jewelry_add_${1:field_name}_field' );",
+      "function jewelry_add_${1:field_name}_field( \\$checkout ) {",
+      "\t\\$locale = jewelry_get_current_locale();",
+      "\t",
+      "\t\\$label = ( 'es_ES' === \\$locale ) ? '${2:Label ES}' : '${3:Label EN}';",
+      "\t",
+      "\twoocommerce_form_field( '${1:field_name}', array(",
+      "\t\t'type'        => '${4:text}',",
+      "\t\t'class'       => array( 'form-row-wide' ),",
+      "\t\t'label'       => \\$label,",
+      "\t\t'required'    => ${5:false},",
+      "\t), \\$checkout->get_value( '${1:field_name}' ) );",
+      "}",
+      "",
+      "/**",
+      " * Save custom checkout field.",
+      " */",
+      "add_action( 'woocommerce_checkout_update_order_meta', 'jewelry_save_${1:field_name}_field' );",
+      "function jewelry_save_${1:field_name}_field( \\$order_id ) {",
+      "\tif ( isset( \\$_POST['${1:field_name}'] ) ) {",
+      "\t\t\\$value = sanitize_text_field( \\$_POST['${1:field_name}'] );",
+      "\t\tupdate_post_meta( \\$order_id, '_${1:field_name}', \\$value );",
+      "\t}",
+      "}",
+      "$0"
+    ],
+    "description": "Add custom checkout field with save functionality"
+  },
+  
+  "Docker Compose Command": {
+    "prefix": "jdocker",
+    "body": [
+      "docker compose ${1|up -d,down,logs -f,restart,ps,exec|} ${2:service}$0"
+    ],
+    "description": "Docker Compose command"
+  },
+  
+  "Database Backup": {
+    "prefix": "jbackup",
+    "body": [
+      "docker exec jewelry_mysql mysqldump -u jewelry_user -p jewelry_db > backup_$(date +%Y%m%d_%H%M%S).sql$0"
+    ],
+    "description": "Backup database with timestamp"
+  },
+  
+  "Switch Locale": {
+    "prefix": "jswitch",
+    "body": [
+      "switch_to_locale( '${1|es_ES,en_US|}' );",
+      "${2:// Code that needs specific locale}",
+      "restore_previous_locale();",
+      "$0"
+    ],
+    "description": "Switch WordPress locale temporarily"
+  },
+  
+  "Create Product Category": {
+    "prefix": "jcat",
+    "body": [
+      "// Categoría en español",
+      "\\$cat_es = wp_insert_term(",
+      "\t'${1:Nombre de Categoría}',",
+      "\t'product_cat',",
+      "\tarray( 'slug' => '${2:slug-es}' )",
+      ");",
+      "update_term_meta( \\$cat_es['term_id'], '_locale', 'es_ES' );",
+      "",
+      "// Categoría en inglés",
+      "\\$cat_en = wp_insert_term(",
+      "\t'${3:Category Name}',",
+      "\t'product_cat',",
+      "\tarray( 'slug' => '${4:slug-en}' )",
+      ");",
+      "update_term_meta( \\$cat_en['term_id'], '_locale', 'en_US' );",
+      "",
+      "// Vincular con Bogo",
+      "\\$translations = array(",
+      "\t'es_ES' => \\$cat_es['term_id'],",
+      "\t'en_US' => \\$cat_en['term_id']",
+      ");",
+      "update_term_meta( \\$cat_es['term_id'], '_bogo_translations', \\$translations );",
+      "update_term_meta( \\$cat_en['term_id'], '_bogo_translations', \\$translations );",
+      "$0"
+    ],
+    "description": "Create bilingual product category with Bogo"
+  },
+  
+  "Escape Output": {
+    "prefix": "jesc",
+    "body": [
+      "echo esc_${1|html,attr,url,js,textarea|}( \\$${2:variable} );$0"
+    ],
+    "description": "Escape output for WordPress"
+  }
+}
