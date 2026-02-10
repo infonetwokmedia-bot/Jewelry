@@ -1,0 +1,260 @@
+# GitHub Copilot Workspace Configuration
+# Jewelry - WordPress + WooCommerce Bilingual Project
+
+# Project type and metadata
+project:
+  type: wordpress-woocommerce
+  name: Jewelry - Remedio Joyería
+  description: Bilingual (Spanish/English) jewelry e-commerce website
+  languages:
+    - php (primary)
+    - javascript
+    - css
+    - scss
+    - markdown
+    - yaml
+    - sql
+
+# Framework and dependencies
+frameworks:
+  - wordpress: "6.x"
+  - woocommerce: "10.5.0"
+  - kadence-theme: "1.4.3"
+  - bogo: "3.9.1"
+
+# Infrastructure
+infrastructure:
+  - docker
+  - docker-compose
+  - traefik
+  - mysql: "8.0"
+  - php: "8.1"
+  - apache
+
+# Priority files for context
+priority_files:
+  - README.md
+  - PROYECTO-ESTADO.md
+  - docker-compose.yml
+  - .env.example
+  - data/wordpress/wp-content/themes/kadence/functions-custom.php
+  - .github/copilot-instructions.md
+  - .github/COPILOT-SKILLS.md
+
+# Patterns to include in context
+include_patterns:
+  - "*.php"
+  - "*.js"
+  - "*.css"
+  - "*.scss"
+  - "*.md"
+  - "docker-compose.yml"
+  - ".env*"
+  - "data/wordpress/wp-content/themes/**/*.php"
+  - "data/wordpress/wp-content/plugins/jewelry-*/**/*"
+
+# Patterns to exclude from context
+exclude_patterns:
+  - "data/mysql/**"
+  - "data/wordpress/wp-admin/**"
+  - "data/wordpress/wp-includes/**"
+  - "data/wordpress/wp-content/uploads/**"
+  - "data/wordpress/wp-content/cache/**"
+  - "data/wordpress/wp-content/plugins/!(jewelry-*)"
+  - "node_modules/**"
+  - "vendor/**"
+  - "*.log"
+  - "*.sql"
+  - "*.zip"
+  - ".git/**"
+
+# Code generation preferences
+code_preferences:
+  # PHP preferences
+  php:
+    version: "8.1"
+    standards: wordpress
+    indentation: 4 spaces
+    function_prefix: jewelry_
+    class_prefix: Jewelry_
+    use_strict_types: false
+    phpcs_standard: WordPress
+    escaping: always
+    sanitization: always
+    nonce_verification: always
+    use_wp_query: always # Never use direct SQL
+    
+  # JavaScript preferences
+  javascript:
+    version: es6
+    indentation: 2 spaces
+    use_const_let: true
+    no_var: true
+    quotes: single
+    
+  # CSS preferences
+  css:
+    indentation: 2 spaces
+    naming: kebab-case
+    prefix: jewelry-
+    
+  # General
+  general:
+    line_length: 100
+    file_encoding: utf-8
+    line_endings: lf
+    trim_trailing_whitespace: true
+    insert_final_newline: true
+
+# Bilingual content rules
+bilingual:
+  enabled: true
+  default_locale: es_ES
+  supported_locales:
+    - es_ES  # Spanish (primary)
+    - en_US  # English (secondary)
+  translation_plugin: bogo
+  always_create_both: true  # CRITICAL: Always create content in both languages
+  link_with_bogo: true      # Always link translations with Bogo
+  menu_prefix_es: primary_navigation_es
+  menu_prefix_en: primary_navigation_en
+
+# Custom skills available
+skills:
+  - create_bilingual_product
+  - create_bilingual_page
+  - import_products_csv
+  - bulk_update_prices
+  - customize_woocommerce_emails
+  - add_checkout_fields
+  - create_product_variations
+  - execute_wpcli_commands
+  - backup_restore_database
+  - custom_wp_queries
+  - link_bogo_translations
+  - detect_untranslated_content
+  - create_language_switcher
+  - custom_gutenberg_blocks
+  - rate_limiting_security
+  - create_test_data
+
+# Common code snippets
+snippets:
+  # Bilingual product creation
+  bilingual_product: |
+    // Create product in Spanish
+    $product_es = new WC_Product_Simple();
+    $product_es->set_name( 'Producto ES' );
+    $product_id_es = $product_es->save();
+    update_post_meta( $product_id_es, '_locale', 'es_ES' );
+    
+    // Create product in English
+    $product_en = new WC_Product_Simple();
+    $product_en->set_name( 'Product EN' );
+    $product_id_en = $product_en->save();
+    update_post_meta( $product_id_en, '_locale', 'en_US' );
+    
+    // Link with Bogo
+    $translations = array( 'es_ES' => $product_id_es, 'en_US' => $product_id_en );
+    update_post_meta( $product_id_es, '_bogo_translations', $translations );
+    update_post_meta( $product_id_en, '_bogo_translations', $translations );
+  
+  # Bilingual page creation
+  bilingual_page: |
+    // Spanish page
+    $page_es = wp_insert_post(array(
+        'post_title' => 'Título ES',
+        'post_content' => 'Contenido ES',
+        'post_type' => 'page',
+        'post_status' => 'publish'
+    ));
+    update_post_meta( $page_es, '_locale', 'es_ES' );
+    
+    // English page
+    $page_en = wp_insert_post(array(
+        'post_title' => 'Title EN',
+        'post_content' => 'Content EN',
+        'post_type' => 'page',
+        'post_status' => 'publish'
+    ));
+    update_post_meta( $page_en, '_locale', 'en_US' );
+    
+    // Link with Bogo
+    $translations = array( 'es_ES' => $page_es, 'en_US' => $page_en );
+    update_post_meta( $page_es, '_bogo_translations', $translations );
+    update_post_meta( $page_en, '_bogo_translations', $translations );
+  
+  # WP-CLI in Docker
+  wpcli_docker: |
+    docker exec jewelry_wordpress wp --allow-root [command]
+  
+  # Sanitization
+  sanitize_input: |
+    $text = sanitize_text_field( $_POST['field'] );
+    $email = sanitize_email( $_POST['email'] );
+    $url = esc_url( $_POST['url'] );
+  
+  # Nonce verification
+  verify_nonce: |
+    if ( ! wp_verify_nonce( $_POST['jewelry_nonce'], 'jewelry_action' ) ) {
+        wp_die( 'Unauthorized action' );
+    }
+
+# Testing preferences
+testing:
+  framework: phpunit
+  coverage_enabled: false
+  test_prefix: test_jewelry_
+
+# Documentation preferences
+documentation:
+  format: markdown
+  inline_comments: phpdoc
+  function_docs: required
+  class_docs: required
+  
+# Git commit preferences
+commits:
+  format: conventional
+  types:
+    - feat
+    - fix
+    - docs
+    - style
+    - refactor
+    - test
+    - chore
+  require_description: true
+  
+# Container information
+containers:
+  wordpress:
+    name: jewelry_wordpress
+    image: wordpress:latest
+  mysql:
+    name: jewelry_mysql
+    image: mysql:8.0
+  wpcli:
+    name: jewelry_wpcli
+    image: wordpress:cli
+  phpmyadmin:
+    name: jewelry_phpmyadmin
+    image: phpmyadmin:latest
+
+# URLs
+urls:
+  frontend: https://jewelry.local.dev
+  admin: https://jewelry.local.dev/wp-admin
+  phpmyadmin: https://phpmyadmin.jewelry.local.dev
+  api: https://jewelry.local.dev/wp-json/wp/v2
+
+# Current priorities (from PROYECTO-ESTADO.md)
+priorities:
+  - Create ~50+ products from WhatsApp catalog (bilingual)
+  - Complete About Us / Nosotros page content
+  - Complete Materials / Materiales page content
+  - Configure WooCommerce emails (bilingual)
+  - Install and configure SEO plugin (Yoast/Rank Math)
+  - Customize header/footer by language
+  - Create blog posts
+  - Optimize images
