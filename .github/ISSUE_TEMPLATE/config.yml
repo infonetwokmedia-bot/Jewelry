@@ -1,0 +1,17 @@
+blank_issues_enabled: false
+contact_links:
+  - name: "💬 WhatsApp - Tickets & Consultas"
+    url: "https://wa.me/13054429004"
+    about: "Para reportar bugs urgentes, consultas de clientes o agregar productos al catalogo"
+  
+  - name: "📋 Project Board"
+    url: "https://github.com/infonetwokmedia-bot/Jewelry/projects"
+    about: "Ver estado del proyecto y tareas en progreso"
+  
+  - name: "🔥 Pull Requests"
+    url: "https://github.com/infonetwokmedia-bot/Jewelry/pulls"
+    about: "Ver PRs activos y revisiones de codigo"
+  
+  - name: "📚 Documentacion"
+    url: "https://github.com/infonetwokmedia-bot/Jewelry/tree/main/docs"
+    about: "Guias de desarrollo, deployment y troubleshooting"

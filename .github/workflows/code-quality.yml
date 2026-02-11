@@ -109,6 +109,146 @@ jobs:
 
           echo "✅ Scripts syntax check complete"
 
+  php-tests:
+    name: PHP Unit Tests
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: wordpress_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping --silent"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.1"
+          extensions: mysqli, pdo_mysql, mbstring, intl
+          tools: phpunit
+          coverage: none
+
+      - name: Check for test files
+        id: check-tests
+        run: |
+          if find tests/php -name "test-*.php" -o -name "Test*.php" 2>/dev/null | grep -q .; then
+            echo "has_tests=true" >> "$GITHUB_OUTPUT"
+            echo "✅ PHP test files found"
+          else
+            echo "has_tests=false" >> "$GITHUB_OUTPUT"
+            echo "ℹ️ No PHP test files found - skipping tests"
+          fi
+
+      - name: Install WordPress test suite
+        if: steps.check-tests.outputs.has_tests == 'true'
+        run: |
+          mkdir -p /tmp/wordpress-tests-lib
+          svn co --quiet https://develop.svn.wordpress.org/tags/6.9.1/tests/phpunit/includes/ /tmp/wordpress-tests-lib/includes
+          svn co --quiet https://develop.svn.wordpress.org/tags/6.9.1/tests/phpunit/data/ /tmp/wordpress-tests-lib/data
+
+      - name: Create wp-tests-config.php
+        if: steps.check-tests.outputs.has_tests == 'true'
+        run: |
+          cat > /tmp/wordpress-tests-lib/wp-tests-config.php << 'EOF'
+          <?php
+          define( 'DB_NAME', 'wordpress_test' );
+          define( 'DB_USER', 'root' );
+          define( 'DB_PASSWORD', 'root' );
+          define( 'DB_HOST', '127.0.0.1' );
+          define( 'DB_CHARSET', 'utf8' );
+          define( 'DB_COLLATE', '' );
+          define( 'WP_TESTS_DOMAIN', 'example.org' );
+          define( 'WP_TESTS_EMAIL', 'admin@example.org' );
+          define( 'WP_TESTS_TITLE', 'Test Blog' );
+          define( 'WP_PHP_BINARY', 'php' );
+          define( 'ABSPATH', '/tmp/wordpress/' );
+          EOF
+
+      - name: Run PHPUnit tests
+        if: steps.check-tests.outputs.has_tests == 'true'
+        run: |
+          echo "Running PHP unit tests..."
+          phpunit --configuration tests/php/phpunit.xml --testdox 2>/dev/null || \
+          phpunit tests/php/ --testdox
+        env:
+          WP_TESTS_DIR: /tmp/wordpress-tests-lib
+
+      - name: Tests skipped notice
+        if: steps.check-tests.outputs.has_tests == 'false'
+        run: |
+          echo "ℹ️ No PHP tests found. Add tests under tests/php/ to enable this job."
+
+  e2e-tests:
+    name: E2E Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check for E2E test files
+        id: check-e2e
+        run: |
+          if find tests/e2e -name "*.spec.js" -o -name "*.spec.ts" 2>/dev/null | grep -q .; then
+            echo "has_tests=true" >> "$GITHUB_OUTPUT"
+            echo "✅ E2E test files found"
+          else
+            echo "has_tests=false" >> "$GITHUB_OUTPUT"
+            echo "ℹ️ No E2E test files found - skipping"
+          fi
+
+      - name: Setup Node.js
+        if: steps.check-e2e.outputs.has_tests == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install dependencies
+        if: steps.check-e2e.outputs.has_tests == 'true'
+        run: |
+          if [ -f "package.json" ]; then
+            npm ci
+          else
+            npm init -y
+            npm install @playwright/test
+          fi
+
+      - name: Install Playwright browsers
+        if: steps.check-e2e.outputs.has_tests == 'true'
+        run: npx playwright install --with-deps chromium
+
+      - name: Start WordPress environment
+        if: steps.check-e2e.outputs.has_tests == 'true'
+        run: |
+          docker compose -f .github/workflows/docker-compose.ci.yml up -d
+          timeout 120 bash -c 'until curl -f http://localhost:8080/wp-admin/install.php; do sleep 2; done'
+
+      - name: Run E2E tests
+        if: steps.check-e2e.outputs.has_tests == 'true'
+        run: npx playwright test tests/e2e/ --reporter=list
+        env:
+          BASE_URL: http://localhost:8080
+
+      - name: Cleanup
+        if: steps.check-e2e.outputs.has_tests == 'true' && always()
+        run: docker compose -f .github/workflows/docker-compose.ci.yml down -v
+
+      - name: E2E tests skipped notice
+        if: steps.check-e2e.outputs.has_tests == 'false'
+        run: |
+          echo "ℹ️ No E2E tests found. Add tests under tests/e2e/ to enable this job."
+
   markdown-lint:
     name: Markdown Lint
     runs-on: ubuntu-latest
@@ -193,7 +333,15 @@ jobs:
   summary:
     name: Summary
     runs-on: ubuntu-latest
-    needs: [security-audit, php-lint, markdown-lint, repo-structure]
+    needs:
+      [
+        security-audit,
+        php-lint,
+        php-tests,
+        e2e-tests,
+        markdown-lint,
+        repo-structure,
+      ]
     if: always()
 
     steps:
@@ -204,12 +352,16 @@ jobs:
           echo ""
           echo "Security Audit: ${{ needs.security-audit.result }}"
           echo "PHP Lint: ${{ needs.php-lint.result }}"
+           echo "PHP Tests: ${{ needs.php-tests.result }}"
+           echo "E2E Tests: ${{ needs.e2e-tests.result }}"
           echo "Markdown Lint: ${{ needs.markdown-lint.result }}"
           echo "Repo Structure: ${{ needs.repo-structure.result }}"
           echo ""
 
           if [[ "${{ needs.security-audit.result }}" == "failure" ]] || \
              [[ "${{ needs.php-lint.result }}" == "failure" ]] || \
+             [[ "${{ needs.php-tests.result }}" == "failure" ]] || \
+             [[ "${{ needs.e2e-tests.result }}" == "failure" ]] || \
              [[ "${{ needs.markdown-lint.result }}" == "failure" ]] || \
              [[ "${{ needs.repo-structure.result }}" == "failure" ]]; then
             echo "❌ Some checks failed. Please review the logs above."
