@@ -339,4 +339,19 @@ docker exec jewelry_wordpress wp post meta get <ID> _bogo_translations --allow-r
 
 ---
 
-**Recuerda:** La vinculación de Bogo es **bidireccional** - ambos posts deben tener el mismo array en `_bogo_translations`.
+## Integracion con TDD
+
+Para funciones de vinculacion Bogo, seguir TDD:
+
+1. **RED:** Test que verifica `_locale` y `_bogo_translations` meta en ambos posts
+2. **GREEN:** Implementar funcion de vinculacion minima
+3. **REFACTOR:** Mejorar validacion de IDs, verificar bidireccionalidad
+
+Tests clave para Bogo:
+- Vinculacion bidireccional correcta
+- Deteccion de contenido sin traducir
+- Locale correcto en cada post
+
+Handoff a `@tdd-coach` para generar tests de vinculacion bilingue.
+
+**Recuerda:** La vinculacion de Bogo es **bidireccional** - ambos posts deben tener el mismo array en `_bogo_translations`. SIEMPRE verificar con tests.

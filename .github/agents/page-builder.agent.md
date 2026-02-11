@@ -261,4 +261,14 @@ docker exec jewelry_wordpress wp post get <ID> --allow-root
 
 ---
 
-**Recuerda:** SIEMPRE crear páginas en ambos idiomas y vincular con Bogo.
+## Integracion con TDD
+
+Para funciones de creacion de paginas, seguir TDD:
+
+1. **RED:** Test que verifica creacion bilingue y vinculacion Bogo
+2. **GREEN:** Implementar funcion jewelry_create_bilingual_page()
+3. **REFACTOR:** Mejorar validacion, sanitizacion de contenido
+
+Handoff a `@tdd-coach` para generar tests y a `@bogo-expert` para vinculacion.
+
+**Recuerda:** SIEMPRE crear paginas en ambos idiomas y vincular con Bogo. SIEMPRE escribir tests primero (TDD).

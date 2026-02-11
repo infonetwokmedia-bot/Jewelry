@@ -137,6 +137,20 @@ skills:
   - custom_gutenberg_blocks
   - rate_limiting_security
   - create_test_data
+  - tdd_generate_test_from_criteria
+  - tdd_generate_minimum_code
+  - tdd_suggest_refactor
+  - tdd_validate_commit_pattern
+
+# Custom agents
+agents:
+  - product-creator
+  - bogo-expert
+  - woocommerce-expert
+  - page-builder
+  - database-manager
+  - security-reviewer
+  - tdd-coach
 
 # Common code snippets
 snippets:
@@ -200,11 +214,39 @@ snippets:
         wp_die( 'Unauthorized action' );
     }
 
-# Testing preferences
+# Testing preferences (TDD)
 testing:
-  framework: phpunit
-  coverage_enabled: false
+  methodology: tdd
+  framework_php: phpunit
+  framework_e2e: playwright
+  coverage_enabled: true
+  coverage_target: 80
   test_prefix: test_jewelry_
+  test_location_php: tests/php/
+  test_location_e2e: tests/e2e/
+  tdd_cycle:
+    red: "Write failing test FIRST"
+    green: "Write MINIMUM code to pass"
+    refactor: "Clean up without breaking tests"
+  commit_pattern:
+    red: "test(scope): add failing test for [feature]"
+    green: "feat(scope): implement [feature]"
+    refactor: "refactor(scope): improve [aspect]"
+
+# Development methodology
+methodology:
+  name: TDD (Test-Driven Development)
+  workflow_doc: docs/WORKFLOW-TDD.md
+  dod_doc: docs/DEFINITION-OF-DONE.md
+  governance:
+    pre_commit_hooks: true
+    conventional_commits: enforced
+    tdd_score_on_pr: true
+    ci_must_pass: true
+  issue_templates:
+    - user-story
+    - bug-report
+    - technical-task
 
 # Documentation preferences
 documentation:
@@ -212,7 +254,7 @@ documentation:
   inline_comments: phpdoc
   function_docs: required
   class_docs: required
-  
+
 # Git commit preferences
 commits:
   format: conventional
@@ -224,7 +266,14 @@ commits:
     - refactor
     - test
     - chore
+    - security
+    - perf
+    - ci
   require_description: true
+  tdd_commit_order:
+    - test
+    - feat
+    - refactor
   
 # Container information
 containers:

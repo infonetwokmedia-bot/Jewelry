@@ -1,0 +1,292 @@
+name: TDD Governance
+
+on:
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  tdd-commit-analysis:
+    name: TDD Commit Pattern Analysis
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Analyze TDD commit patterns
+        id: tdd-check
+        run: |
+          echo "Analyzing TDD patterns in PR commits..."
+          echo ""
+
+          # Get commits in this PR
+          BASE="${{ github.event.pull_request.base.sha }}"
+          HEAD="${{ github.event.pull_request.head.sha }}"
+
+          COMMITS=$(git log --oneline "$BASE".."$HEAD" 2>/dev/null || git log --oneline -20)
+          TOTAL=$(echo "$COMMITS" | wc -l)
+
+          TEST_COUNT=$(echo "$COMMITS" | grep -cE "^[a-f0-9]+ test(\(|:)" || true)
+          FEAT_COUNT=$(echo "$COMMITS" | grep -cE "^[a-f0-9]+ feat(\(|:)" || true)
+          FIX_COUNT=$(echo "$COMMITS" | grep -cE "^[a-f0-9]+ fix(\(|:)" || true)
+          REFACTOR_COUNT=$(echo "$COMMITS" | grep -cE "^[a-f0-9]+ refactor(\(|:)" || true)
+          DOCS_COUNT=$(echo "$COMMITS" | grep -cE "^[a-f0-9]+ docs(\(|:)" || true)
+          CHORE_COUNT=$(echo "$COMMITS" | grep -cE "^[a-f0-9]+ chore(\(|:)" || true)
+          OTHER_COUNT=$(echo "$COMMITS" | grep -cvE "^[a-f0-9]+ (feat|fix|docs|style|refactor|test|chore|security|perf|ci|build|revert)(\(|:)" || true)
+
+          echo "Commit breakdown:"
+          echo "  test:     $TEST_COUNT"
+          echo "  feat:     $FEAT_COUNT"
+          echo "  fix:      $FIX_COUNT"
+          echo "  refactor: $REFACTOR_COUNT"
+          echo "  docs:     $DOCS_COUNT"
+          echo "  chore:    $CHORE_COUNT"
+          echo "  other:    $OTHER_COUNT"
+          echo "  total:    $TOTAL"
+          echo ""
+
+          # TDD Score calculation
+          TDD_SCORE=0
+
+          # Has test commits?
+          if [ "$TEST_COUNT" -gt 0 ]; then
+            TDD_SCORE=$((TDD_SCORE + 30))
+            echo "  [+30] Test commits found"
+          else
+            echo "  [ 0] No test commits (test(scope): ...)"
+          fi
+
+          # Test commits appear before feat/fix commits?
+          FIRST_TEST=$(git log --oneline "$BASE".."$HEAD" --reverse 2>/dev/null | grep -nE "^[a-f0-9]+ test(\(|:)" | head -1 | cut -d: -f1 || echo "999")
+          FIRST_IMPL=$(git log --oneline "$BASE".."$HEAD" --reverse 2>/dev/null | grep -nE "^[a-f0-9]+ (feat|fix)(\(|:)" | head -1 | cut -d: -f1 || echo "999")
+
+          if [ "$FIRST_TEST" != "999" ] && [ "$FIRST_IMPL" != "999" ] && [ "$FIRST_TEST" -le "$FIRST_IMPL" ]; then
+            TDD_SCORE=$((TDD_SCORE + 30))
+            echo "  [+30] RED before GREEN pattern detected"
+          elif [ "$FIRST_TEST" != "999" ]; then
+            TDD_SCORE=$((TDD_SCORE + 15))
+            echo "  [+15] Tests present but order unclear"
+          else
+            echo "  [ 0] No RED-before-GREEN pattern"
+          fi
+
+          # Has refactor commits?
+          if [ "$REFACTOR_COUNT" -gt 0 ]; then
+            TDD_SCORE=$((TDD_SCORE + 20))
+            echo "  [+20] Refactor phase commits found"
+          else
+            echo "  [ 0] No refactor commits"
+          fi
+
+          # Conventional commits compliance
+          if [ "$OTHER_COUNT" -eq 0 ]; then
+            TDD_SCORE=$((TDD_SCORE + 20))
+            echo "  [+20] 100% Conventional Commits compliance"
+          elif [ "$OTHER_COUNT" -le 2 ]; then
+            TDD_SCORE=$((TDD_SCORE + 10))
+            echo "  [+10] Mostly Conventional Commits ($OTHER_COUNT non-compliant)"
+          else
+            echo "  [ 0] $OTHER_COUNT non-conventional commits"
+          fi
+
+          echo ""
+          echo "TDD Score: $TDD_SCORE / 100"
+          echo ""
+
+          echo "tdd_score=$TDD_SCORE" >> "$GITHUB_OUTPUT"
+          echo "test_count=$TEST_COUNT" >> "$GITHUB_OUTPUT"
+          echo "total_count=$TOTAL" >> "$GITHUB_OUTPUT"
+
+          # Determine result
+          if [ "$TDD_SCORE" -ge 60 ]; then
+            echo "TDD discipline: GOOD"
+          elif [ "$TDD_SCORE" -ge 30 ]; then
+            echo "TDD discipline: NEEDS IMPROVEMENT"
+            echo "Tip: Follow RED -> GREEN -> REFACTOR cycle"
+            echo "See: docs/WORKFLOW-TDD.md"
+          else
+            echo "TDD discipline: LOW"
+            echo "Consider following the TDD workflow documented in docs/WORKFLOW-TDD.md"
+          fi
+
+      - name: Comment TDD score on PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const score = '${{ steps.tdd-check.outputs.tdd_score }}';
+            const testCount = '${{ steps.tdd-check.outputs.test_count }}';
+            const totalCount = '${{ steps.tdd-check.outputs.total_count }}';
+
+            let emoji, level;
+            if (score >= 80) { emoji = '🟢'; level = 'Excelente'; }
+            else if (score >= 60) { emoji = '🟡'; level = 'Bueno'; }
+            else if (score >= 30) { emoji = '🟠'; level = 'Mejorable'; }
+            else { emoji = '🔴'; level = 'Bajo'; }
+
+            const body = `## ${emoji} TDD Governance Report
+
+            | Metrica | Valor |
+            |---------|-------|
+            | **TDD Score** | **${score}/100** (${level}) |
+            | Commits con tests | ${testCount} de ${totalCount} |
+
+            ${score < 60 ? `> **Recomendacion:** Seguir el ciclo RED → GREEN → REFACTOR.
+            > Ver [docs/WORKFLOW-TDD.md](../blob/develop/docs/WORKFLOW-TDD.md) para la guia completa.` : ''}
+
+            <details>
+            <summary>Como mejorar el TDD Score</summary>
+
+            - **+30 pts:** Incluir commits \`test(scope): ...\` (fase RED)
+            - **+30 pts:** Tests ANTES de implementacion (RED before GREEN)
+            - **+20 pts:** Incluir commits \`refactor(scope): ...\` (fase REFACTOR)
+            - **+20 pts:** 100% Conventional Commits
+
+            </details>`;
+
+            // Find existing governance comment
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const existing = comments.find(c => c.body.includes('TDD Governance Report'));
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body: body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: body,
+              });
+            }
+
+  conventional-commits:
+    name: Conventional Commits Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Validate commit messages
+        run: |
+          BASE="${{ github.event.pull_request.base.sha }}"
+          HEAD="${{ github.event.pull_request.head.sha }}"
+
+          echo "Validating Conventional Commits..."
+
+          FAILED=0
+          while IFS= read -r line; do
+            HASH=$(echo "$line" | cut -d' ' -f1)
+            MSG=$(echo "$line" | cut -d' ' -f2-)
+
+            if echo "$MSG" | grep -qE "^(feat|fix|docs|style|refactor|test|chore|security|perf|ci|build|revert)(\([a-zA-Z0-9_-]+\))?: .{3,}"; then
+              echo "  OK: $MSG"
+            elif echo "$MSG" | grep -qE "^Merge "; then
+              echo "  SKIP (merge): $MSG"
+            else
+              echo "  FAIL: $MSG"
+              FAILED=$((FAILED + 1))
+            fi
+          done < <(git log --oneline "$BASE".."$HEAD" 2>/dev/null)
+
+          if [ "$FAILED" -gt 0 ]; then
+            echo ""
+            echo "ERROR: $FAILED commit(s) no siguen Conventional Commits."
+            echo "Formato: type(scope): descripcion"
+            echo "Ver: CONTRIBUTING.md"
+            exit 1
+          fi
+
+          echo ""
+          echo "Todos los commits siguen Conventional Commits."
+
+  issue-reference:
+    name: Issue Reference Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check PR references an issue
+        run: |
+          PR_BODY="${{ github.event.pull_request.body }}"
+
+          echo "Verificando referencia a Issue..."
+
+          if echo "$PR_BODY" | grep -qiE "(closes?|fixes?|resolves?|ref|relates to) #[0-9]+"; then
+            echo "PR referencia un Issue correctamente."
+          else
+            echo "ADVERTENCIA: Este PR no referencia ningun Issue."
+            echo "Se recomienda vincular con: Closes #XX, Fixes #XX, o Ref #XX"
+            echo "El workflow TDD comienza con la creacion de un Issue."
+          fi
+
+  definition-of-done:
+    name: Definition of Done Checklist
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Verify DoD items
+        run: |
+          echo "Verificando Definition of Done..."
+          echo ""
+
+          WARNINGS=0
+
+          # Check tests directory has files
+          TEST_COUNT=$(find tests/ -name "*.php" -o -name "*.spec.js" -o -name "*.spec.ts" 2>/dev/null | wc -l)
+          if [ "$TEST_COUNT" -gt 0 ]; then
+            echo "  [OK] Tests encontrados: $TEST_COUNT archivos"
+          else
+            echo "  [WARN] No se encontraron archivos de test"
+            WARNINGS=$((WARNINGS + 1))
+          fi
+
+          # Check docs exist
+          if [ -f "docs/WORKFLOW-TDD.md" ]; then
+            echo "  [OK] Workflow TDD documentado"
+          else
+            echo "  [WARN] docs/WORKFLOW-TDD.md no encontrado"
+            WARNINGS=$((WARNINGS + 1))
+          fi
+
+          if [ -f "docs/DEFINITION-OF-DONE.md" ]; then
+            echo "  [OK] Definition of Done documentado"
+          else
+            echo "  [WARN] docs/DEFINITION-OF-DONE.md no encontrado"
+            WARNINGS=$((WARNINGS + 1))
+          fi
+
+          # Check issue templates
+          if [ -d ".github/ISSUE_TEMPLATE" ]; then
+            TEMPLATES=$(ls .github/ISSUE_TEMPLATE/*.yml 2>/dev/null | wc -l)
+            echo "  [OK] Issue templates: $TEMPLATES templates"
+          else
+            echo "  [WARN] No issue templates found"
+            WARNINGS=$((WARNINGS + 1))
+          fi
+
+          echo ""
+          if [ "$WARNINGS" -gt 0 ]; then
+            echo "Completado con $WARNINGS advertencias."
+          else
+            echo "Todas las verificaciones DoD pasaron."
+          fi

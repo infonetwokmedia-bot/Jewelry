@@ -99,8 +99,19 @@
 - **Password de aplicación:** Ver archivo 
 - **API Endpoint:** https://jewelry.local.dev/wp-json/wp/v2
 
-##  NOTAS
+## Metodologia de Desarrollo
+
+- Metodologia TDD (Red-Green-Refactor) implementada
+- Issue Templates: User Story, Bug Report, Technical Task
+- CI/CD: code-quality.yml (tests, lint, security) + tdd-governance.yml (TDD score)
+- Git hooks: pre-commit (syntax, prefijos), commit-msg (conventional commits)
+- PR template con evidencia TDD obligatoria
+- Definition of Done documentado
+- 7 agentes Copilot (incluyendo tdd-coach)
+- Workflow AI-TDD documentado para Claude, Copilot, ChatGPT
+
+## Notas
 
 - Todos los contenidos son placeholders temporales
-- Las páginas legales necesitan contenido completo
-- El catálogo de WhatsApp contiene ~50+ productos pendientes de crear
+- Las paginas legales necesitan contenido completo
+- El catalogo de WhatsApp contiene ~50+ productos pendientes de crear

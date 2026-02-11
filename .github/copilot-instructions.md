@@ -470,13 +470,73 @@ Ver `PROYECTO-ESTADO.md` para el estado actualizado. Prioridades principales:
 - Core de plugins: `data/wordpress/wp-content/plugins/[plugin-name]/` (excepto si es custom)
 - Base de datos: `data/mysql/` (ignorar en git)
 
-## 🚀 Workflow de Desarrollo
+## 🚀 Workflow de Desarrollo (TDD)
 
-1. **Crear funcionalidad en español primero**
-2. **Inmediatamente crear la versión en inglés**
-3. **Vincular ambas versiones con Bogo**
-4. **Probar en ambos idiomas**
-5. **Commit con mensaje convencional**
+**OBLIGATORIO: Seguir metodologia TDD (Red-Green-Refactor)**
+
+### Ciclo para cada criterio de aceptacion
+
+```
+1. RED:      Escribir test que FALLA
+             Commit: test(scope): add failing test for [feature]
+
+2. GREEN:    Codigo MINIMO para que el test PASE
+             Commit: feat(scope): implement [feature]
+
+3. REFACTOR: Limpiar sin romper tests
+             Commit: refactor(scope): improve [aspect]
+```
+
+### Proceso completo
+
+1. **Crear Issue** con User Story y criterios de aceptacion (Given/When/Then)
+2. **Crear branch** `feature/ISSUE-descripcion` desde develop
+3. **Por cada criterio de aceptacion:**
+   - Escribir test en `tests/php/test-{feature}.php` o `tests/e2e/{feature}.spec.js`
+   - Ejecutar test (debe fallar - RED)
+   - Escribir codigo minimo (debe pasar - GREEN)
+   - Refactorizar manteniendo tests verdes (REFACTOR)
+4. **Verificar bilingue** (ES + EN) si aplica
+5. **Abrir PR** con evidencia TDD documentada
+6. **CI verifica** automaticamente (tests, lint, security, governance)
+
+### Generar tests desde criterios
+
+```php
+// Dado un criterio: DADO [contexto], CUANDO [accion], ENTONCES [resultado]
+public function test_criterio_descripcion() {
+    // Arrange (DADO)
+    $setup_data = 'value';
+
+    // Act (CUANDO)
+    $result = jewelry_function( $setup_data );
+
+    // Assert (ENTONCES)
+    $this->assertEquals( 'expected', $result );
+}
+```
+
+### Agente TDD disponible
+
+Usar `@tdd-coach` para:
+- Generar tests desde criterios de aceptacion
+- Validar secuencia TDD en commits
+- Generar codigo minimo (GREEN phase)
+- Sugerir refactors
+
+### Gobernanza automatizada
+
+- **Pre-commit hook:** Valida syntax PHP, prefijo jewelry_, archivos sensibles
+- **Commit-msg hook:** Valida formato Conventional Commits
+- **CI TDD Governance:** Analiza patron TDD y genera score en cada PR
+- **CI Tests:** PHPUnit + Playwright ejecutan en cada push
+
+### Referencia de la metodologia
+
+- Workflow TDD completo: `docs/WORKFLOW-TDD.md`
+- Definition of Done: `docs/DEFINITION-OF-DONE.md`
+- Issue templates: `.github/ISSUE_TEMPLATE/`
+- Governance pipeline: `.github/workflows/tdd-governance.yml`
 
 ## 📚 Referencias
 
@@ -488,4 +548,4 @@ Ver `PROYECTO-ESTADO.md` para el estado actualizado. Prioridades principales:
 
 ---
 
-**Recuerda:** SIEMPRE crear contenido en AMBOS idiomas y vincular con Bogo. Usa prefijo `jewelry_` para funciones custom. Sanitiza todas las entradas. Usa WP_Query en lugar de SQL directo.
+**Recuerda:** SIEMPRE seguir TDD (Red-Green-Refactor). Crear contenido en AMBOS idiomas y vincular con Bogo. Usar prefijo `jewelry_`. Sanitizar entradas. Usar WP_Query. Documentar evidencia TDD en PRs.
