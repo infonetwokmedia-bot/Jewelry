@@ -1,134 +1,108 @@
-## 📋 Descripción
+## Descripcion
 
 <!-- Describe los cambios de este PR de manera clara y concisa -->
 
-## 🔖 Tipo de Cambio
+## Issue Relacionado
 
-Selecciona el tipo de cambio (marca con `x`):
+<!-- Vincula el issue que este PR resuelve -->
+Closes #
 
-- [ ] 🐛 **Bug fix** (corrección de error no breaking)
-- [ ] ✨ **Feature** (nueva funcionalidad no breaking)
-- [ ] 💥 **Breaking change** (fix o feature que causa cambios incompatibles)
-- [ ] 📝 **Documentación** (cambios solo en documentación)
-- [ ] 🎨 **Style** (formato, espacios, sin cambios en lógica)
-- [ ] ♻️ **Refactor** (código que no añade funcionalidad ni corrige bug)
-- [ ] ⚡ **Performance** (mejora de rendimiento)
-- [ ] ✅ **Test** (añadir o corregir tests)
-- [ ] 🔧 **Chore** (cambios en build, deps, config)
-- [ ] 🔒 **Security** (fix de seguridad)
+## Tipo de Cambio
 
-## ✅ Checklist de Calidad
+<!-- Marca con x el tipo de cambio -->
 
-### Código
+- [ ] **Bug fix** (correccion de error no breaking)
+- [ ] **Feature** (nueva funcionalidad no breaking)
+- [ ] **Breaking change** (fix o feature que causa cambios incompatibles)
+- [ ] **Refactor** (codigo que no cambia funcionalidad)
+- [ ] **Docs** (cambios solo en documentacion)
+- [ ] **Test** (agregar o corregir tests)
+- [ ] **Chore** (mantenimiento, deps, config)
+- [ ] **Security** (fix de seguridad)
 
-- [ ] ✅ Funciones custom usan prefijo `jewelry_`
-- [ ] ✅ Código sigue [WordPress Coding Standards](https://developer.wordpress.org/coding-standards/)
-- [ ] ✅ Yoda conditions usadas (`'value' === $variable`)
-- [ ] ✅ Input sanitizado (`sanitize_text_field()`, etc.)
-- [ ] ✅ Output escapado (`esc_html()`, `esc_attr()`, `esc_url()`)
-- [ ] ✅ Nonces verificados en formularios (`wp_verify_nonce()`)
-- [ ] ✅ Sin SQL directo (usar `WP_Query` o prepared statements)
+## Evidencia TDD
 
-### Bilingüismo (si aplica)
+<!-- Describe los ciclos Red-Green-Refactor que completaste -->
 
-- [ ] 🌍 Contenido creado en **AMBOS idiomas** (ES + EN)
-- [ ] 🔗 Posts/productos vinculados con **Bogo** correctamente
-- [ ] ✅ Meta `_locale` configurada (`es_ES` / `en_US`)
-- [ ] ✅ Meta `_bogo_translations` configurada
-- [ ] ✅ Menús/páginas verificados en ambos idiomas
+### Ciclos completados
 
-### Testing
+| # | Criterio de Aceptacion | Test | Estado |
+|---|------------------------|------|--------|
+| 1 | <!-- descripcion --> | `test_nombre_del_test` | RED -> GREEN -> REFACTOR |
+| 2 | <!-- descripcion --> | `test_nombre_del_test` | RED -> GREEN -> REFACTOR |
 
-- [ ] ✅ Tests automáticos ejecutados (`./scripts/test-connections.sh`)
-- [ ] ✅ No hay errores PHP (verificado con logs)
-- [ ] ✅ No hay errores en consola del navegador
-- [ ] ✅ Funciona correctamente en ambos idiomas (ES/EN)
-- [ ] ✅ CI checks passing (GitHub Actions)
+### Commits TDD
 
-### Documentación
+<!-- Los commits deben mostrar la secuencia TDD -->
+<!-- Ejemplo:
+- test(products): add failing test for metal filter (RED)
+- feat(products): implement metal filter function (GREEN)
+- refactor(products): improve validation and types (REFACTOR)
+-->
 
-- [ ] 📝 README actualizado (si aplica)
-- [ ] 📝 docs/ actualizados (si aplica)
-- [ ] 📝 Comentarios PHPDoc en funciones nuevas/modificadas
-- [ ] 📝 CHANGELOG actualizado (si aplica)
+## Checklist de Calidad
 
-## 🧪 Testing Realizado
+### Codigo
 
-<!-- Describe qué tests hiciste para verificar los cambios -->
+- [ ] Funciones custom usan prefijo `jewelry_`
+- [ ] Codigo sigue WordPress Coding Standards
+- [ ] Yoda conditions usadas (`'value' === $variable`)
+- [ ] Input sanitizado (`sanitize_text_field()`, etc.)
+- [ ] Output escapado (`esc_html()`, `esc_attr()`, `esc_url()`)
+- [ ] Nonces verificados en formularios (`wp_verify_nonce()`)
 
-**Tests manuales:**
+### Tests
 
-- [ ] Homepage carga sin errores
-- [ ] Cambio de idioma funciona
-- [ ] [Describe otras pruebas realizadas]
+- [ ] Tests escritos ANTES del codigo (TDD)
+- [ ] Todos los tests pasando localmente
+- [ ] Criterios de aceptacion cubiertos por tests
+- [ ] Sin regresiones en tests existentes
+- [ ] CI pipeline verde
+
+### Bilingue (si aplica)
+
+- [ ] Contenido creado en AMBOS idiomas (ES + EN)
+- [ ] Posts/productos vinculados con Bogo
+- [ ] Meta `_locale` configurada
+- [ ] Verificado navegacion en ambos idiomas
+
+### Documentacion
+
+- [ ] README/docs actualizados (si aplica)
+- [ ] PHPDoc en funciones nuevas/modificadas
+
+## Testing Realizado
 
 **Tests automatizados:**
 
 ```bash
-# Comando ejecutado
-./scripts/test-connections.sh
-
-# Resultado
-[Pega el output aquí]
+# Comando ejecutado y resultado
 ```
 
-## 📸 Screenshots (si aplica)
+**Tests manuales:**
 
-<!-- Si hay cambios visuales, añade screenshots ANTES y DESPUÉS -->
+- [ ] Funcionalidad verificada en ES
+- [ ] Funcionalidad verificada en EN
+- [ ] No hay errores en consola del navegador
+- [ ] No hay errores en logs Docker
+
+## Screenshots (si aplica)
 
 ### Antes
 
-<!-- Imagen -->
+### Despues
 
-### Después
+## Notas para Reviewers
 
-<!-- Imagen -->
+<!-- Informacion adicional que los reviewers deberian saber -->
 
-## 🔗 Issues Relacionados
-
-<!-- Vincula issues que este PR cierra o referencia -->
-
-Closes #(issue_number)  
-Fixes #(issue_number)  
-Relates to #(issue_number)
-
-## 📝 Notas para Reviewers
-
-<!-- Información adicional que los reviewers deberían saber -->
-
-<!-- Ejemplo:
-- Este PR requiere regenerar permalinks después de merge
-- Hay un cambio en la estructura de BD (migración manual necesaria)
-- Depende de PR #123
--->
-
----
-
-## 🚀 Deployment Notes (si aplica)
-
-<!-- Si este PR requiere pasos especiales al deployar -->
+## Deployment Notes (si aplica)
 
 **Pre-deployment:**
 
 - [ ] Backup de base de datos
-- [ ] [Otro paso]
 
 **Post-deployment:**
 
-- [ ] Regenerar permalinks: `wp rewrite flush`
-- [ ] Limpiar cache: `wp cache flush`
-- [ ] [Otro paso]
-
----
-
-**Conventional Commit previsto:**
-
-```
-type(scope): descripción corta
-
-[Cuerpo opcional]
-
-[Footer opcional: Closes #123]
-```
-
-<!-- Ver CONTRIBUTING.md para más información sobre conventional commits -->
+- [ ] `wp rewrite flush`
+- [ ] `wp cache flush`

@@ -1,0 +1,132 @@
+name: "Bug Report"
+description: "Reportar un error o comportamiento inesperado"
+title: "[BUG] "
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Reporte de Bug
+        Completa la mayor cantidad de informacion posible para facilitar la resolucion.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Descripcion del Bug
+      description: "Descripcion clara y concisa del error"
+      placeholder: "Que esta fallando?"
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps-to-reproduce
+    attributes:
+      label: Pasos para Reproducir
+      description: "Pasos exactos para reproducir el error"
+      value: |
+        1. Ir a '...'
+        2. Hacer click en '...'
+        3. Scroll hasta '...'
+        4. Ver el error
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected-behavior
+    attributes:
+      label: Comportamiento Esperado
+      description: "Que deberia pasar?"
+      placeholder: "Descripcion del comportamiento correcto"
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual-behavior
+    attributes:
+      label: Comportamiento Actual
+      description: "Que esta pasando realmente?"
+      placeholder: "Descripcion del comportamiento incorrecto"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severidad
+      options:
+        - "Critica - Sistema caido o datos corruptos"
+        - "Alta - Funcionalidad principal rota"
+        - "Media - Funcionalidad secundaria afectada"
+        - "Baja - Problema cosmetico o menor"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: component
+    attributes:
+      label: Componente Afectado
+      options:
+        - "Productos / WooCommerce"
+        - "Checkout / Pagos"
+        - "Paginas / Contenido"
+        - "Bogo / Cambio de Idioma"
+        - "Theme / CSS / UI"
+        - "Admin / Backend"
+        - "Docker / Infraestructura"
+        - "Otro"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: language
+    attributes:
+      label: Idioma donde ocurre
+      options:
+        - "Ambos (ES y EN)"
+        - "Solo Espanol (ES)"
+        - "Solo Ingles (EN)"
+        - "No aplica"
+    validations:
+      required: true
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Entorno
+      description: "Informacion del entorno donde ocurre el bug"
+      value: |
+        - **Navegador:** Chrome XX / Firefox XX / Safari XX
+        - **SO:** Windows / macOS / Linux
+        - **WordPress:** 6.9.1
+        - **WooCommerce:** 10.5.0
+        - **Bogo:** 3.9.1
+    validations:
+      required: false
+
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots / Logs
+      description: "Adjuntar capturas de pantalla o logs relevantes"
+      placeholder: |
+        Arrastra imagenes aqui.
+
+        Para logs de Docker:
+        ```
+        docker compose logs wordpress | tail -50
+        ```
+    validations:
+      required: false
+
+  - type: textarea
+    id: acceptance-criteria
+    attributes:
+      label: Criterios de Aceptacion del Fix
+      description: "Como sabremos que el bug esta resuelto?"
+      value: |
+        - [ ] El error ya no se reproduce siguiendo los pasos descritos
+        - [ ] Test de regresion escrito y pasando
+        - [ ] No se introducen nuevos errores
+        - [ ] Funciona en ambos idiomas (si aplica)
+    validations:
+      required: true

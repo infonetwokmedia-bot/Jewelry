@@ -1,0 +1,134 @@
+name: "User Story"
+description: "Crear una historia de usuario con criterios de aceptacion"
+title: "[STORY] "
+labels: ["user-story", "backlog"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Historia de Usuario
+        Completa los campos para definir la historia de usuario.
+        Formato: **Como [rol], quiero [accion], para [beneficio]**
+
+  - type: textarea
+    id: user-story
+    attributes:
+      label: Historia de Usuario
+      description: "Describe la historia en formato estandar"
+      placeholder: |
+        **Como** [cliente/admin/visitante],
+        **quiero** [accion que desea realizar],
+        **para** [beneficio o valor que obtiene].
+      value: |
+        **Como** ,
+        **quiero** ,
+        **para** .
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance-criteria
+    attributes:
+      label: Criterios de Aceptacion
+      description: "Lista de condiciones verificables que deben cumplirse (Given/When/Then)"
+      placeholder: |
+        - [ ] **Dado** [contexto inicial], **cuando** [accion del usuario], **entonces** [resultado esperado]
+        - [ ] **Dado** [contexto inicial], **cuando** [accion del usuario], **entonces** [resultado esperado]
+      value: |
+        - [ ] **Dado** , **cuando** , **entonces**
+        - [ ] **Dado** , **cuando** , **entonces**
+    validations:
+      required: true
+
+  - type: textarea
+    id: technical-notes
+    attributes:
+      label: Notas Tecnicas
+      description: "Detalles de implementacion, archivos afectados, dependencias"
+      placeholder: |
+        - Archivos a modificar: `functions-custom.php`
+        - Dependencias: WooCommerce hooks
+        - Consideraciones bilingues: Requiere ES + EN
+    validations:
+      required: false
+
+  - type: dropdown
+    id: component
+    attributes:
+      label: Componente
+      description: "Area del sistema afectada"
+      options:
+        - "Productos / WooCommerce"
+        - "Paginas / Contenido"
+        - "Checkout / Pagos"
+        - "Bogo / Bilingue"
+        - "Theme / UI"
+        - "Admin / Backend"
+        - "Scripts / DevOps"
+        - "Documentacion"
+        - "Otro"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Prioridad
+      options:
+        - "P0 - Critica (blocker)"
+        - "P1 - Alta"
+        - "P2 - Media"
+        - "P3 - Baja"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: size
+    attributes:
+      label: Estimacion de Complejidad
+      description: "Talla de camiseta"
+      options:
+        - "XS (< 1 hora)"
+        - "S (1-4 horas)"
+        - "M (1-2 dias)"
+        - "L (3-5 dias)"
+        - "XL (> 1 semana - considerar dividir)"
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: bilingual
+    attributes:
+      label: Requisitos Bilingues
+      description: "Marcar si aplica"
+      options:
+        - label: "Requiere contenido en Espanol (ES)"
+        - label: "Requiere contenido en Ingles (EN)"
+        - label: "Requiere vinculacion Bogo entre versiones"
+        - label: "No aplica (cambio solo tecnico)"
+
+  - type: textarea
+    id: definition-of-done
+    attributes:
+      label: Definition of Done
+      description: "Condiciones adicionales para considerar esta historia TERMINADA"
+      value: |
+        - [ ] Todos los criterios de aceptacion cumplidos
+        - [ ] Tests escritos y pasando (RED -> GREEN -> REFACTOR)
+        - [ ] Codigo sigue WordPress Coding Standards
+        - [ ] Funciones custom con prefijo `jewelry_`
+        - [ ] Contenido bilingue creado y vinculado (si aplica)
+        - [ ] CI pipeline pasando (GitHub Actions)
+        - [ ] PR revisado y aprobado
+        - [ ] Documentacion actualizada (si aplica)
+    validations:
+      required: true
+
+  - type: textarea
+    id: mockups
+    attributes:
+      label: Mockups / Referencias Visuales
+      description: "Adjuntar imagenes, wireframes o links de referencia"
+      placeholder: "Arrastra imagenes aqui o pega URLs de referencia"
+    validations:
+      required: false

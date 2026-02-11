@@ -1,0 +1,95 @@
+name: "Technical Task"
+description: "Tarea tecnica, refactoring, deuda tecnica o mejora de infraestructura"
+title: "[TASK] "
+labels: ["task", "technical"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Tarea Tecnica
+        Para trabajo que no es directamente una user story ni un bug: refactoring,
+        mejoras de rendimiento, actualizaciones de dependencias, configuracion, etc.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Descripcion
+      description: "Que necesita hacerse y por que?"
+      placeholder: "Describe la tarea y su justificacion"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: type
+    attributes:
+      label: Tipo de Tarea
+      options:
+        - "Refactoring"
+        - "Performance / Optimizacion"
+        - "Actualizacion de dependencias"
+        - "Configuracion / DevOps"
+        - "Seguridad"
+        - "Deuda tecnica"
+        - "Documentacion tecnica"
+        - "Testing / QA"
+        - "Otro"
+    validations:
+      required: true
+
+  - type: textarea
+    id: tasks
+    attributes:
+      label: Subtareas
+      description: "Desglosa el trabajo en pasos concretos"
+      value: |
+        - [ ] Paso 1
+        - [ ] Paso 2
+        - [ ] Paso 3
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance-criteria
+    attributes:
+      label: Criterios de Aceptacion
+      description: "Como verificamos que la tarea esta completa?"
+      value: |
+        - [ ] Criterio 1
+        - [ ] Criterio 2
+    validations:
+      required: true
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Prioridad
+      options:
+        - "P0 - Critica (blocker)"
+        - "P1 - Alta"
+        - "P2 - Media"
+        - "P3 - Baja"
+    validations:
+      required: true
+
+  - type: textarea
+    id: risks
+    attributes:
+      label: Riesgos / Impacto
+      description: "Que puede salir mal? Que otros componentes se ven afectados?"
+      placeholder: "Describe posibles riesgos y areas de impacto"
+    validations:
+      required: false
+
+  - type: textarea
+    id: definition-of-done
+    attributes:
+      label: Definition of Done
+      value: |
+        - [ ] Todas las subtareas completadas
+        - [ ] Tests actualizados/creados y pasando
+        - [ ] CI pipeline pasando
+        - [ ] Sin regresiones en funcionalidad existente
+        - [ ] PR revisado y aprobado
+        - [ ] Documentacion actualizada (si aplica)
+    validations:
+      required: true

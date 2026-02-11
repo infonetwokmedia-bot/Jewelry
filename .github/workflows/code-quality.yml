@@ -19,33 +19,33 @@ jobs:
 
       - name: Check for sensitive files in commits
         run: |
-          echo "🔍 Checking for sensitive files..."
+          echo "Checking for sensitive files..."
 
           # Check if sensitive files exist in tracked files
           SENSITIVE_FILES=$(git ls-files | grep -E '(^\.env$|credentials|\.bak$|\.backup$)' || true)
 
           if [ -n "$SENSITIVE_FILES" ]; then
-            echo "❌ ERROR: Sensitive files found:"
+            echo "ERROR: Sensitive files found:"
             echo "$SENSITIVE_FILES"
             exit 1
           else
-            echo "✅ No sensitive files found in tracked files"
+            echo "No sensitive files found in tracked files"
           fi
 
       - name: Verify .gitignore is complete
         run: |
-          echo "🔍 Verifying .gitignore..."
+          echo "Verifying .gitignore..."
 
           # Check critical patterns are in .gitignore
-          grep -q 'data/mysql/' .gitignore || { echo "❌ Missing: data/mysql/"; exit 1; }
-          grep -q '\.env' .gitignore || { echo "❌ Missing: .env"; exit 1; }
-          grep -q '\.wp-credentials' .gitignore || { echo "❌ Missing: .wp-credentials"; exit 1; }
+          grep -q 'data/mysql/' .gitignore || { echo "Missing: data/mysql/"; exit 1; }
+          grep -q '\.env' .gitignore || { echo "Missing: .env"; exit 1; }
+          grep -q '\.wp-credentials' .gitignore || { echo "Missing: .wp-credentials"; exit 1; }
 
-          echo "✅ .gitignore is properly configured"
+          echo ".gitignore is properly configured"
 
       - name: Check for hardcoded credentials in code
         run: |
-          echo "🔍 Scanning for hardcoded credentials..."
+          echo "Scanning for hardcoded credentials..."
 
           # Search for potential hardcoded passwords/keys
           FOUND=$(grep -r -i -E '(password|passwd|pwd|secret|api_key|apikey|token)[\s]*=[\s]*["\047][^"\047]{8,}["\047]' \
@@ -57,12 +57,12 @@ jobs:
             . || true)
 
           if [ -n "$FOUND" ]; then
-            echo "⚠️  WARNING: Potential hardcoded credentials found:"
+            echo "WARNING: Potential hardcoded credentials found:"
             echo "$FOUND"
             echo ""
             echo "Please review these findings. If false positives, add to exclusion list."
           else
-            echo "✅ No hardcoded credentials detected"
+            echo "No hardcoded credentials detected"
           fi
 
   php-lint:
@@ -81,33 +81,148 @@ jobs:
 
       - name: PHP Syntax Check - Kadence Theme
         run: |
-          echo "🔍 Checking PHP syntax in Kadence theme..."
+          echo "Checking PHP syntax in Kadence theme..."
 
           if [ -f "data/wordpress/wp-content/themes/kadence/functions-custom.php" ]; then
             php -l data/wordpress/wp-content/themes/kadence/functions-custom.php
-            echo "✅ functions-custom.php syntax OK"
+            echo "functions-custom.php syntax OK"
           else
-            echo "⚠️  functions-custom.php not found (might be new repo)"
+            echo "functions-custom.php not found (might be new repo)"
           fi
 
       - name: PHP Syntax Check - Custom Plugins
         run: |
-          echo "🔍 Checking PHP syntax in custom plugins..."
+          echo "Checking PHP syntax in custom plugins..."
 
           if [ -d "data/wordpress/wp-content/plugins/jewelry-custom" ]; then
             find data/wordpress/wp-content/plugins/jewelry-custom -name "*.php" -exec php -l {} \;
-            echo "✅ All custom plugin files syntax OK"
+            echo "All custom plugin files syntax OK"
           else
-            echo "⚠️  No custom plugins found yet"
+            echo "No custom plugins found yet"
           fi
 
       - name: PHP Syntax Check - Scripts
         run: |
-          echo "🔍 Checking PHP syntax in scripts..."
+          echo "Checking PHP syntax in scripts..."
 
           find scripts -name "*.php" -exec php -l {} \; 2>/dev/null || echo "No PHP files in scripts/"
 
-          echo "✅ Scripts syntax check complete"
+          echo "Scripts syntax check complete"
+
+  php-tests:
+    name: PHP Unit Tests
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: wordpress_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping --silent"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.1"
+          extensions: mysqli, pdo_mysql, mbstring, intl
+          tools: phpunit
+          coverage: none
+
+      - name: Check for test files
+        id: check-tests
+        run: |
+          if find tests/php -name "test-*.php" -o -name "Test*.php" 2>/dev/null | grep -q .; then
+            echo "has_tests=true" >> "$GITHUB_OUTPUT"
+            echo "PHP test files found"
+          else
+            echo "has_tests=false" >> "$GITHUB_OUTPUT"
+            echo "No PHP test files found - skipping tests"
+          fi
+
+      - name: Install WordPress test suite
+        if: steps.check-tests.outputs.has_tests == 'true'
+        run: |
+          # Download WordPress test library
+          mkdir -p /tmp/wordpress-tests-lib
+          svn co --quiet https://develop.svn.wordpress.org/tags/6.9.1/tests/phpunit/includes/ /tmp/wordpress-tests-lib/includes
+          svn co --quiet https://develop.svn.wordpress.org/tags/6.9.1/tests/phpunit/data/ /tmp/wordpress-tests-lib/data
+
+      - name: Run PHPUnit tests
+        if: steps.check-tests.outputs.has_tests == 'true'
+        run: |
+          echo "Running PHP unit tests..."
+          phpunit --configuration tests/php/phpunit.xml --testdox 2>/dev/null || \
+          phpunit tests/php/ --testdox
+        env:
+          WP_TESTS_DIR: /tmp/wordpress-tests-lib
+
+      - name: Tests skipped notice
+        if: steps.check-tests.outputs.has_tests == 'false'
+        run: |
+          echo "INFO: No PHP tests found. When you add tests to tests/php/, they will run automatically."
+          echo "See docs/WORKFLOW-TDD.md for how to write TDD tests."
+
+  e2e-tests:
+    name: E2E Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check for E2E test files
+        id: check-e2e
+        run: |
+          if find tests/e2e -name "*.spec.js" -o -name "*.spec.ts" 2>/dev/null | grep -q .; then
+            echo "has_tests=true" >> "$GITHUB_OUTPUT"
+            echo "E2E test files found"
+          else
+            echo "has_tests=false" >> "$GITHUB_OUTPUT"
+            echo "No E2E test files found - skipping"
+          fi
+
+      - name: Setup Node.js
+        if: steps.check-e2e.outputs.has_tests == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install dependencies
+        if: steps.check-e2e.outputs.has_tests == 'true'
+        run: |
+          if [ -f "package.json" ]; then
+            npm ci
+          else
+            npm init -y
+            npm install @playwright/test
+          fi
+
+      - name: Install Playwright browsers
+        if: steps.check-e2e.outputs.has_tests == 'true'
+        run: npx playwright install --with-deps chromium
+
+      - name: Run E2E tests
+        if: steps.check-e2e.outputs.has_tests == 'true'
+        run: npx playwright test tests/e2e/ --reporter=list
+        env:
+          BASE_URL: http://localhost
+
+      - name: E2E tests skipped notice
+        if: steps.check-e2e.outputs.has_tests == 'false'
+        run: |
+          echo "INFO: No E2E tests found. When you add tests to tests/e2e/, they will run automatically."
+          echo "See docs/WORKFLOW-TDD.md for how to write E2E tests."
 
   markdown-lint:
     name: Markdown Lint
@@ -135,7 +250,7 @@ jobs:
 
       - name: Verify required files exist
         run: |
-          echo "🔍 Checking required files..."
+          echo "Checking required files..."
 
           # Required files
           REQUIRED_FILES=(
@@ -155,16 +270,16 @@ jobs:
           done
 
           if [ ${#MISSING[@]} -ne 0 ]; then
-            echo "❌ Missing required files:"
+            echo "Missing required files:"
             printf '%s\n' "${MISSING[@]}"
             exit 1
           else
-            echo "✅ All required files present"
+            echo "All required files present"
           fi
 
       - name: Verify directory structure
         run: |
-          echo "🔍 Checking directory structure..."
+          echo "Checking directory structure..."
 
           # Required directories
           REQUIRED_DIRS=(
@@ -173,6 +288,7 @@ jobs:
             ".ai-tools"
             "scripts"
             "docs"
+            "tests"
           )
 
           MISSING=()
@@ -183,37 +299,64 @@ jobs:
           done
 
           if [ ${#MISSING[@]} -ne 0 ]; then
-            echo "❌ Missing required directories:"
+            echo "Missing required directories:"
             printf '%s\n' "${MISSING[@]}"
             exit 1
           else
-            echo "✅ All required directories present"
+            echo "All required directories present"
           fi
 
   summary:
     name: Summary
     runs-on: ubuntu-latest
-    needs: [security-audit, php-lint, markdown-lint, repo-structure]
+    needs: [security-audit, php-lint, php-tests, e2e-tests, markdown-lint, repo-structure]
     if: always()
 
     steps:
       - name: Check results
         run: |
-          echo "📊 CI/CD Summary"
-          echo "================"
+          echo "CI/CD Summary"
+          echo "============="
           echo ""
-          echo "Security Audit: ${{ needs.security-audit.result }}"
-          echo "PHP Lint: ${{ needs.php-lint.result }}"
-          echo "Markdown Lint: ${{ needs.markdown-lint.result }}"
-          echo "Repo Structure: ${{ needs.repo-structure.result }}"
+          echo "Security Audit:  ${{ needs.security-audit.result }}"
+          echo "PHP Lint:        ${{ needs.php-lint.result }}"
+          echo "PHP Tests:       ${{ needs.php-tests.result }}"
+          echo "E2E Tests:       ${{ needs.e2e-tests.result }}"
+          echo "Markdown Lint:   ${{ needs.markdown-lint.result }}"
+          echo "Repo Structure:  ${{ needs.repo-structure.result }}"
           echo ""
 
-          if [[ "${{ needs.security-audit.result }}" == "failure" ]] || \
-             [[ "${{ needs.php-lint.result }}" == "failure" ]] || \
-             [[ "${{ needs.markdown-lint.result }}" == "failure" ]] || \
-             [[ "${{ needs.repo-structure.result }}" == "failure" ]]; then
-            echo "❌ Some checks failed. Please review the logs above."
+          FAILED=false
+
+          if [[ "${{ needs.security-audit.result }}" == "failure" ]]; then
+            echo "FAIL: Security Audit"
+            FAILED=true
+          fi
+          if [[ "${{ needs.php-lint.result }}" == "failure" ]]; then
+            echo "FAIL: PHP Lint"
+            FAILED=true
+          fi
+          if [[ "${{ needs.php-tests.result }}" == "failure" ]]; then
+            echo "FAIL: PHP Tests - fix failing tests before merge"
+            FAILED=true
+          fi
+          if [[ "${{ needs.e2e-tests.result }}" == "failure" ]]; then
+            echo "FAIL: E2E Tests - fix failing tests before merge"
+            FAILED=true
+          fi
+          if [[ "${{ needs.markdown-lint.result }}" == "failure" ]]; then
+            echo "FAIL: Markdown Lint"
+            FAILED=true
+          fi
+          if [[ "${{ needs.repo-structure.result }}" == "failure" ]]; then
+            echo "FAIL: Repo Structure"
+            FAILED=true
+          fi
+
+          if [ "$FAILED" = true ]; then
+            echo ""
+            echo "Some checks failed. Please review the logs above."
             exit 1
           else
-            echo "✅ All checks passed!"
+            echo "All checks passed!"
           fi
