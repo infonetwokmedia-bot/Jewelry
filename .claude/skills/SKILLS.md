@@ -1208,7 +1208,151 @@ function jewelry_delete_test_products() {
 
 ---
 
-## 📚 Recursos Adicionales
+## TDD (Test-Driven Development)
+
+### Skill 17: Generar Test desde Criterio de Aceptacion
+
+**Prompt:**
+
+```text
+Generate a PHPUnit test for this acceptance criterion:
+GIVEN [context],
+WHEN [action],
+THEN [expected result].
+```
+
+**Codigo esperado:**
+
+```php
+<?php
+// tests/php/test-{feature}.php
+
+class Test_Feature extends WP_UnitTestCase {
+
+    /**
+     * Criterio: DADO [contexto], CUANDO [accion], ENTONCES [resultado].
+     */
+    public function test_criterio_descripcion() {
+        // Arrange (DADO)
+        $product_id = $this->factory()->post->create( array(
+            'post_type'  => 'product',
+            'post_title' => 'Test Product',
+        ) );
+
+        // Act (CUANDO)
+        $result = jewelry_function_name( $product_id );
+
+        // Assert (ENTONCES)
+        $this->assertNotEmpty( $result );
+        $this->assertEquals( 'expected_value', $result );
+    }
+}
+```
+
+### Skill 18: Generar Test E2E desde Criterio
+
+**Prompt:**
+
+```text
+Generate a Playwright E2E test for this user flow:
+1. User goes to [page]
+2. User performs [action]
+3. User should see [result]
+```
+
+**Codigo esperado:**
+
+```javascript
+// tests/e2e/feature.spec.js
+const { test, expect } = require("@playwright/test");
+
+test.describe("Feature description", () => {
+  test("user flow description", async ({ page }) => {
+    // 1. Navigate
+    await page.goto("/shop/");
+
+    // 2. Perform action
+    await page.click(".action-button");
+
+    // 3. Verify result
+    await expect(page.locator(".result")).toBeVisible();
+  });
+
+  test("same flow in English", async ({ page }) => {
+    await page.goto("/en/shop/");
+    await page.click(".action-button");
+    await expect(page.locator(".result")).toBeVisible();
+  });
+});
+```
+
+### Skill 19: Generar Codigo Minimo (GREEN Phase)
+
+**Prompt:**
+
+```text
+This test is failing. Generate the MINIMUM code to make it pass:
+[paste test code]
+```
+
+Reglas para GREEN phase:
+- SOLO el codigo minimo necesario
+- NO optimizar, NO generalizar
+- Usar prefijo `jewelry_`
+- Sanitizar inputs, escapar outputs
+
+### Skill 20: Validar Gobernanza TDD
+
+**Prompt:**
+
+```text
+Review this branch's commits for TDD compliance.
+Check for RED-GREEN-REFACTOR pattern.
+```
+
+**Ejecucion:**
+
+```bash
+# Instalar hooks de gobernanza
+./scripts/setup-hooks.sh
+
+# Validar antes de PR
+./scripts/validate-governance.sh develop
+```
+
+### Skill 21: Crear Issue con User Story
+
+**Prompt:**
+
+```text
+Create a GitHub Issue for this feature:
+[description]
+Include: User Story, acceptance criteria (Given/When/Then),
+technical notes, and Definition of Done.
+```
+
+**Template:**
+
+```markdown
+**Como** [rol],
+**quiero** [accion],
+**para** [beneficio].
+
+## Criterios de Aceptacion
+
+- [ ] DADO [contexto], CUANDO [accion], ENTONCES [resultado]
+- [ ] DADO [contexto], CUANDO [accion], ENTONCES [resultado]
+
+## Definition of Done
+
+- [ ] Tests escritos y pasando (TDD)
+- [ ] Codigo sigue WordPress Coding Standards
+- [ ] Contenido bilingue (ES + EN) si aplica
+- [ ] CI pipeline verde
+- [ ] PR revisado y aprobado
+```
+
+## Recursos Adicionales
 
 - **WordPress Developer Docs:** https://developer.wordpress.org/
 - **WooCommerce Code Reference:** https://woocommerce.github.io/code-reference/
@@ -1216,7 +1360,9 @@ function jewelry_delete_test_products() {
 - **WordPress Coding Standards:** https://developer.wordpress.org/coding-standards/
 - **Docker Documentation:** https://docs.docker.com/
 - **WP-CLI Commands:** https://developer.wordpress.org/cli/commands/
+- **Workflow TDD:** `docs/WORKFLOW-TDD.md`
+- **Definition of Done:** `docs/DEFINITION-OF-DONE.md`
 
 ---
 
-**Nota:** Todos estos skills están diseñados para el proyecto Jewelry con contenido bilingüe (Español/Inglés) usando Bogo. Siempre crear contenido en ambos idiomas simultáneamente.
+**Nota:** Todos estos skills estan disenados para el proyecto Jewelry con contenido bilingue (Espanol/Ingles) usando Bogo. Siempre crear contenido en ambos idiomas simultaneamente. Todo desarrollo DEBE seguir la metodologia TDD documentada en `docs/WORKFLOW-TDD.md`.

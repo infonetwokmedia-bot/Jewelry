@@ -355,4 +355,15 @@ function jewelry_checkout_rate_limit() {
 
 ---
 
-**Recuerda:** Siempre sanitizar entradas y validar datos en checkout. Mantener WooCommerce actualizado.
+## Integracion con TDD
+
+Para funcionalidades de WooCommerce, seguir TDD:
+
+1. **RED:** Test en `tests/php/` para la funcion WooCommerce
+2. **GREEN:** Implementacion minima con hooks de WooCommerce
+3. **REFACTOR:** Mejorar con `@security-reviewer`
+4. **E2E:** Test en `tests/e2e/` para flujo completo (checkout, cart)
+
+Handoff a `@tdd-coach` para generar tests de criterios de checkout.
+
+**Recuerda:** Siempre sanitizar entradas y validar datos en checkout. Mantener WooCommerce actualizado. SIEMPRE escribir tests primero (TDD).

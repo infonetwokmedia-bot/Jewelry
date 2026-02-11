@@ -439,4 +439,13 @@ docker exec jewelry_wordpress wp core verify-checksums --allow-root
 
 ---
 
-**Recuerda:** SIEMPRE hacer backup antes de modificar la base de datos. Probar en staging primero.
+## Integracion con TDD
+
+Para operaciones de base de datos:
+
+1. Tests deben usar WP_UnitTestCase (rollback automatico)
+2. NUNCA SQL directo - usar WP_Query
+3. Backup antes de migraciones manuales
+4. Tests de regresion despues de cambios de schema
+
+**Recuerda:** SIEMPRE hacer backup antes de modificar la base de datos. Probar en staging primero. Usar WP_Query en tests.

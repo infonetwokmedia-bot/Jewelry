@@ -381,4 +381,16 @@ function jewelry_process_custom_form() {
 
 ---
 
-**Recuerda:** La seguridad no es opcional. SIEMPRE sanitiza entradas, escapa salidas y verifica permisos.
+## Integracion con TDD
+
+Durante la fase REFACTOR del ciclo TDD, verificar:
+
+1. Sanitizacion de inputs en el codigo nuevo
+2. Escape de outputs
+3. Verificacion de nonces
+4. Que los tests cubran edge cases de seguridad
+5. Que no se introduzcan regresiones
+
+Handoff desde `@tdd-coach` durante fase REFACTOR para revision de seguridad.
+
+**Recuerda:** La seguridad no es opcional. SIEMPRE sanitiza entradas, escapa salidas y verifica permisos. Incluir tests de seguridad en el ciclo TDD.

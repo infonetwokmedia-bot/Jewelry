@@ -205,4 +205,14 @@ $result = jewelry_create_bilingual_product( $data_es, $data_en );
 
 ---
 
-**Recuerda:** NUNCA crear un producto en un solo idioma. SIEMPRE crear en ambos y vincular con Bogo.
+## Metodologia TDD
+
+Antes de crear funciones de productos, seguir el ciclo TDD:
+
+1. **RED:** Escribir test en `tests/php/test-products.php` que verifique la creacion bilingue
+2. **GREEN:** Implementar la funcion minima en `functions-custom.php`
+3. **REFACTOR:** Mejorar sanitizacion, PHPDoc, validacion
+
+Handoff a `@tdd-coach` para generar tests desde criterios de aceptacion.
+
+**Recuerda:** NUNCA crear un producto en un solo idioma. SIEMPRE crear en ambos y vincular con Bogo. SIEMPRE escribir tests primero (TDD).

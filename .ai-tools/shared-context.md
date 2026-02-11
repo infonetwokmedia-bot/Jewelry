@@ -186,17 +186,62 @@ Ver archivo `PROYECTO-ESTADO.md` en la raíz para el estado actualizado.
 - [Kadence Theme Docs](https://www.kadencewp.com/documentation/)
 - [WordPress Coding Standards](https://developer.wordpress.org/coding-standards/)
 
-## 💡 Tips para IAs
+## Metodologia TDD (OBLIGATORIA)
 
-1. **Contenido Bilingüe:** Cuando crees cualquier contenido (producto, página, post), SIEMPRE preguntar o crear versión en ambos idiomas
-2. **Prefijos:** Verificar que todas las funciones custom usen `jewelry_` como prefijo
-3. **Seguridad:** Validar que todo input esté sanitizado y todo output escapado
-4. **WP Standards:** Seguir WordPress Coding Standards en todo momento
-5. **Bogo:** Siempre vincular entidades con `_bogo_translations` meta
-6. **Testing:** Probar en ambos idiomas antes de considerar completa una tarea
-7. **Documentación:** Usar PHPDoc para todas las funciones custom
+**Todo desarrollo sigue el ciclo Red-Green-Refactor:**
+
+### Workflow
+
+```text
+Issue (User Story) -> Branch -> TDD Cycle -> PR -> CI -> Review -> Merge
+```
+
+### Ciclo TDD por criterio de aceptacion
+
+1. **RED:** Escribir test que falla (`tests/php/` o `tests/e2e/`)
+2. **GREEN:** Codigo minimo para pasar el test
+3. **REFACTOR:** Limpiar sin romper tests
+
+### Commits TDD
+
+```text
+test(scope): add failing test for [feature]     # RED
+feat(scope): implement [feature]                 # GREEN
+refactor(scope): improve [aspect]                # REFACTOR
+```
+
+### Gobernanza Automatizada
+
+- **Git hooks:** Pre-commit (syntax, prefijos), commit-msg (conventional commits)
+- **CI Pipeline:** PHPUnit, Playwright, security audit, lint
+- **TDD Governance:** Score automatico en cada PR
+- **Issue Templates:** User Story, Bug Report, Technical Task
+- **Definition of Done:** Checklist obligatorio antes de merge
+
+### Archivos clave
+
+- `docs/WORKFLOW-TDD.md` - Guia completa paso a paso
+- `docs/DEFINITION-OF-DONE.md` - Criterios para tarea terminada
+- `.github/ISSUE_TEMPLATE/` - Templates con acceptance criteria
+- `.github/workflows/tdd-governance.yml` - CI governance
+- `.github/agents/tdd-coach.agent.md` - Agente TDD
+- `scripts/setup-hooks.sh` - Instalar git hooks
+- `scripts/validate-governance.sh` - Validar antes de PR
+
+## Tips para IAs
+
+1. **TDD Primero:** SIEMPRE escribir test ANTES del codigo de produccion
+2. **Contenido Bilingue:** Crear en AMBOS idiomas simultaneamente (ES + EN)
+3. **Prefijos:** Todas las funciones custom con prefijo `jewelry_`
+4. **Seguridad:** Sanitizar inputs, escapar outputs, verificar nonces
+5. **WP Standards:** WordPress Coding Standards en todo momento
+6. **Bogo:** Vincular entidades con `_bogo_translations` meta
+7. **Commits:** Conventional Commits con secuencia TDD (test -> feat -> refactor)
+8. **Issues:** Todo trabajo comienza con un Issue
+9. **PR:** Documentar evidencia TDD en el Pull Request
+10. **DoD:** Verificar Definition of Done antes de solicitar merge
 
 ---
 
-**Última actualización:** 10 de febrero de 2026
+**Ultima actualizacion:** 11 de febrero de 2026
 **Mantenedor:** GitHub Copilot + Claude + Equipo de Desarrollo
