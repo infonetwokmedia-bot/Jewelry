@@ -1,0 +1,60 @@
+{
+  "home": {
+    "es_id": 1388,
+    "en_id": 1403,
+    "translations": [
+      {
+        "type": "paragraph",
+        "old_es": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+        "new_es": "Descubre nuestra colección de joyas premium, auténticas y diseñadas con perfección. Cada pieza cuenta una historia.",
+        "old_en": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+        "new_en": "Discover our collection of premium, authentic jewelry pieces designed with perfection. Each piece tells a story."
+      },
+      {
+        "type": "heading",
+        "old_es": "In Our Store, You Will Be Able To Find All Types Of Jewelry To Impress Your Other Half.",
+        "new_es": "En Nuestra Tienda, Encontrarás Todo Tipo de Joyas para Impresionar a tu Pareja.",
+        "old_en": "In Our Store, You Will Be Able To Find All Types Of Jewelry To Impress Your Other Half.",
+        "new_en": "Browse Our Exclusive Collection of Premium Jewelry Handcrafted with Excellence."
+      },
+      {
+        "type": "heading",
+        "old_es": "Caroline Taylor",
+        "new_es": "Carlos García",
+        "old_en": "Caroline Taylor",
+        "new_en": "Caroline Taylor"
+      }
+    ]
+  },
+  "about": {
+    "es_id": 1383,
+    "en_id": 1404,
+    "translations": [
+      {
+        "type": "paragraph",
+        "old_es": "Lorem ipsum dolor sit amet, consectetur adipiscing elit",
+        "new_es": "Remedio Joyería fue fundada hace más de 20 años en Miami con una misión: proporcionar joyería de lujo auténtica con servicio excepcional.",
+        "old_en": "Lorem ipsum dolor sit amet, consectetur adipiscing elit",
+        "new_en": "Remedio Jewelry was founded over 20 years ago in Miami with a mission: provide authentic luxury jewelry with exceptional service."
+      }
+    ]
+  },
+  "materials": {
+    "es_id": 1385,
+    "en_id": 1405,
+    "translations": [
+      {
+        "type": "paragraph",
+        "old_es": "Lorem ipsum dolor sit amet, consectetur adipiscing elit",
+        "new_es": "Utilizamos únicamente materiales de la más alta calidad: oro 10k, 14k, 18k y platino certificados.",
+        "old_en": "Lorem ipsum dolor sit amet, consectetur adipiscing elit",
+        "new_en": "We use only the highest quality materials: certified 10k, 14k, 18k gold and platinum."
+      }
+    ]
+  },
+  "contact": {
+    "es_id": 1384,
+    "en_id": 1406,
+    "note": "Requiere datos de contacto del cliente antes de actualizar"
+  }
+}

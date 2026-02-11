@@ -332,6 +332,19 @@
       "description": "Sync strategy",
       "options": ["rebase", "merge"],
       "default": "rebase"
+    },
+    {
+      "label": "Test: Bilingual Menus",
+      "type": "shell",
+      "command": "bash ./scripts/test-bilingual-menus.sh",
+      "group": {
+        "kind": "test",
+        "isDefault": false
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      }
     }
   ]
 }

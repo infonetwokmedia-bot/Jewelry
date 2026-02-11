@@ -1,0 +1,501 @@
+{
+  "translations": [
+    {
+      "widget_id": "a63ec2b",
+      "widget_type": "heading",
+      "field": "title",
+      "value": "New Handmade Jewelry Collection",
+      "path": "root/section[0]/section[1]/section[0]/section[0]/heading[0]"
+    },
+    {
+      "widget_id": "41d91a9",
+      "widget_type": "heading",
+      "field": "title",
+      "value": "N",
+      "path": "root/section[0]/section[1]/section[0]/section[0]/heading[1]"
+    },
+    {
+      "widget_id": "de9f99f",
+      "widget_type": "text-editor",
+      "field": "editor",
+      "value": "<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>",
+      "path": "root/section[0]/section[1]/section[0]/section[0]/text-editor[2]"
+    },
+    {
+      "widget_id": "b5c6c26",
+      "widget_type": "button",
+      "field": "text",
+      "value": "EXPLORE MORE",
+      "path": "root/section[0]/section[1]/section[0]/section[0]/button[3]"
+    },
+    {
+      "widget_id": "b286d77",
+      "widget_type": "image-box",
+      "field": "title_text",
+      "value": "Bliss golden ring",
+      "path": "root/section[0]/section[1]/section[1]/section[0]/image-box[0]"
+    },
+    {
+      "widget_id": "b286d77",
+      "widget_type": "image-box",
+      "field": "description_text",
+      "value": "$249",
+      "path": "root/section[0]/section[1]/section[1]/section[0]/image-box[0]"
+    },
+    {
+      "widget_id": "d7692eb",
+      "widget_type": "image-box",
+      "field": "title_text",
+      "value": "Carla golden earrings",
+      "path": "root/section[0]/section[1]/section[1]/section[1]/image-box[0]"
+    },
+    {
+      "widget_id": "d7692eb",
+      "widget_type": "image-box",
+      "field": "description_text",
+      "value": "$159",
+      "path": "root/section[0]/section[1]/section[1]/section[1]/image-box[0]"
+    },
+    {
+      "widget_id": "e5d5e88",
+      "widget_type": "heading",
+      "field": "title",
+      "value": "T",
+      "path": "root/section[1]/section[0]/section[0]/section[0]/heading[0]"
+    },
+    {
+      "widget_id": "b69c078",
+      "widget_type": "heading",
+      "field": "title",
+      "value": "In our store, you will be able to find all types of jewelry to impress your other half.",
+      "path": "root/section[1]/section[0]/section[0]/section[0]/heading[1]"
+    },
+    {
+      "widget_id": "d27c964",
+      "widget_type": "text-path",
+      "field": "text",
+      "value": "Caroline Taylor",
+      "path": "root/section[1]/section[0]/section[0]/section[1]/text-path[1]"
+    },
+    {
+      "widget_id": "aa9f14c",
+      "widget_type": "heading",
+      "field": "title",
+      "value": "I'll show you how! Let's create something together.\n\n",
+      "path": "root/section[1]/section[0]/section[1]/section[1]/heading[0]"
+    },
+    {
+      "widget_id": "8ee1e40",
+      "widget_type": "text-editor",
+      "field": "editor",
+      "value": "<p>Vitae turpis massa sed elementum tempus egestas. Nulla at volutpat diam ut venenatis tellus in metus vulputate. Duis ut diam quam nulla porttitor massa. Mauris a diam maecenas sed enim ut sem viverra. Lacus vestibulum sed arcu non odio euismod lacinia at. Rhoncus aenean vel elit scelerisque.</p>",
+      "path": "root/section[1]/section[0]/section[1]/section[1]/text-editor[1]"
+    },
+    {
+      "widget_id": "66b0355",
+      "widget_type": "button",
+      "field": "text",
+      "value": "Read More",
+      "path": "root/section[1]/section[0]/section[1]/section[1]/button[2]"
+    },
+    {
+      "widget_id": "fe73a0b",
+      "widget_type": "heading",
+      "field": "title",
+      "value": "С",
+      "path": "root/section[2]/section[0]/section[0]/section[0]/heading[0]"
+    },
+    {
+      "widget_id": "7198d60",
+      "widget_type": "heading",
+      "field": "title",
+      "value": "All Categories",
+      "path": "root/section[2]/section[0]/section[0]/section[0]/heading[1]"
+    },
+    {
+      "widget_id": "36d6d17",
+      "widget_type": "text-editor",
+      "field": "editor",
+      "value": "<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut elit tellus, luctus nec ullamcorper mattis.</p>",
+      "path": "root/section[2]/section[0]/section[0]/section[0]/text-editor[2]"
+    },
+    {
+      "widget_id": "a716240",
+      "widget_type": "heading",
+      "field": "title",
+      "value": "Necklaces",
+      "path": "root/section[2]/section[0]/section[1]/section[0]/heading[0]"
+    },
+    {
+      "widget_id": "7277aba",
+      "widget_type": "heading",
+      "field": "title",
+      "value": "N",
+      "path": "root/section[2]/section[0]/section[1]/section[0]/heading[1]"
+    },
+    {
+      "widget_id": "45f0249",
+      "widget_type": "heading",
+      "field": "title",
+      "value": "Rings",
+      "path": "root/section[2]/section[0]/section[1]/section[1]/heading[0]"
+    },
+    {
+      "widget_id": "b3c724c",
+      "widget_type": "heading",
+      "field": "title",
+      "value": "R",
+      "path": "root/section[2]/section[0]/section[1]/section[1]/heading[1]"
+    },
+    {
+      "widget_id": "a13fba6",
+      "widget_type": "heading",
+      "field": "title",
+      "value": "Earrings",
+      "path": "root/section[2]/section[0]/section[1]/section[2]/heading[0]"
+    },
+    {
+      "widget_id": "f0d74ec",
+      "widget_type": "heading",
+      "field": "title",
+      "value": "E",
+      "path": "root/section[2]/section[0]/section[1]/section[2]/heading[1]"
+    },
+    {
+      "widget_id": "ff8c45e",
+      "widget_type": "heading",
+      "field": "title",
+      "value": "B",
+      "path": "root/section[3]/section[0]/section[0]/section[0]/heading[0]"
+    },
+    {
+      "widget_id": "ed0677b",
+      "widget_type": "heading",
+      "field": "title",
+      "value": "Best Seller Product",
+      "path": "root/section[3]/section[0]/section[0]/section[0]/heading[1]"
+    },
+    {
+      "widget_id": "e3faacf",
+      "widget_type": "text-editor",
+      "field": "editor",
+      "value": "<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut elit tellus, luctus nec ullamcorper mattis.</p>",
+      "path": "root/section[3]/section[0]/section[0]/section[0]/text-editor[2]"
+    },
+    {
+      "widget_id": "089f1a2",
+      "widget_type": "button",
+      "field": "text",
+      "value": "View All",
+      "path": "root/section[3]/section[0]/button[2]"
+    },
+    {
+      "widget_id": "1afbf89",
+      "widget_type": "icon-box",
+      "field": "title_text",
+      "value": "Free <br>Delivery",
+      "path": "root/section[4]/section[0]/icon-box[0]"
+    },
+    {
+      "widget_id": "0bb9125",
+      "widget_type": "icon-box",
+      "field": "title_text",
+      "value": "Money Back Guarantee",
+      "path": "root/section[4]/section[1]/icon-box[0]"
+    },
+    {
+      "widget_id": "dd372af",
+      "widget_type": "icon-box",
+      "field": "title_text",
+      "value": "24/7 <br>Support",
+      "path": "root/section[4]/section[2]/icon-box[0]"
+    },
+    {
+      "widget_id": "cb29a89",
+      "widget_type": "icon-box",
+      "field": "title_text",
+      "value": "High <br>quality",
+      "path": "root/section[4]/section[3]/icon-box[0]"
+    },
+    {
+      "widget_id": "336de17",
+      "widget_type": "heading",
+      "field": "title",
+      "value": "\"Caroline made me a custom necklace that exceeded my expectations. She got it done quickly and beautifully and at a reasonable price.\"",
+      "path": "root/section[5]/section[1]/section[0]/section[0]/heading[0]"
+    },
+    {
+      "widget_id": "2b92b68",
+      "widget_type": "heading",
+      "field": "title",
+      "value": "P",
+      "path": "root/section[5]/section[1]/section[0]/section[0]/heading[1]"
+    },
+    {
+      "widget_id": "3b51957",
+      "widget_type": "image-box",
+      "field": "title_text",
+      "value": "Mable Perry",
+      "path": "root/section[5]/section[1]/section[0]/section[0]/image-box[2]"
+    },
+    {
+      "widget_id": "3b51957",
+      "widget_type": "image-box",
+      "field": "description_text",
+      "value": "San Jose, CA",
+      "path": "root/section[5]/section[1]/section[0]/section[0]/image-box[2]"
+    },
+    {
+      "widget_id": "c38eeb9",
+      "widget_type": "heading",
+      "field": "title",
+      "value": "G",
+      "path": "root/section[6]/section[0]/section[0]/section[0]/heading[0]"
+    },
+    {
+      "widget_id": "b7583cf",
+      "widget_type": "heading",
+      "field": "title",
+      "value": "Get Inspired",
+      "path": "root/section[6]/section[0]/section[0]/section[0]/heading[1]"
+    },
+    {
+      "widget_id": "6aa77bf",
+      "widget_type": "text-editor",
+      "field": "editor",
+      "value": "<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut elit tellus, luctus nec ullamcorper mattis.</p>",
+      "path": "root/section[6]/section[0]/section[0]/section[0]/text-editor[2]"
+    },
+    {
+      "widget_id": "830ebcf",
+      "widget_type": "heading",
+      "field": "title",
+      "value": "Handcrafted & ethically sourced",
+      "path": "root/section[6]/section[0]/section[1]/section[0]/heading[1]"
+    },
+    {
+      "widget_id": "e0debb4",
+      "widget_type": "heading",
+      "field": "title",
+      "value": "A collection of Exotic diamonds",
+      "path": "root/section[6]/section[0]/section[1]/section[1]/heading[1]"
+    },
+    {
+      "widget_id": "7d24c9b",
+      "widget_type": "heading",
+      "field": "title",
+      "value": "Make your life shiny like a jewel",
+      "path": "root/section[6]/section[0]/section[1]/section[2]/heading[1]"
+    },
+    {
+      "widget_id": "5261630",
+      "widget_type": "heading",
+      "field": "title",
+      "value": "P",
+      "path": "root/section[7]/section[0]/section[0]/section[0]/heading[0]"
+    },
+    {
+      "widget_id": "5fadd93",
+      "widget_type": "heading",
+      "field": "title",
+      "value": "Perfect Match<br>\nfor Every Occasion",
+      "path": "root/section[7]/section[0]/section[0]/section[0]/heading[1]"
+    },
+    {
+      "widget_id": "f3aa39f",
+      "widget_type": "text-editor",
+      "field": "editor",
+      "value": "<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut elit tellus, luctus nec ullamcorper mattis.</p>",
+      "path": "root/section[7]/section[0]/section[0]/section[0]/text-editor[2]"
+    },
+    {
+      "widget_id": "b30c0d5",
+      "widget_type": "image-box",
+      "field": "title_text",
+      "value": "Indian Sterling Ring",
+      "path": "root/section[7]/section[0]/section[1]/section[0]/image-box[0]"
+    },
+    {
+      "widget_id": "b30c0d5",
+      "widget_type": "image-box",
+      "field": "description_text",
+      "value": "$249",
+      "path": "root/section[7]/section[0]/section[1]/section[0]/image-box[0]"
+    },
+    {
+      "widget_id": "fccae1f",
+      "widget_type": "image-box",
+      "field": "title_text",
+      "value": "Carla golden earrings",
+      "path": "root/section[7]/section[0]/section[1]/section[1]/image-box[0]"
+    },
+    {
+      "widget_id": "fccae1f",
+      "widget_type": "image-box",
+      "field": "description_text",
+      "value": "$159",
+      "path": "root/section[7]/section[0]/section[1]/section[1]/image-box[0]"
+    },
+    {
+      "widget_id": "f6b3c56",
+      "widget_type": "image-box",
+      "field": "title_text",
+      "value": "Fremada Chain",
+      "path": "root/section[7]/section[0]/section[2]/section[0]/image-box[0]"
+    },
+    {
+      "widget_id": "f6b3c56",
+      "widget_type": "image-box",
+      "field": "description_text",
+      "value": "$249",
+      "path": "root/section[7]/section[0]/section[2]/section[0]/image-box[0]"
+    },
+    {
+      "widget_id": "9bfa9bf",
+      "widget_type": "image-box",
+      "field": "title_text",
+      "value": "Silver Earrings",
+      "path": "root/section[7]/section[0]/section[2]/section[1]/image-box[0]"
+    },
+    {
+      "widget_id": "9bfa9bf",
+      "widget_type": "image-box",
+      "field": "description_text",
+      "value": "$159",
+      "path": "root/section[7]/section[0]/section[2]/section[1]/image-box[0]"
+    },
+    {
+      "widget_id": "f8182ee",
+      "widget_type": "heading",
+      "field": "title",
+      "value": "A",
+      "path": "root/section[7]/section[1]/section[0]/section[0]/heading[0]"
+    },
+    {
+      "widget_id": "ccf5a6b",
+      "widget_type": "heading",
+      "field": "title",
+      "value": "Antique Diamond Necklaces - 20%",
+      "path": "root/section[7]/section[1]/section[0]/section[0]/heading[1]"
+    },
+    {
+      "widget_id": "9d45e17",
+      "widget_type": "text-editor",
+      "field": "editor",
+      "value": "<p>Lorem ipsum dolor sit amet, consectetur adipiscing luctus nec mattis, pulvinar.</p>",
+      "path": "root/section[7]/section[1]/section[0]/section[0]/text-editor[2]"
+    },
+    {
+      "widget_id": "be2b046",
+      "widget_type": "button",
+      "field": "text",
+      "value": "All Products",
+      "path": "root/section[7]/section[1]/section[0]/section[0]/button[3]"
+    },
+    {
+      "widget_id": "720d585",
+      "widget_type": "heading",
+      "field": "title",
+      "value": "F",
+      "path": "root/section[8]/section[0]/section[0]/section[0]/heading[0]"
+    },
+    {
+      "widget_id": "e97ae93",
+      "widget_type": "heading",
+      "field": "title",
+      "value": "Follow Us",
+      "path": "root/section[8]/section[0]/section[0]/section[0]/heading[1]"
+    },
+    {
+      "widget_id": "70145bd",
+      "widget_type": "text-editor",
+      "field": "editor",
+      "value": "<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut elit tellus, luctus nec ullamcorper mattis.</p>",
+      "path": "root/section[8]/section[0]/section[0]/section[0]/text-editor[2]"
+    },
+    {
+      "widget_id": "f8be32a",
+      "widget_type": "heading",
+      "field": "title",
+      "value": "@jewelry.shop",
+      "path": "root/section[8]/section[0]/section[1]/section[0]/heading[1]"
+    }
+  ],
+  "stats": {
+    "total_translatable_items": 60,
+    "widget_count": {
+      "section": 68,
+      "icon": 3,
+      "image": 4,
+      "spacer": 1,
+      "heading": 29,
+      "text-editor": 8,
+      "button": 4,
+      "image-box": 7,
+      "text-path": 1,
+      "shortcode": 1,
+      "icon-box": 4,
+      "video": 3,
+      "icon-list": 1,
+      "image-gallery": 1
+    },
+    "widgets_by_type": [
+      [
+        "section",
+        68
+      ],
+      [
+        "heading",
+        29
+      ],
+      [
+        "text-editor",
+        8
+      ],
+      [
+        "image-box",
+        7
+      ],
+      [
+        "image",
+        4
+      ],
+      [
+        "button",
+        4
+      ],
+      [
+        "icon-box",
+        4
+      ],
+      [
+        "icon",
+        3
+      ],
+      [
+        "video",
+        3
+      ],
+      [
+        "spacer",
+        1
+      ],
+      [
+        "text-path",
+        1
+      ],
+      [
+        "shortcode",
+        1
+      ],
+      [
+        "icon-list",
+        1
+      ],
+      [
+        "image-gallery",
+        1
+      ]
+    ]
+  }
+}
