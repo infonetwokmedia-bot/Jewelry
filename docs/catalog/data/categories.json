@@ -1,0 +1,38 @@
+[
+  {
+    "name_es": "Cadenas",
+    "name_en": "Chains",
+    "product_count": 15,
+    "slug": "cadenas"
+  },
+  {
+    "name_es": "Gargantillas",
+    "name_en": "Chokers",
+    "product_count": 6,
+    "slug": "gargantillas"
+  },
+  {
+    "name_es": "Aretes",
+    "name_en": "Earrings",
+    "product_count": 3,
+    "slug": "aretes"
+  },
+  {
+    "name_es": "Pulseras",
+    "name_en": "Bracelets",
+    "product_count": 3,
+    "slug": "pulseras"
+  },
+  {
+    "name_es": "Dijes",
+    "name_en": "Pendants",
+    "product_count": 2,
+    "slug": "dijes"
+  },
+  {
+    "name_es": "Anillos",
+    "name_en": "Rings",
+    "product_count": 2,
+    "slug": "anillos"
+  }
+]
