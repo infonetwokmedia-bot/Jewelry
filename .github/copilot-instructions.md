@@ -1,15 +1,17 @@
 # GitHub Copilot Instructions - Jewelry Project
 
-## 📋 Contexto del Proyecto
+## Contexto del Proyecto
 
-Este es un sitio web **bilingüe (Español/Inglés)** para **Remedio Joyería** en Miami, Florida. El sitio está construido con WordPress + WooCommerce y optimizado para venta de joyas de alta calidad.
+Este es un sitio web **bilingue (Espanol/Ingles)** para **Jewelry Miami** en Miami, Florida. El sitio esta construido con WordPress + WooCommerce y optimizado para venta de joyas de alta calidad.
 
-### Stack Tecnológico
+### Stack Tecnologico
 
-- **CMS:** WordPress 6.x
-- **E-commerce:** WooCommerce 10.5.0
-- **Tema:** Kadence 1.4.3
-- **Multiidioma:** Bogo 3.9.1 (NO Polylang, NO WPML)
+- **CMS:** WordPress 6.9.1
+- **E-commerce:** WooCommerce 10.5.1
+- **Tema:** Astra 4.12.3 (gratuito)
+- **Page Builder:** Elementor 3.35.4
+- **Starter Template:** Jewellery Store 04 (Astra Starter Templates)
+- **Multiidioma:** TranslatePress 3.0.9 (NO Bogo, NO Polylang, NO WPML)
 - **Infraestructura:** Docker + Traefik
 - **PHP:** 8.1+
 - **MySQL:** 8.0
@@ -17,7 +19,8 @@ Este es un sitio web **bilingüe (Español/Inglés)** para **Remedio Joyería** 
 
 ### URLs del Proyecto
 
-- Frontend: https://jewelry.local.dev
+- Frontend ES: https://jewelry.local.dev
+- Frontend EN: https://jewelry.local.dev/en/
 - Admin: https://jewelry.local.dev/wp-admin
 - phpMyAdmin: https://phpmyadmin.jewelry.local.dev
 
@@ -25,42 +28,51 @@ Este es un sitio web **bilingüe (Español/Inglés)** para **Remedio Joyería** 
 
 - `jewelry_wordpress` - WordPress + Apache
 - `jewelry_mysql` - Base de datos MySQL 8.0
-- `jewelry_phpmyadmin` - Gestión de base de datos
-- `jewelry_wpcli` - WP-CLI para comandos
+- `jewelry_phpmyadmin` - Gestion de base de datos
 
-## 🌍 REGLA FUNDAMENTAL: CONTENIDO BILINGÜE
+### WP-CLI
 
-**⚠️ CRÍTICO: SIEMPRE crear contenido en AMBOS idiomas simultáneamente**
+WP-CLI NO esta en el contenedor wordpress. Usar wrapper:
 
-- **Español (es_ES)** - Idioma principal
-- **English (en_US)** - Idioma secundario
-
-### Idiomas Soportados
-
-- Español: `es_ES`
-- Inglés: `en_US`
-
-### Plugin Bogo para Vinculación
-
-Usamos **Bogo 3.9.1** (NO Polylang, NO WPML) para gestionar contenido multiidioma.
-
-**SIEMPRE vincular páginas/productos/categorías entre idiomas con Bogo:**
-
-```php
-// Vincular post/página con su traducción
-update_post_meta($post_id_es, '_locale', 'es_ES');
-update_post_meta($post_id_en, '_locale', 'en_US');
-
-// Vincular ambos posts
-$bogo_translations = array(
-    'es_ES' => $post_id_es,
-    'en_US' => $post_id_en
-);
-update_post_meta($post_id_es, '_bogo_translations', $bogo_translations);
-update_post_meta($post_id_en, '_bogo_translations', $bogo_translations);
+```bash
+docker run --rm --volumes-from jewelry_wordpress \
+  --network jewelry_jewelry_network \
+  -e WORDPRESS_DB_HOST=mysql \
+  -e WORDPRESS_DB_NAME=jewelry_db \
+  -e WORDPRESS_DB_USER=jewelry_user \
+  -e WORDPRESS_DB_PASSWORD='jewelry_pass_2026!' \
+  wordpress:cli wp [COMANDO] --allow-root
 ```
 
-## ⚡ Reglas de Desarrollo
+## REGLA FUNDAMENTAL: CONTENIDO BILINGUE
+
+**CRITICO: El contenido se gestiona con TranslatePress**
+
+- **Espanol (es_ES)** - Idioma principal (URL base: `/`)
+- **English (en_US)** - Idioma secundario (URL: `/en/`)
+
+### Como funciona TranslatePress
+
+- **NO se duplican posts/paginas/productos**. Existe UNA sola instancia de cada contenido.
+- Las traducciones se almacenan en tablas propias de TranslatePress (`wp_trp_*`).
+- Se traduce visualmente desde el frontend: `https://jewelry.local.dev/?trp-edit-translation=true`.
+- El language switcher aparece automaticamente (flotante o como shortcode).
+- Las URLs en ingles llevan el prefijo `/en/`: `/en/shop/`, `/en/about-us/`, etc.
+
+### Traducir contenido
+
+1. Ir al frontend del sitio
+2. En la admin bar, clic en **"Translate Page"** o ir a `?trp-edit-translation=true`
+3. Clic en cualquier texto para editarlo
+4. Guardar
+
+### Shortcode del Language Switcher
+
+```php
+echo do_shortcode( '[language-switcher]' );
+```
+
+## Reglas de Desarrollo
 
 ### 1. Prefijos y Nomenclatura
 
@@ -71,421 +83,98 @@ update_post_meta($post_id_en, '_bogo_translations', $bogo_translations);
 
 ### 2. WordPress Coding Standards
 
-- Seguir [WordPress Coding Standards](https://developer.wordpress.org/coding-standards/wordpress-coding-standards/)
+- Seguir WordPress Coding Standards
 - Usar espacios (no tabs) - 4 espacios para PHP
-- Usar comillas simples para strings en PHP (excepto cuando se necesite interpolación)
+- Usar comillas simples para strings en PHP
 - Documentar funciones con PHPDoc
-
-```php
-/**
- * Obtiene productos destacados bilingües.
- *
- * @param string $locale Idioma (es_ES o en_US).
- * @param int    $limit  Número de productos a retornar.
- * @return array Array de productos WC_Product.
- */
-function jewelry_get_featured_products( $locale = 'es_ES', $limit = 10 ) {
-    // Implementation
-}
-```
 
 ### 3. Seguridad
 
-**SIEMPRE sanitizar y validar datos:**
-
-```php
-// Sanitizar texto
-$text = sanitize_text_field( $_POST['field'] );
-
-// Sanitizar email
-$email = sanitize_email( $_POST['email'] );
-
-// Sanitizar URL
-$url = esc_url( $_POST['url'] );
-
-// Validar nonce en formularios
-if ( ! isset( $_POST['jewelry_nonce'] ) || ! wp_verify_nonce( $_POST['jewelry_nonce'], 'jewelry_action' ) ) {
-    wp_die( 'Acción no autorizada' );
-}
-
-// Escapar salida
-echo esc_html( $user_input );
-echo esc_attr( $attribute_value );
-echo esc_url( $url );
-```
+SIEMPRE sanitizar y validar datos. Usar nonces en formularios. Escapar salida.
 
 ### 4. Base de Datos
 
-**NUNCA usar SQL directo** - Usar WP_Query, get_posts(), o WP database abstraction:
-
-```php
-// ✅ CORRECTO - Usar WP_Query
-$args = array(
-    'post_type' => 'product',
-    'posts_per_page' => 10,
-    'meta_query' => array(
-        array(
-            'key' => '_locale',
-            'value' => 'es_ES',
-        ),
-    ),
-);
-$query = new WP_Query( $args );
-
-// ❌ INCORRECTO - SQL directo
-// $results = $wpdb->get_results( "SELECT * FROM wp_posts WHERE post_type = 'product'" );
-```
+NUNCA usar SQL directo - Usar WP_Query, get_posts(), o WP database abstraction.
 
 ### 5. Hooks y Filtros
 
-Usar acciones y filtros de WordPress apropiadamente:
+Usar acciones y filtros de WordPress apropiadamente.
 
-```php
-// Action hooks
-add_action( 'init', 'jewelry_register_custom_post_types' );
-add_action( 'wp_enqueue_scripts', 'jewelry_enqueue_assets' );
+## Personalizacion del Tema
 
-// Filter hooks
-add_filter( 'the_content', 'jewelry_modify_content' );
-add_filter( 'woocommerce_product_title', 'jewelry_custom_product_title' );
-```
+### Elementor
 
-## 📝 Ejemplos de Código
+El diseno del sitio se edita con **Elementor**:
+- Editar paginas: Admin > Paginas > Editar con Elementor
+- NO editar templates PHP directamente a menos que sea necesario
 
-### Crear Producto Bilingüe Completo
+### Funciones Custom
 
-```php
-/**
- * Crea un producto WooCommerce bilingüe con Bogo.
- *
- * @param array $data_es Datos del producto en español.
- * @param array $data_en Datos del producto en inglés.
- * @return array IDs de los productos creados.
- */
-function jewelry_create_bilingual_product( $data_es, $data_en ) {
-    // Crear producto en español
-    $product_es = new WC_Product_Simple();
-    $product_es->set_name( $data_es['name'] );
-    $product_es->set_description( $data_es['description'] );
-    $product_es->set_short_description( $data_es['short_description'] );
-    $product_es->set_regular_price( $data_es['price'] );
-    $product_es->set_sku( $data_es['sku'] );
-    $product_id_es = $product_es->save();
-    
-    // Marcar como español
-    update_post_meta( $product_id_es, '_locale', 'es_ES' );
-    
-    // Crear producto en inglés
-    $product_en = new WC_Product_Simple();
-    $product_en->set_name( $data_en['name'] );
-    $product_en->set_description( $data_en['description'] );
-    $product_en->set_short_description( $data_en['short_description'] );
-    $product_en->set_regular_price( $data_en['price'] );
-    $product_en->set_sku( $data_en['sku'] );
-    $product_id_en = $product_en->save();
-    
-    // Marcar como inglés
-    update_post_meta( $product_id_en, '_locale', 'en_US' );
-    
-    // Vincular con Bogo
-    $translations = array(
-        'es_ES' => $product_id_es,
-        'en_US' => $product_id_en
-    );
-    update_post_meta( $product_id_es, '_bogo_translations', $translations );
-    update_post_meta( $product_id_en, '_bogo_translations', $translations );
-    
-    return array(
-        'es' => $product_id_es,
-        'en' => $product_id_en
-    );
-}
-```
+Para personalizaciones usar **child theme** o **plugin custom**:
+- **Child theme:** `data/wordpress/wp-content/themes/astra-child/functions.php`
+- **Plugin custom:** `data/wordpress/wp-content/plugins/jewelry-custom/jewelry-custom.php`
 
-### Crear Página Bilingüe
+NO modificar archivos de Astra directamente.
 
-```php
-/**
- * Crea una página bilingüe con Bogo.
- */
-function jewelry_create_bilingual_page( $title_es, $title_en, $content_es, $content_en ) {
-    // Crear página en español
-    $page_es = array(
-        'post_title'   => $title_es,
-        'post_content' => $content_es,
-        'post_status'  => 'publish',
-        'post_type'    => 'page',
-    );
-    $page_id_es = wp_insert_post( $page_es );
-    update_post_meta( $page_id_es, '_locale', 'es_ES' );
-    
-    // Crear página en inglés
-    $page_en = array(
-        'post_title'   => $title_en,
-        'post_content' => $content_en,
-        'post_status'  => 'publish',
-        'post_type'    => 'page',
-    );
-    $page_id_en = wp_insert_post( $page_en );
-    update_post_meta( $page_id_en, '_locale', 'en_US' );
-    
-    // Vincular páginas
-    $translations = array(
-        'es_ES' => $page_id_es,
-        'en_US' => $page_id_en
-    );
-    update_post_meta( $page_id_es, '_bogo_translations', $translations );
-    update_post_meta( $page_id_en, '_bogo_translations', $translations );
-    
-    return array( 'es' => $page_id_es, 'en' => $page_id_en );
-}
-```
+## Formato de Commits
 
-### Funciones Custom en functions-custom.php
+Usar Conventional Commits: feat, fix, docs, style, refactor, test, chore
 
-Ubicación: `data/wordpress/wp-content/themes/kadence/functions-custom.php`
+## Prioridades Actuales
 
-```php
-<?php
-/**
- * Funciones personalizadas del tema Kadence
- * Archivo: functions-custom.php
- */
+1. **Template:** Importar Starter Template "Jewellery Store 04" desde Astra
+2. **Traduccion:** Traducir contenido importado al espanol con TranslatePress
+3. **Productos:** Crear productos reales del catalogo
+4. **Contenido:** Personalizar About Us, Materials, Collections
+5. **SEO:** Instalar y configurar plugin SEO
 
-// Prevenir acceso directo
-if ( ! defined( 'ABSPATH' ) ) {
-    exit;
-}
-
-/**
- * Cambiar menú según idioma usando Bogo.
- */
-function jewelry_switch_menu_by_language( $args ) {
-    $locale = get_locale();
-    
-    if ( 'es_ES' === $locale && 'primary' === $args['theme_location'] ) {
-        $args['menu'] = 'primary_navigation_es';
-    } elseif ( 'en_US' === $locale && 'primary' === $args['theme_location'] ) {
-        $args['menu'] = 'primary_navigation_en';
-    }
-    
-    return $args;
-}
-add_filter( 'wp_nav_menu_args', 'jewelry_switch_menu_by_language' );
-
-/**
- * Obtener idioma actual de Bogo.
- */
-function jewelry_get_current_locale() {
-    if ( function_exists( 'bogo_get_current_locale' ) ) {
-        return bogo_get_current_locale();
-    }
-    return get_locale();
-}
-
-/**
- * Verificar si un post tiene traducción.
- */
-function jewelry_has_translation( $post_id, $target_locale ) {
-    $translations = get_post_meta( $post_id, '_bogo_translations', true );
-    return isset( $translations[ $target_locale ] );
-}
-```
-
-### Cambio de Menú Según Idioma
-
-El proyecto usa menús separados por idioma:
-
-- `primary_navigation_es` - Menú en español
-- `primary_navigation_en` - Menú en inglés
-
-Cambio automático implementado en `functions-custom.php` con el hook `wp_nav_menu_args`.
-
-## 🎨 Estilo de Código
-
-### PHP
-
-- Usar 4 espacios para indentación (no tabs)
-- Usar Yoda conditions: `if ( 'value' === $variable )`
-- Espacios alrededor de operadores: `$result = $a + $b`
-- Abrir llaves en la misma línea
-
-```php
-function jewelry_example_function( $param1, $param2 ) {
-    if ( 'value' === $param1 ) {
-        return $param2;
-    }
-    return false;
-}
-```
-
-### JavaScript
-
-- Usar 2 espacios para indentación
-- Usar `const` y `let`, NO `var`
-- Usar template literals para strings con variables
-
-```javascript
-const jewelryApp = {
-  init() {
-    const locale = document.documentElement.lang;
-    if (locale === 'es-ES') {
-      this.loadSpanishContent();
-    }
-  }
-};
-```
-
-### CSS
-
-- Usar 2 espacios para indentación
-- Usar kebab-case para clases: `.jewelry-product-card`
-- Agrupar propiedades relacionadas
-
-```css
-.jewelry-product-card {
-  display: flex;
-  flex-direction: column;
-  
-  padding: 1rem;
-  margin-bottom: 1rem;
-  
-  background: #fff;
-  border: 1px solid #ddd;
-}
-```
-
-## 📦 Formato de Commits
-
-Usar **Conventional Commits**:
-
-```
-feat: añadir filtro de productos por precio
-fix: corregir vinculación de productos con Bogo
-docs: actualizar documentación de instalación
-style: ajustar espaciado en archivo CSS
-refactor: optimizar función jewelry_get_products
-test: añadir tests para creación de productos
-chore: actualizar dependencias de Docker
-```
-
-Tipos:
-- `feat`: Nueva funcionalidad
-- `fix`: Corrección de bug
-- `docs`: Cambios en documentación
-- `style`: Formato, espacios (no afecta código)
-- `refactor`: Refactorización de código
-- `test`: Añadir o modificar tests
-- `chore`: Tareas de mantenimiento
-
-## 🔧 Comandos Útiles
-
-### WP-CLI en Docker
-
-```bash
-# Estructura básica
-docker exec jewelry_wordpress wp --allow-root [comando]
-
-# Listar plugins
-docker exec jewelry_wordpress wp plugin list --allow-root
-
-# Activar/desactivar plugin
-docker exec jewelry_wordpress wp plugin activate woocommerce --allow-root
-docker exec jewelry_wordpress wp plugin deactivate plugin-name --allow-root
-
-# Listar productos
-docker exec jewelry_wordpress wp post list --post_type=product --allow-root
-
-# Crear producto
-docker exec jewelry_wordpress wp post create --post_type=product --post_title="Producto" --post_status=publish --allow-root
-
-# Regenerar permalinks
-docker exec jewelry_wordpress wp rewrite flush --allow-root
-
-# Limpiar cache
-docker exec jewelry_wordpress wp cache flush --allow-root
-
-# Exportar/importar base de datos
-docker exec jewelry_mysql mysqldump -u jewelry_user -p jewelry_db > backup.sql
-docker exec -i jewelry_mysql mysql -u jewelry_user -p jewelry_db < backup.sql
-```
-
-### Docker Compose
-
-```bash
-# Iniciar contenedores
-docker compose up -d
-
-# Detener contenedores
-docker compose down
-
-# Ver logs
-docker compose logs -f wordpress
-docker compose logs -f mysql
-
-# Reiniciar servicios
-docker compose restart wordpress
-```
-
-## 📌 Prioridades Actuales
-
-Ver `PROYECTO-ESTADO.md` para el estado actualizado. Prioridades principales:
-
-1. **Productos:** Crear ~50+ productos del catálogo WhatsApp
-2. **Contenido:** Completar páginas About Us, Materials, Blog posts
-3. **Emails:** Configurar emails de WooCommerce bilingües
-4. **SEO:** Instalar y configurar plugin SEO (Yoast/Rank Math)
-5. **Diseño:** Personalizar header/footer por idioma
-
-## 🔍 Archivos Importantes
+## Archivos Importantes
 
 ### Estructura del Proyecto
 
 ```
-/home/runner/work/Jewelry/Jewelry/
-├── docker-compose.yml                 # Configuración Docker
-├── .env                              # Variables de entorno
+/srv/stacks/jewelry/
+├── docker-compose.yml
+├── .env
 ├── data/
-│   ├── mysql/                        # Base de datos (ignorar en git)
-│   └── wordpress/                    # Archivos WordPress
+│   ├── mysql/
+│   └── wordpress/
 │       └── wp-content/
-│           ├── themes/
-│           │   └── kadence/
-│           │       └── functions-custom.php    # Personalizaciones
-│           ├── plugins/              # Plugins instalados
-│           └── uploads/              # Media (ignorar en git)
-├── README.md                         # Documentación principal
-└── PROYECTO-ESTADO.md               # Estado del proyecto
+│           ├── themes/astra/
+│           ├── plugins/
+│           │   ├── elementor/
+│           │   ├── woocommerce/
+│           │   ├── translatepress-multilingual/
+│           │   ├── astra-sites/
+│           │   └── contact-form-7/
+│           └── uploads/
+├── backups/
+├── docs/
+├── scripts/
+└── README.md
 ```
-
-### Archivos a Modificar
-
-- **Personalizaciones del tema:** `data/wordpress/wp-content/themes/kadence/functions-custom.php`
-- **Plugins custom:** `data/wordpress/wp-content/plugins/jewelry-custom/`
-- **Uploads:** `data/wordpress/wp-content/uploads/` (no versionar)
 
 ### Archivos a NO Modificar
 
 - Core de WordPress: `data/wordpress/wp-admin/`, `data/wordpress/wp-includes/`
-- Core de plugins: `data/wordpress/wp-content/plugins/[plugin-name]/` (excepto si es custom)
-- Base de datos: `data/mysql/` (ignorar en git)
+- Core de plugins/temas: No modificar Astra, Elementor, WooCommerce, TranslatePress
+- Base de datos: `data/mysql/`
 
-## 🚀 Workflow de Desarrollo
+## Workflow de Desarrollo
 
-1. **Crear funcionalidad en español primero**
-2. **Inmediatamente crear la versión en inglés**
-3. **Vincular ambas versiones con Bogo**
-4. **Probar en ambos idiomas**
-5. **Commit con mensaje convencional**
+1. **Crear contenido en espanol** (idioma principal)
+2. **Traducir al ingles** usando TranslatePress (visual, desde el frontend)
+3. **Revisar traducciones** en ambos idiomas
+4. **Commit con mensaje convencional**
 
-## 📚 Referencias
+## Referencias
 
-- [WordPress Developer Docs](https://developer.wordpress.org/)
+- [TranslatePress Docs](https://translatepress.com/docs/translatepress/)
+- [Astra Theme Docs](https://wpastra.com/docs/)
+- [Elementor Docs](https://developers.elementor.com/)
 - [WooCommerce Docs](https://woocommerce.github.io/code-reference/)
-- [Bogo Plugin](https://wordpress.org/plugins/bogo/)
-- [Kadence Theme Docs](https://www.kadencewp.com/documentation/)
 - [WordPress Coding Standards](https://developer.wordpress.org/coding-standards/)
 
 ---
 
-**Recuerda:** SIEMPRE crear contenido en AMBOS idiomas y vincular con Bogo. Usa prefijo `jewelry_` para funciones custom. Sanitiza todas las entradas. Usa WP_Query en lugar de SQL directo.
+**Recuerda:** El contenido se traduce con TranslatePress (NO duplicar posts). Usa prefijo `jewelry_` para funciones custom. Sanitiza todas las entradas. El diseno se edita con Elementor.

@@ -1,6 +1,6 @@
 # 📚 REFERENCIA RÁPIDA - SOLUCIÓN DE PROBLEMAS Y AUTOMATIZACIÓN
 
-**Remedio Joyería - WordPress Bilingual Project**  
+**Jewelry Miami - WordPress Bilingual Project**  
 **Fecha:** 2026-02-11  
 **Status:** ✅ Automatización Completada + Diagnóstico Ejecutado
 

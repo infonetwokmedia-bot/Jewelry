@@ -2,7 +2,7 @@
 
 ## 📋 Información General
 
-**Proyecto:** Sitio Web de Joyería - Remedio Joyería Miami
+**Proyecto:** Sitio Web de Joyería - Jewelry Miami
 **Stack:** WordPress 6.x + WooCommerce 10.5.0 + Docker + Traefik
 **Idiomas:** Bilingüe (Español/Inglés) con Bogo 3.9.1
 **Tema:** Kadence 1.4.3
@@ -17,6 +17,7 @@
 ## 🎯 Objetivo Principal
 
 Crear un ecommerce bilingüe profesional para venta de joyas de alta calidad con:
+
 - Catálogo de ~50+ productos
 - Contenido en español e inglés
 - Experiencia de usuario optimizada
@@ -26,18 +27,21 @@ Crear un ecommerce bilingüe profesional para venta de joyas de alta calidad con
 ## 🔧 Tecnologías Clave
 
 ### Backend
+
 - PHP 8.1+
 - MySQL 8.0
 - Apache (contenedor WordPress oficial)
 - WP-CLI para automatización
 
 ### Plugins Principales
+
 - **WooCommerce 10.5.0** - Ecommerce
 - **Bogo 3.9.1** - Multiidioma (NO Polylang, NO WPML)
 - **Kadence Blocks** - Constructor de páginas
 - **WooCommerce Stripe Gateway** - Pagos
 
 ### Contenedores Docker
+
 - `jewelry_wordpress` - WordPress + Apache
 - `jewelry_mysql` - Base de datos
 - `jewelry_phpmyadmin` - Gestión DB
@@ -73,6 +77,7 @@ Crear un ecommerce bilingüe profesional para venta de joyas de alta calidad con
 **⚠️ CRÍTICO: SIEMPRE crear contenido en AMBOS idiomas simultáneamente**
 
 ### Idiomas
+
 - **Español (es_ES)** - Idioma principal
 - **English (en_US)** - Idioma secundario
 
@@ -94,6 +99,7 @@ update_post_meta($post_id_en, '_bogo_translations', $bogo_translations);
 ## 🔒 Reglas de Seguridad
 
 ### SIEMPRE Sanitizar Entradas
+
 ```php
 $text = sanitize_text_field( $_POST['field'] );
 $email = sanitize_email( $_POST['email'] );
@@ -101,6 +107,7 @@ $url = esc_url( $_POST['url'] );
 ```
 
 ### Validar Nonces
+
 ```php
 if ( ! wp_verify_nonce( $_POST['jewelry_nonce'], 'jewelry_action' ) ) {
     wp_die( 'Acción no autorizada' );
@@ -108,6 +115,7 @@ if ( ! wp_verify_nonce( $_POST['jewelry_nonce'], 'jewelry_action' ) ) {
 ```
 
 ### Escapar Salidas
+
 ```php
 echo esc_html( $user_input );
 echo esc_attr( $attribute_value );
@@ -117,27 +125,32 @@ echo esc_url( $url );
 ## 📝 Convenciones de Código
 
 ### Prefijos
+
 - **SIEMPRE** usar prefijo `jewelry_` para funciones custom
 - snake_case para funciones PHP: `jewelry_get_products()`
 - kebab-case para hooks: `jewelry-custom-hook`
 - PascalCase para clases: `Jewelry_Product_Manager`
 
 ### WordPress Coding Standards
+
 - 4 espacios para indentación PHP (no tabs)
 - Yoda conditions: `if ( 'value' === $variable )`
 - Abrir llaves en la misma línea
 - PHPDoc para todas las funciones
 
 ### Base de Datos
+
 **NUNCA usar SQL directo** - Usar WP_Query, get_posts(), o WP database abstraction
 
 ## 🎨 Archivos Importantes
 
 ### ⚠️ MODIFICAR AQUÍ
+
 - `data/wordpress/wp-content/themes/kadence/functions-custom.php` - Personalizaciones del tema
 - `data/wordpress/wp-content/plugins/jewelry-custom/` - Plugins custom (si se crea)
 
 ### ❌ NO MODIFICAR
+
 - Core de WordPress: `wp-admin/`, `wp-includes/`
 - Core de plugins instalados (excepto custom)
 - `data/mysql/` - Base de datos (gitignore)
@@ -145,6 +158,7 @@ echo esc_url( $url );
 ## 🚀 Comandos Comunes
 
 ### WP-CLI en Docker
+
 ```bash
 # Estructura básica
 docker exec jewelry_wordpress wp --allow-root [comando]
@@ -160,6 +174,7 @@ docker exec jewelry_wordpress wp cache flush --allow-root
 ```
 
 ### Docker Compose
+
 ```bash
 docker compose up -d        # Iniciar
 docker compose down         # Detener
@@ -172,6 +187,7 @@ docker compose logs -f      # Ver logs
 Ver archivo `PROYECTO-ESTADO.md` en la raíz para el estado actualizado.
 
 ### Prioridades
+
 1. **Productos:** Crear ~50+ productos del catálogo
 2. **Contenido:** Completar páginas About Us, Materials, Blog
 3. **Emails:** Configurar emails WooCommerce bilingües

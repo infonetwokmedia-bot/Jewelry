@@ -1,4 +1,4 @@
-# Jewelry Website - Remedio Joyería
+# Jewelry Website - Jewelry Miami
 
 [![CI Status](https://github.com/infonetwokmedia-bot/Jewelry/actions/workflows/code-quality.yml/badge.svg)](https://github.com/infonetwokmedia-bot/Jewelry/actions/workflows/code-quality.yml)
 [![WordPress](https://img.shields.io/badge/WordPress-6.9.1-blue.svg)](https://wordpress.org/)
@@ -251,9 +251,9 @@ Ver todos los workflows en [`.github/workflows/`](.github/workflows/).
 
 ## 📄 Licencia
 
-Proyecto privado - Remedio Joyería © 2026
+Proyecto privado - Jewelry Miami © 2026
 
 ---
 
 **Mantenido por:** [Equipo de Desarrollo Jewelry](https://github.com/infonetwokmedia-bot)  
-**Última actualización:** 10 de febrero de 2026
+**Última actualización:** 11 de febrero de 2026

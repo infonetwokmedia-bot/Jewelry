@@ -4,7 +4,7 @@
 # Project type and metadata
 project:
   type: wordpress-woocommerce
-  name: Jewelry - Remedio Joyería
+  name: Jewelry Miami
   description: Bilingual (Spanish/English) jewelry e-commerce website
   languages:
     - php (primary)
@@ -83,7 +83,7 @@ code_preferences:
     sanitization: always
     nonce_verification: always
     use_wp_query: always # Never use direct SQL
-    
+
   # JavaScript preferences
   javascript:
     version: es6
@@ -91,13 +91,13 @@ code_preferences:
     use_const_let: true
     no_var: true
     quotes: single
-    
+
   # CSS preferences
   css:
     indentation: 2 spaces
     naming: kebab-case
     prefix: jewelry-
-    
+
   # General
   general:
     line_length: 100
@@ -111,11 +111,11 @@ bilingual:
   enabled: true
   default_locale: es_ES
   supported_locales:
-    - es_ES  # Spanish (primary)
-    - en_US  # English (secondary)
+    - es_ES # Spanish (primary)
+    - en_US # English (secondary)
   translation_plugin: bogo
-  always_create_both: true  # CRITICAL: Always create content in both languages
-  link_with_bogo: true      # Always link translations with Bogo
+  always_create_both: true # CRITICAL: Always create content in both languages
+  link_with_bogo: true # Always link translations with Bogo
   menu_prefix_es: primary_navigation_es
   menu_prefix_en: primary_navigation_en
 
@@ -147,18 +147,18 @@ snippets:
     $product_es->set_name( 'Producto ES' );
     $product_id_es = $product_es->save();
     update_post_meta( $product_id_es, '_locale', 'es_ES' );
-    
+
     // Create product in English
     $product_en = new WC_Product_Simple();
     $product_en->set_name( 'Product EN' );
     $product_id_en = $product_en->save();
     update_post_meta( $product_id_en, '_locale', 'en_US' );
-    
+
     // Link with Bogo
     $translations = array( 'es_ES' => $product_id_es, 'en_US' => $product_id_en );
     update_post_meta( $product_id_es, '_bogo_translations', $translations );
     update_post_meta( $product_id_en, '_bogo_translations', $translations );
-  
+
   # Bilingual page creation
   bilingual_page: |
     // Spanish page
@@ -169,7 +169,7 @@ snippets:
         'post_status' => 'publish'
     ));
     update_post_meta( $page_es, '_locale', 'es_ES' );
-    
+
     // English page
     $page_en = wp_insert_post(array(
         'post_title' => 'Title EN',
@@ -178,22 +178,22 @@ snippets:
         'post_status' => 'publish'
     ));
     update_post_meta( $page_en, '_locale', 'en_US' );
-    
+
     // Link with Bogo
     $translations = array( 'es_ES' => $page_es, 'en_US' => $page_en );
     update_post_meta( $page_es, '_bogo_translations', $translations );
     update_post_meta( $page_en, '_bogo_translations', $translations );
-  
+
   # WP-CLI in Docker
   wpcli_docker: |
     docker exec jewelry_wordpress wp --allow-root [command]
-  
+
   # Sanitization
   sanitize_input: |
     $text = sanitize_text_field( $_POST['field'] );
     $email = sanitize_email( $_POST['email'] );
     $url = esc_url( $_POST['url'] );
-  
+
   # Nonce verification
   verify_nonce: |
     if ( ! wp_verify_nonce( $_POST['jewelry_nonce'], 'jewelry_action' ) ) {
@@ -212,7 +212,7 @@ documentation:
   inline_comments: phpdoc
   function_docs: required
   class_docs: required
-  
+
 # Git commit preferences
 commits:
   format: conventional
@@ -225,7 +225,7 @@ commits:
     - test
     - chore
   require_description: true
-  
+
 # Container information
 containers:
   wordpress:

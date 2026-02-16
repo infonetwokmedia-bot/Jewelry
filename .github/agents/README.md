@@ -46,7 +46,7 @@ Agentes personalizados de GitHub Copilot para desarrollo eficiente del sitio Jew
 **Ejemplo de uso:**
 
 ```
-@page-builder Crea la página "Nosotros / About Us" con contenido sobre Remedio Joyería
+@page-builder Crea la página "Nosotros / About Us" con contenido sobre Jewelry Miami
 ```
 
 **Handoffs disponibles:**
@@ -269,4 +269,4 @@ Los agentes se cargan automáticamente al modificar los archivos `.agent.md`. Si
 ---
 
 **Creado:** 2026-02-10
-**Proyecto:** Jewelry - Remedio Joyería (WordPress + WooCommerce Bilingüe)
+**Proyecto:** Jewelry Miami (WordPress + WooCommerce Bilingüe)

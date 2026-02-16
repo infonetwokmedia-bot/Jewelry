@@ -41,9 +41,15 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=traefik-public"
+      # Router local
       - "traefik.http.routers.jewelry.rule=Host(`jewelry.local.dev`)"
       - "traefik.http.routers.jewelry.entrypoints=websecure"
       - "traefik.http.routers.jewelry.tls=true"
+      # Router público
+      - "traefik.http.routers.jewelry-public.rule=Host(`jewelry.cubaverso.com`)"
+      - "traefik.http.routers.jewelry-public.entrypoints=websecure"
+      - "traefik.http.routers.jewelry-public.tls=true"
+      # Servicio compartido
       - "traefik.http.services.jewelry.loadbalancer.server.port=80"
 
   phpmyadmin:
