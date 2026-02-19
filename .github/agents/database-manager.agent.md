@@ -1,7 +1,7 @@
 ---
 name: Database Manager
-description: Experto en gestión de base de datos y comandos WP-CLI
-tools: ["runCommand", "readFiles", "writeFiles"]
+description: Experto en gestión de base de datos, Docker y WP-CLI para Jewelry Miami
+tools: ["editFiles", "runCommands", "codebase", "readFile", "problems", "terminalLastCommand", "searchFiles"]
 ---
 
 # Database Manager Agent - Jewelry Project
@@ -16,427 +16,260 @@ Gestionar base de datos, ejecutar backups, importar/exportar datos y ejecutar co
 
 ```yaml
 Contenedores:
-  - jewelry_wordpress # WordPress + Apache
-  - jewelry_mysql # MySQL 8.0
+  - jewelry_wordpress  # WordPress + Apache
+  - jewelry_mysql      # MySQL 8.0
   - jewelry_phpmyadmin # phpMyAdmin
-  - jewelry_wpcli # WP-CLI
 
 Base de Datos:
   - Database: jewelry_db
   - User: jewelry_user
-  - Password: (ver .env)
+  - Password: jewelry_pass_2026!
+
+URLs:
+  - Frontend: https://jewelry.local.dev
+  - Admin: https://jewelry.local.dev/wp-admin
+  - phpMyAdmin: https://phpmyadmin.jewelry.local.dev
 ```
 
-## 📦 Comandos WP-CLI
+## 📦 WP-CLI
 
-### Estructura Básica
+**IMPORTANTE:** WP-CLI está disponible como `wp-cli.phar` dentro del contenedor WordPress:
 
 ```bash
-docker exec jewelry_wordpress wp --allow-root [comando]
+# Formato correcto de WP-CLI
+docker exec jewelry_wordpress php /var/www/html/wp-cli.phar [COMANDO] --allow-root
 ```
 
-### **Posts y Productos**
+**Alternativa** (docker run wrapper):
 
 ```bash
-# Listar posts
-docker exec jewelry_wordpress wp post list --allow-root
+docker run --rm --volumes-from jewelry_wordpress \
+  --network jewelry_jewelry_network \
+  -e WORDPRESS_DB_HOST=mysql \
+  -e WORDPRESS_DB_NAME=jewelry_db \
+  -e WORDPRESS_DB_USER=jewelry_user \
+  -e WORDPRESS_DB_PASSWORD='jewelry_pass_2026!' \
+  wordpress:cli wp [COMANDO] --allow-root
+```
 
+## 📋 Comandos Frecuentes
+
+### Posts y Productos
+
+```bash
 # Listar productos
-docker exec jewelry_wordpress wp post list --post_type=product --allow-root
+docker exec jewelry_wordpress php /var/www/html/wp-cli.phar \
+  post list --post_type=product --allow-root
+
+# Listar variaciones
+docker exec jewelry_wordpress php /var/www/html/wp-cli.phar \
+  post list --post_type=product_variation --allow-root
 
 # Listar páginas
-docker exec jewelry_wordpress wp post list --post_type=page --allow-root
+docker exec jewelry_wordpress php /var/www/html/wp-cli.phar \
+  post list --post_type=page --allow-root
 
 # Ver detalles de un post
-docker exec jewelry_wordpress wp post get <ID> --allow-root
+docker exec jewelry_wordpress php /var/www/html/wp-cli.phar \
+  post get <ID> --allow-root
 
-# Crear post
-docker exec jewelry_wordpress wp post create \
-  --post_type=product \
-  --post_title="Producto" \
-  --post_status=publish \
-  --allow-root
+# Ver meta de un post
+docker exec jewelry_wordpress php /var/www/html/wp-cli.phar \
+  post meta list <ID> --allow-root
 
-# Actualizar post
-docker exec jewelry_wordpress wp post update <ID> \
-  --post_title="Nuevo Título" \
-  --allow-root
-
-# Eliminar post
-docker exec jewelry_wordpress wp post delete <ID> --allow-root
-
-# Eliminar permanentemente
-docker exec jewelry_wordpress wp post delete <ID> --force --allow-root
+# Actualizar meta
+docker exec jewelry_wordpress php /var/www/html/wp-cli.phar \
+  post meta update <ID> _price 499.99 --allow-root
 ```
 
-### **Plugins**
+### Plugins
 
 ```bash
 # Listar plugins
-docker exec jewelry_wordpress wp plugin list --allow-root
+docker exec jewelry_wordpress php /var/www/html/wp-cli.phar \
+  plugin list --allow-root
 
 # Activar plugin
-docker exec jewelry_wordpress wp plugin activate woocommerce --allow-root
+docker exec jewelry_wordpress php /var/www/html/wp-cli.phar \
+  plugin activate woocommerce --allow-root
 
-# Desactivar plugin
-docker exec jewelry_wordpress wp plugin deactivate plugin-name --allow-root
-
-# Instalar plugin
-docker exec jewelry_wordpress wp plugin install plugin-name --activate --allow-root
-
-# Actualizar todos los plugins
-docker exec jewelry_wordpress wp plugin update --all --allow-root
-
-# Ver información de plugin
-docker exec jewelry_wordpress wp plugin get woocommerce --allow-root
+# Instalar y activar plugin
+docker exec jewelry_wordpress php /var/www/html/wp-cli.phar \
+  plugin install plugin-name --activate --allow-root
 ```
 
-### **Temas**
+### Temas
 
 ```bash
-# Listar temas
-docker exec jewelry_wordpress wp theme list --allow-root
+# Listar temas (tema actual: Astra 4.12.3)
+docker exec jewelry_wordpress php /var/www/html/wp-cli.phar \
+  theme list --allow-root
 
 # Activar tema
-docker exec jewelry_wordpress wp theme activate kadence --allow-root
-
-# Instalar tema
-docker exec jewelry_wordpress wp theme install kadence --activate --allow-root
+docker exec jewelry_wordpress php /var/www/html/wp-cli.phar \
+  theme activate astra --allow-root
 ```
 
-### **Opciones y Meta**
-
-```bash
-# Ver opción
-docker exec jewelry_wordpress wp option get siteurl --allow-root
-
-# Actualizar opción
-docker exec jewelry_wordpress wp option update blogname "Jewelry Store" --allow-root
-
-# Listar meta de post
-docker exec jewelry_wordpress wp post meta list <ID> --allow-root
-
-# Ver meta específico
-docker exec jewelry_wordpress wp post meta get <ID> _locale --allow-root
-
-# Actualizar meta
-docker exec jewelry_wordpress wp post meta update <ID> _price 499.99 --allow-root
-
-# Eliminar meta
-docker exec jewelry_wordpress wp post meta delete <ID> _old_meta --allow-root
-```
-
-### **Usuarios**
-
-```bash
-# Listar usuarios
-docker exec jewelry_wordpress wp user list --allow-root
-
-# Crear usuario admin
-docker exec jewelry_wordpress wp user create newadmin admin@example.com \
-  --role=administrator \
-  --user_pass=SecurePass123 \
-  --allow-root
-
-# Actualizar password
-docker exec jewelry_wordpress wp user update <ID> --user_pass=NewPass123 --allow-root
-```
-
-### **Cache y Rewrite**
+### Cache y Permalinks
 
 ```bash
 # Limpiar cache
-docker exec jewelry_wordpress wp cache flush --allow-root
+docker exec jewelry_wordpress php /var/www/html/wp-cli.phar \
+  cache flush --allow-root
 
 # Flush permalinks
-docker exec jewelry_wordpress wp rewrite flush --allow-root
-
-# Ver estructura de permalinks
-docker exec jewelry_wordpress wp rewrite structure --allow-root
+docker exec jewelry_wordpress php /var/www/html/wp-cli.phar \
+  rewrite flush --allow-root
 ```
 
-### **Media**
+### Ejecutar Scripts PHP
 
 ```bash
-# Regenerar miniaturas
-docker exec jewelry_wordpress wp media regenerate --yes --allow-root
+# Copiar script al contenedor y ejecutar
+docker cp /srv/stacks/jewelry/scripts/mi-script.php \
+  jewelry_wordpress:/tmp/mi-script.php
 
-# Regenerar solo un ID
-docker exec jewelry_wordpress wp media regenerate <ID> --yes --allow-root
+docker exec jewelry_wordpress php /var/www/html/wp-cli.phar \
+  eval-file /tmp/mi-script.php --allow-root
 ```
 
-### **Búsqueda y Reemplazo**
+### Búsqueda y Reemplazo
 
 ```bash
-# Buscar y reemplazar en DB
-docker exec jewelry_wordpress wp search-replace \
-  'old-url.com' \
-  'new-url.com' \
-  --allow-root
+# Buscar y reemplazar en DB (dry run primero)
+docker exec jewelry_wordpress php /var/www/html/wp-cli.phar search-replace \
+  'old-url.com' 'new-url.com' --dry-run --allow-root
 
-# Dry run (solo probar)
-docker exec jewelry_wordpress wp search-replace \
-  'old-url.com' \
-  'new-url.com' \
-  --dry-run \
-  --allow-root
-
-# Solo en tabla específica
-docker exec jewelry_wordpress wp search-replace \
-  'old-url.com' \
-  'new-url.com' \
-  wp_posts \
-  --allow-root
-```
-
-### **WooCommerce Específico**
-
-```bash
-# Ver versión de WooCommerce
-docker exec jewelry_wordpress wp wc version --allow-root
-
-# Regenerar product lookup tables
-docker exec jewelry_wordpress wp wc tool run regenerate_product_lookup_tables --allow-root
-
-# Limpiar carritos abandonados
-docker exec jewelry_wordpress wp wc cart cleanup --allow-root
-
-# Ver configuración
-docker exec jewelry_wordpress wp wc setting list --allow-root
+# Ejecutar reemplazo
+docker exec jewelry_wordpress php /var/www/html/wp-cli.phar search-replace \
+  'old-url.com' 'new-url.com' --allow-root
 ```
 
 ## 💾 Backups de Base de Datos
 
-### **Exportar (Backup)**
+### Exportar (Backup)
 
 ```bash
 # Backup completo con timestamp
 docker exec jewelry_mysql mysqldump \
   -u jewelry_user \
-  -p'password' \
-  jewelry_db > backup_$(date +%Y%m%d_%H%M%S).sql
+  -p'jewelry_pass_2026!' \
+  jewelry_db > /srv/stacks/jewelry/backups/backup_$(date +%Y%m%d_%H%M%S).sql
 
-# Backup solo estructura (sin datos)
+# Backup solo tablas específicas
 docker exec jewelry_mysql mysqldump \
   -u jewelry_user \
-  -p'password' \
-  --no-data \
-  jewelry_db > structure_$(date +%Y%m%d_%H%M%S).sql
+  -p'jewelry_pass_2026!' \
+  jewelry_db wp_posts wp_postmeta > /srv/stacks/jewelry/backups/posts_backup.sql
 
-# Backup solo datos (sin estructura)
+# Backup tablas TranslatePress
 docker exec jewelry_mysql mysqldump \
   -u jewelry_user \
-  -p'password' \
-  --no-create-info \
-  jewelry_db > data_$(date +%Y%m%d_%H%M%S).sql
-
-# Backup tablas específicas
-docker exec jewelry_mysql mysqldump \
-  -u jewelry_user \
-  -p'password' \
-  jewelry_db wp_posts wp_postmeta > posts_backup.sql
+  -p'jewelry_pass_2026!' \
+  jewelry_db $(docker exec jewelry_mysql mysql -u jewelry_user -p'jewelry_pass_2026!' \
+  -N -e "SHOW TABLES LIKE 'wp_trp_%'" jewelry_db | tr '\n' ' ') \
+  > /srv/stacks/jewelry/backups/trp_backup_$(date +%Y%m%d).sql
 ```
 
-### **Importar (Restore)**
+### Importar (Restore)
 
 ```bash
 # Importar backup completo
 docker exec -i jewelry_mysql mysql \
   -u jewelry_user \
-  -p'password' \
+  -p'jewelry_pass_2026!' \
   jewelry_db < backup.sql
-
-# Importar desde archivo comprimido
-gunzip < backup.sql.gz | docker exec -i jewelry_mysql mysql \
-  -u jewelry_user \
-  -p'password' \
-  jewelry_db
 ```
 
-### **Script de Backup Automático**
+## 🔧 Mantenimiento
 
-```bash
-#!/bin/bash
-# backup-jewelry.sh
-
-TIMESTAMP=$(date +%Y%m%d_%H%M%S)
-BACKUP_DIR="./backups"
-mkdir -p $BACKUP_DIR
-
-echo "Starting backup..."
-
-# Database backup
-docker exec jewelry_mysql mysqldump \
-  -u jewelry_user \
-  -ppassword \
-  jewelry_db > "$BACKUP_DIR/db_$TIMESTAMP.sql"
-
-# Compress
-gzip "$BACKUP_DIR/db_$TIMESTAMP.sql"
-
-# Backup uploads
-tar -czf "$BACKUP_DIR/uploads_$TIMESTAMP.tar.gz" \
-  data/wordpress/wp-content/uploads/
-
-# Backup theme customizations
-cp data/wordpress/wp-content/themes/kadence/functions-custom.php \
-  "$BACKUP_DIR/functions-custom_$TIMESTAMP.php"
-
-# Delete backups older than 30 days
-find $BACKUP_DIR -name "*.sql.gz" -mtime +30 -delete
-find $BACKUP_DIR -name "*.tar.gz" -mtime +30 -delete
-
-echo "Backup completed: $BACKUP_DIR"
-ls -lh $BACKUP_DIR/*$TIMESTAMP*
-```
-
-## 🔧 Mantenimiento de Base de Datos
-
-### **Optimizar Tablas**
-
-```bash
-# Conectar a MySQL
-docker exec -it jewelry_mysql mysql \
-  -u jewelry_user \
-  -p'password' \
-  jewelry_db
-
-# Dentro de MySQL:
-OPTIMIZE TABLE wp_posts;
-OPTIMIZE TABLE wp_postmeta;
-OPTIMIZE TABLE wp_options;
-
-# Optimizar todas las tablas
-docker exec jewelry_mysql mysqlcheck \
-  -u jewelry_user \
-  -p'password' \
-  --optimize \
-  --all-databases
-```
-
-### **Reparar Tablas**
+### Optimizar Tablas
 
 ```bash
 docker exec jewelry_mysql mysqlcheck \
   -u jewelry_user \
-  -p'password' \
-  --repair \
-  jewelry_db
+  -p'jewelry_pass_2026!' \
+  --optimize jewelry_db
 ```
 
-### **Ver Tamaño de Tablas**
-
-```sql
--- Ejecutar en MySQL:
-SELECT
-  table_name AS 'Table',
-  ROUND(((data_length + index_length) / 1024 / 1024), 2) AS 'Size (MB)'
-FROM information_schema.TABLES
-WHERE table_schema = 'jewelry_db'
-ORDER BY (data_length + index_length) DESC;
-```
-
-## 🗑️ Limpieza de Base de Datos
-
-### **Eliminar Revisiones de Posts**
+### Ver Tamaño de Tablas
 
 ```bash
-# Ver cantidad de revisiones
-docker exec jewelry_wordpress wp post list \
-  --post_type=revision \
-  --format=count \
-  --allow-root
-
-# Eliminar todas las revisiones
-docker exec jewelry_wordpress wp post delete \
-  $(docker exec jewelry_wordpress wp post list --post_type=revision --format=ids --allow-root) \
-  --allow-root
+docker exec jewelry_mysql mysql \
+  -u jewelry_user \
+  -p'jewelry_pass_2026!' \
+  -e "SELECT table_name AS 'Table',
+      ROUND(((data_length + index_length) / 1024 / 1024), 2) AS 'Size (MB)'
+      FROM information_schema.TABLES
+      WHERE table_schema = 'jewelry_db'
+      ORDER BY (data_length + index_length) DESC;" jewelry_db
 ```
 
-### **Eliminar Posts en Papelera**
+### Limpiar Revisiones y Transients
 
 ```bash
-# Ver posts en papelera
-docker exec jewelry_wordpress wp post list \
-  --post_status=trash \
-  --allow-root
+# Eliminar revisiones
+docker exec jewelry_wordpress php /var/www/html/wp-cli.phar \
+  post delete $(docker exec jewelry_wordpress php /var/www/html/wp-cli.phar \
+  post list --post_type=revision --format=ids --allow-root) --allow-root
 
-# Vaciar papelera
-docker exec jewelry_wordpress wp post delete \
-  $(docker exec jewelry_wordpress wp post list --post_status=trash --format=ids --allow-root) \
-  --force \
-  --allow-root
-```
-
-### **Limpiar Transients**
-
-```bash
 # Eliminar transients expirados
-docker exec jewelry_wordpress wp transient delete --expired --allow-root
-
-# Eliminar todos los transients
-docker exec jewelry_wordpress wp transient delete --all --allow-root
+docker exec jewelry_wordpress php /var/www/html/wp-cli.phar \
+  transient delete --expired --allow-root
 ```
 
-## 📊 Información del Sistema
+## 🔍 Diagnóstico
 
 ```bash
 # Versión de WordPress
-docker exec jewelry_wordpress wp core version --allow-root
+docker exec jewelry_wordpress php /var/www/html/wp-cli.phar \
+  core version --allow-root
 
-# Información del sistema
-docker exec jewelry_wordpress wp cli info --allow-root
+# Verificar integridad de core
+docker exec jewelry_wordpress php /var/www/html/wp-cli.phar \
+  core verify-checksums --allow-root
 
-# Ver configuración PHP
-docker exec jewelry_wordpress wp eval 'phpinfo();' --allow-root
-
-# Ver tamaño de la base de datos
-docker exec jewelry_mysql mysql \
-  -u jewelry_user \
-  -p'password' \
-  -e "SELECT SUM(data_length + index_length) / 1024 / 1024 AS 'DB Size (MB)'
-      FROM information_schema.TABLES
-      WHERE table_schema = 'jewelry_db';"
-```
-
-## 🔍 Diagnóstico y Debug
-
-```bash
-# Verificar salud del sitio
-docker exec jewelry_wordpress wp site health --allow-root
-
-# Ver errores de PHP
+# Ver logs de WordPress
 docker logs jewelry_wordpress --tail 100
 
 # Ver logs de MySQL
 docker logs jewelry_mysql --tail 100
-
-# Verificar permisos
-docker exec jewelry_wordpress wp eval 'echo is_writable(WP_CONTENT_DIR) ? "Writable" : "Not writable";' --allow-root
 ```
 
 ## 🚨 Comandos de Emergencia
 
-### **Resetear Contraseña de Admin**
-
 ```bash
-docker exec jewelry_wordpress wp user update 1 \
-  --user_pass=NewSecurePass123 \
-  --allow-root
+# Resetear contraseña de admin
+docker exec jewelry_wordpress php /var/www/html/wp-cli.phar \
+  user update 1 --user_pass=NuevaContraseña --allow-root
+
+# Desactivar todos los plugins
+docker exec jewelry_wordpress php /var/www/html/wp-cli.phar \
+  plugin deactivate --all --allow-root
 ```
 
-### **Desactivar Todos los Plugins**
+## 📂 Estructura de Archivos
 
-```bash
-docker exec jewelry_wordpress wp plugin deactivate --all --allow-root
 ```
-
-### **Verificar Integridad de Core**
-
-```bash
-docker exec jewelry_wordpress wp core verify-checksums --allow-root
+/srv/stacks/jewelry/
+├── docker-compose.yml
+├── .env
+├── data/
+│   ├── mysql/          # No modificar directamente
+│   └── wordpress/
+│       └── wp-content/
+│           ├── themes/astra/          # Tema principal (NO modificar)
+│           ├── themes/astra-child/    # Child theme (personalizar aquí)
+│           ├── plugins/
+│           │   ├── elementor/
+│           │   ├── woocommerce/
+│           │   ├── translatepress-multilingual/
+│           │   └── contact-form-7/
+│           └── uploads/
+├── backups/
+└── scripts/
 ```
 
 ---
 
-**Recuerda:** SIEMPRE hacer backup antes de modificar la base de datos. Probar en staging primero.
+**Recuerda:** SIEMPRE hacer backup antes de modificar la base de datos. Usar WP-CLI con `php /var/www/html/wp-cli.phar` dentro del contenedor.

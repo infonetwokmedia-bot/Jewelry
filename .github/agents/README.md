@@ -1,272 +1,213 @@
 # Custom Agents - Jewelry Project
 
-Agentes personalizados de GitHub Copilot para desarrollo eficiente del sitio Jewelry.
+Agentes personalizados de GitHub Copilot para desarrollo eficiente del sitio Jewelry Miami.
 
-## 📚 Agentes Disponibles
+## Agentes Disponibles
 
-### 1. 🛍️ **Product Creator**
+### 1. **Product Creator**
 
 **Archivo:** `product-creator.agent.md`
-
-**Especialidad:** Crear productos WooCommerce bilingües
+**Especialidad:** Crear productos WooCommerce (simples y variables)
 
 **Cuándo usar:**
-
-- Crear productos simples o variables
-- Importar productos desde CSV
+- Crear productos simples o variables con variaciones
+- Gestionar atributos globales (ancho, largo, talla)
 - Actualizar precios masivamente
 - Gestionar categorías de productos
 
-**Ejemplo de uso:**
-
+**Ejemplo:**
 ```
 @product-creator Crea un producto de cadena cubana 10k de 6mm por $499
 ```
 
-**Handoffs disponibles:**
-
-- → Bogo Expert (vincular traducciones)
-- → Security Reviewer (revisar seguridad)
+**Handoffs:** → TranslatePress Expert, → Security Reviewer
 
 ---
 
-### 2. 📄 **Page Builder**
+### 2. **Page Builder**
 
 **Archivo:** `page-builder.agent.md`
-
-**Especialidad:** Crear páginas WordPress bilingües
+**Especialidad:** Crear páginas WordPress con Elementor + Astra
 
 **Cuándo usar:**
-
 - Crear páginas About Us, Materials, Contact
 - Páginas legales (Privacy, Terms)
-- Blog posts bilingües
-- Páginas con templates personalizados
+- Páginas con Elementor o Gutenberg
 
-**Ejemplo de uso:**
-
+**Ejemplo:**
 ```
-@page-builder Crea la página "Nosotros / About Us" con contenido sobre Jewelry Miami
+@page-builder Crea la página "Nosotros" con contenido sobre Jewelry Miami
 ```
 
-**Handoffs disponibles:**
-
-- → Bogo Expert (vincular traducciones)
-- → Product Creator (crear productos relacionados)
+**Handoffs:** → TranslatePress Expert, → Product Creator
 
 ---
 
-### 3. 🔗 **Bogo Expert**
+### 3. **TranslatePress Expert**
 
-**Archivo:** `bogo-expert.agent.md`
-
-**Especialidad:** Vincular contenido multiidioma con Bogo
+**Archivo:** `translatepress-expert.agent.md`
+**Especialidad:** Gestionar traducciones bilingües con TranslatePress
 
 **Cuándo usar:**
+- Verificar contenido sin traducir
+- Diagnosticar problemas de traducción
+- Consultar tablas `wp_trp_*`
+- Configurar el editor de traducción
 
-- Vincular productos/páginas en ambos idiomas
-- Detectar contenido sin traducir
-- Reparar vinculaciones rotas
-- Verificar meta `_locale` y `_bogo_translations`
-
-**Ejemplo de uso:**
-
+**Ejemplo:**
 ```
-@bogo-expert Vincula el producto ID 123 (ES) con el ID 456 (EN)
-@bogo-expert Busca todos los productos sin traducción al inglés
+@translatepress-expert Busca todo el contenido sin traducción al inglés
+@translatepress-expert ¿Por qué esta página no se traduce?
 ```
 
-**Handoffs disponibles:**
-
-- → Bogo Expert (búsqueda recursiva)
+**Handoffs:** → Product Creator, → Page Builder
 
 ---
 
-### 4. 🛒 **WooCommerce Expert**
+### 4. **WooCommerce Expert**
 
 **Archivo:** `woocommerce-expert.agent.md`
-
 **Especialidad:** Configuración y personalización WooCommerce
 
 **Cuándo usar:**
-
 - Emails bilingües de WooCommerce
 - Campos personalizados en checkout
 - Configurar categorías y atributos
 - Personalizar hooks y filtros
 - Configuración de pagos
 
-**Ejemplo de uso:**
-
+**Ejemplo:**
 ```
-@woocommerce-expert Agrega un campo "mensaje de regalo" en el checkout bilingüe
-@woocommerce-expert Configura emails para enviar en el idioma de la orden
+@woocommerce-expert Configura emails para enviar en el idioma del cliente
+@woocommerce-expert Agrega un campo "mensaje de regalo" en el checkout
 ```
 
-**Handoffs disponibles:**
-
-- → Product Creator (crear productos)
-- → Security Reviewer (revisar seguridad)
+**Handoffs:** → Product Creator, → Security Reviewer, → TranslatePress Expert
 
 ---
 
-### 5. 🔒 **Security Reviewer**
+### 5. **Security Reviewer**
 
 **Archivo:** `security-reviewer.agent.md`
-
-**Especialidad:** Revisar seguridad de código
+**Especialidad:** Revisar y corregir seguridad de código
 
 **Cuándo usar:**
-
 - Revisar código antes de producción
 - Detectar vulnerabilidades XSS, SQL Injection, CSRF
 - Validar sanitización y escape
-- Verificar verificación de nonces
-- Auditar permisos de usuario
+- Auditar permisos
+- **Puede editar archivos** para aplicar correcciones
 
-**Ejemplo de uso:**
-
+**Ejemplo:**
 ```
-@security-reviewer Revisa este código por vulnerabilidades de seguridad
-@security-reviewer ¿Este formulario es seguro?
+@security-reviewer Revisa este código por vulnerabilidades
+@security-reviewer Audita la seguridad del child theme
 ```
-
-**Sin handoffs** (es el último punto de revisión)
 
 ---
 
-### 6. 💾 **Database Manager**
+### 6. **Database Manager**
 
 **Archivo:** `database-manager.agent.md`
-
-**Especialidad:** Gestión de base de datos y WP-CLI
+**Especialidad:** Base de datos, Docker y WP-CLI
 
 **Cuándo usar:**
-
 - Backups y restauración de base de datos
 - Ejecutar comandos WP-CLI en Docker
 - Optimizar/reparar tablas
-- Limpieza de base de datos
 - Búsqueda y reemplazo en DB
 
-**Ejemplo de uso:**
-
+**Ejemplo:**
 ```
 @database-manager Crea un backup de la base de datos
 @database-manager Lista todos los productos con WP-CLI
-@database-manager Optimiza la base de datos
 ```
-
-**Sin handoffs** (operaciones de infraestructura)
 
 ---
 
-## 🎯 Cómo Usar los Agentes
+### 7. **Project Manager**
 
-### En Chat de Copilot
+**Archivo:** `project-manager.agent.md`
+**Especialidad:** Workflow completo de tickets → merge
 
-1. Abre el Chat de Copilot (Ctrl+Alt+I)
-2. Selecciona un agente del dropdown
-3. Escribe tu prompt
-4. El agente responderá con su especialización
+**Cuándo usar:**
+- Convertir tickets en issues de GitHub
+- Crear branches con nomenclatura correcta
+- Gestionar PRs con checklists
+- Coordinar entre agentes especializados
 
-### Cambiar de Agente (Handoff)
-
-Algunos agentes sugieren **handoffs** - botones para cambiar a otro agente relacionado:
-
+**Ejemplo:**
 ```
-Product Creator → [Vincular con Bogo] → Bogo Expert
-WooCommerce Expert → [Revisar Seguridad] → Security Reviewer
+@project-manager Crea un issue para agregar 5 productos nuevos al catálogo
+@project-manager Revisa el estado del proyecto
 ```
 
-### Workflow Recomendado
-
-**Para crear producto completo:**
-
-1. `@product-creator` - Crear producto bilingüe
-2. Click "Vincular con Bogo" → `@bogo-expert` - Verificar vinculación
-3. Click "Revisar Seguridad" → `@security-reviewer` - Validar código
-
-**Para crear página:**
-
-1. `@page-builder` - Crear página bilingüe
-2. Click "Vincular con Bogo" → `@bogo-expert` - Verificar vinculación
+**Handoffs:** → Product Creator, → Page Builder, → TranslatePress Expert, → Security Reviewer
 
 ---
 
-## 📁 Ubicación de Archivos
+## Workflow Recomendado
+
+**Para crear un producto completo:**
+1. `@product-creator` — Crear producto con variaciones
+2. `@translatepress-expert` — Verificar/traducir al inglés
+3. `@security-reviewer` — Validar código generado
+
+**Para crear una página:**
+1. `@page-builder` — Crear página con Elementor
+2. `@translatepress-expert` — Traducir al inglés
+
+---
+
+## Stack del Proyecto
+
+| Componente | Versión |
+|-----------|---------|
+| WordPress | 6.9.1 |
+| WooCommerce | 10.5.1 |
+| Tema | Astra 4.12.3 |
+| Page Builder | Elementor 3.35.4 |
+| Multiidioma | **TranslatePress 3.0.9** |
+| Infraestructura | Docker + Traefik |
+| PHP | 8.1+ |
+| MySQL | 8.0 |
+
+**IMPORTANTE:** El multiidioma se gestiona con **TranslatePress** (NO Bogo, NO WPML, NO Polylang). Una sola instancia de contenido, traducciones en tablas `wp_trp_*`.
+
+---
+
+## Ubicación de Archivos
 
 ```
 .github/
 └── agents/
-    ├── product-creator.agent.md      # Crear productos
-    ├── page-builder.agent.md         # Crear páginas
-    ├── bogo-expert.agent.md          # Vincular traducciones
-    ├── woocommerce-expert.agent.md   # Config WooCommerce
-    ├── security-reviewer.agent.md    # Revisar seguridad
-    ├── database-manager.agent.md     # Gestión DB
-    └── README.md                     # Este archivo
+    ├── product-creator.agent.md         # Crear productos
+    ├── page-builder.agent.md            # Crear páginas
+    ├── translatepress-expert.agent.md   # Traducción bilingüe
+    ├── woocommerce-expert.agent.md      # Config WooCommerce
+    ├── security-reviewer.agent.md       # Seguridad
+    ├── database-manager.agent.md        # Base de datos
+    ├── project-manager.agent.md         # Gestión de proyecto
+    └── README.md                        # Este archivo
 ```
 
 ---
 
-## ⚙️ Configuración Requerida
+## Herramientas (Tools) por Agente
 
-Los agentes están habilitados en [.vscode/settings.json](../../.vscode/settings.json):
+| Agente | editFiles | runCommands | codebase | readFile | problems | fetchWebpage | githubRepo |
+|--------|-----------|-------------|----------|----------|----------|-------------|------------|
+| Product Creator | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Page Builder | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | - |
+| TranslatePress Expert | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | - |
+| WooCommerce Expert | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Security Reviewer | ✅ | ✅ | ✅ | ✅ | ✅ | - | - |
+| Database Manager | ✅ | ✅ | ✅ | ✅ | ✅ | - | - |
+| Project Manager | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 
-```json
-{
-  "github.copilot.chat.codeGeneration.useInstructionFiles": true,
-  "chat.useAgentsMdFile": true,
-  "chat.useAgentSkills": true,
-  "chat.includeApplyingInstructions": true,
-  "chat.includeReferencedInstructions": true
-}
-```
-
----
-
-## 🆕 Crear Nuevos Agentes
-
-Para crear un nuevo agente personalizado:
-
-1. Crea archivo `.agent.md` en esta carpeta
-2. Agrega el frontmatter YAML:
-
-```yaml
----
-name: Mi Agente
-description: Breve descripción
-tools: ["readFiles", "writeFiles", "runCommand"]
-handoffs:
-  - label: Ir a otro agente
-    agent: otro-agente
-    prompt: Mensaje de transición
----
-```
-
-3. Escribe las instrucciones del agente en Markdown
-4. VS Code lo detectará automáticamente
+**Todos los agentes pueden editar archivos y ejecutar comandos en terminal.**
 
 ---
 
-## 📚 Documentación Relacionada
-
-- [Instrucciones Generales](../copilot-instructions.md) - Contexto del proyecto
-- [Skills Documentados](../COPILOT-SKILLS.md) - Ejemplos de código
-- [VS Code Custom Agents Docs](https://code.visualstudio.com/docs/copilot/customization/custom-agents)
-
----
-
-## 🔄 Actualizar Agentes
-
-Los agentes se cargan automáticamente al modificar los archivos `.agent.md`. Si no ves cambios:
-
-1. Recarga VS Code (Ctrl+Shift+P → "Reload Window")
-2. Verifica que los settings estén habilitados
-3. Usa "Chat: Configure Custom Agents" para ver agentes disponibles
-
----
-
-**Creado:** 2026-02-10
+**Creado:** 2026-02-10 | **Actualizado:** 2026-02-18
 **Proyecto:** Jewelry Miami (WordPress + WooCommerce Bilingüe)

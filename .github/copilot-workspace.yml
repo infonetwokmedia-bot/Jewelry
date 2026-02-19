@@ -17,10 +17,11 @@ project:
 
 # Framework and dependencies
 frameworks:
-  - wordpress: "6.x"
-  - woocommerce: "10.5.0"
-  - kadence-theme: "1.4.3"
-  - bogo: "3.9.1"
+  - wordpress: "6.9.1"
+  - woocommerce: "10.5.1"
+  - astra-theme: "4.12.3"
+  - elementor: "3.35.4"
+  - translatepress: "3.0.9"
 
 # Infrastructure
 infrastructure:
@@ -37,7 +38,7 @@ priority_files:
   - PROYECTO-ESTADO.md
   - docker-compose.yml
   - .env.example
-  - data/wordpress/wp-content/themes/kadence/functions-custom.php
+  - data/wordpress/wp-content/themes/astra-child/functions.php
   - .github/copilot-instructions.md
   - .github/COPILOT-SKILLS.md
 
@@ -50,7 +51,7 @@ include_patterns:
   - "*.md"
   - "docker-compose.yml"
   - ".env*"
-  - "data/wordpress/wp-content/themes/**/*.php"
+  - "data/wordpress/wp-content/themes/astra-child/**/*.php"
   - "data/wordpress/wp-content/plugins/jewelry-*/**/*"
 
 # Patterns to exclude from context
@@ -113,11 +114,10 @@ bilingual:
   supported_locales:
     - es_ES # Spanish (primary)
     - en_US # English (secondary)
-  translation_plugin: bogo
-  always_create_both: true # CRITICAL: Always create content in both languages
-  link_with_bogo: true # Always link translations with Bogo
-  menu_prefix_es: primary_navigation_es
-  menu_prefix_en: primary_navigation_en
+  translation_plugin: translatepress
+  single_instance: true # CRITICAL: ONE content instance, translations in wp_trp_* tables
+  translate_visually: true # Use TranslatePress visual editor from frontend
+  url_prefix_en: /en/ # English URLs have /en/ prefix
 
 # Custom skills available
 skills:
@@ -131,7 +131,7 @@ skills:
   - execute_wpcli_commands
   - backup_restore_database
   - custom_wp_queries
-  - link_bogo_translations
+  - translatepress_visual_editing
   - detect_untranslated_content
   - create_language_switcher
   - custom_gutenberg_blocks
@@ -140,53 +140,34 @@ skills:
 
 # Common code snippets
 snippets:
-  # Bilingual product creation
-  bilingual_product: |
-    // Create product in Spanish
-    $product_es = new WC_Product_Simple();
-    $product_es->set_name( 'Producto ES' );
-    $product_id_es = $product_es->save();
-    update_post_meta( $product_id_es, '_locale', 'es_ES' );
+  # Product creation (single instance — TranslatePress handles translations)
+  create_product: |
+    // Create product in Spanish (primary language)
+    $product = new WC_Product_Simple();
+    $product->set_name( 'Nombre del Producto' );
+    $product->set_description( 'Descripción en español' );
+    $product->set_regular_price( 499.99 );
+    $product->set_sku( 'SKU-001' );
+    $product->set_status( 'draft' );
+    $product_id = $product->save();
+    // English translation: use TranslatePress visual editor
+    // Visit: https://jewelry.local.dev/?trp-edit-translation=true
 
-    // Create product in English
-    $product_en = new WC_Product_Simple();
-    $product_en->set_name( 'Product EN' );
-    $product_id_en = $product_en->save();
-    update_post_meta( $product_id_en, '_locale', 'en_US' );
-
-    // Link with Bogo
-    $translations = array( 'es_ES' => $product_id_es, 'en_US' => $product_id_en );
-    update_post_meta( $product_id_es, '_bogo_translations', $translations );
-    update_post_meta( $product_id_en, '_bogo_translations', $translations );
-
-  # Bilingual page creation
-  bilingual_page: |
-    // Spanish page
-    $page_es = wp_insert_post(array(
-        'post_title' => 'Título ES',
-        'post_content' => 'Contenido ES',
+  # Page creation (single instance — TranslatePress handles translations)
+  create_page: |
+    // Create page in Spanish (primary language)
+    $page_id = wp_insert_post(array(
+        'post_title' => 'Título de la Página',
+        'post_content' => 'Contenido en español',
         'post_type' => 'page',
         'post_status' => 'publish'
     ));
-    update_post_meta( $page_es, '_locale', 'es_ES' );
-
-    // English page
-    $page_en = wp_insert_post(array(
-        'post_title' => 'Title EN',
-        'post_content' => 'Content EN',
-        'post_type' => 'page',
-        'post_status' => 'publish'
-    ));
-    update_post_meta( $page_en, '_locale', 'en_US' );
-
-    // Link with Bogo
-    $translations = array( 'es_ES' => $page_es, 'en_US' => $page_en );
-    update_post_meta( $page_es, '_bogo_translations', $translations );
-    update_post_meta( $page_en, '_bogo_translations', $translations );
+    // English translation: use TranslatePress visual editor
+    // Visit: https://jewelry.local.dev/?trp-edit-translation=true
 
   # WP-CLI in Docker
   wpcli_docker: |
-    docker exec jewelry_wordpress wp --allow-root [command]
+    docker exec jewelry_wordpress php /var/www/html/wp-cli.phar [command] --allow-root
 
   # Sanitization
   sanitize_input: |
@@ -234,9 +215,6 @@ containers:
   mysql:
     name: jewelry_mysql
     image: mysql:8.0
-  wpcli:
-    name: jewelry_wpcli
-    image: wordpress:cli
   phpmyadmin:
     name: jewelry_phpmyadmin
     image: phpmyadmin:latest

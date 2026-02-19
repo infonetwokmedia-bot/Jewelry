@@ -34,6 +34,19 @@ Thumbs.db
 *.sublime-workspace
 **/*.tmp
 
+# Python caches
+__pycache__/
+*.pyc
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+.coverage
+htmlcov/
+
+# Misc cache
+.cache/
+
 # Allow VSCode configuration files for project setup
 !.vscode/
 !.vscode/settings.json
@@ -79,3 +92,11 @@ data/wordpress/wp-content/plugins/bogo/
 # Complete directories to ignore
 /data/
 /wp-content/
+
+# ===== CUSTOM PLUGINS (tracked in git) =====
+!data/
+!data/wordpress/
+!data/wordpress/wp-content/
+!data/wordpress/wp-content/plugins/
+!data/wordpress/wp-content/plugins/jewelry-dashboard/
+!data/wordpress/wp-content/plugins/jewelry-dashboard/**
