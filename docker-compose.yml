@@ -15,7 +15,17 @@ services:
     networks:
       - jewelry_network
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD}"]
+      test:
+        [
+          "CMD",
+          "mysqladmin",
+          "ping",
+          "-h",
+          "localhost",
+          "-u",
+          "root",
+          "-p${MYSQL_ROOT_PASSWORD}",
+        ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -89,6 +99,23 @@ services:
       WORDPRESS_DB_NAME: ${WORDPRESS_DB_NAME}
       WORDPRESS_DB_USER: ${WORDPRESS_DB_USER}
       WORDPRESS_DB_PASSWORD: ${WORDPRESS_DB_PASSWORD}
+
+  dashboard:
+    image: nginx:alpine
+    container_name: jewelry_dashboard
+    restart: always
+    volumes:
+      - ./dashboard:/usr/share/nginx/html:ro
+      - ./dashboard/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    networks:
+      - traefik-public
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik-public"
+      - "traefik.http.routers.jewelry-dashboard.rule=Host(`dashboard.jewelry.local.dev`)"
+      - "traefik.http.routers.jewelry-dashboard.entrypoints=websecure"
+      - "traefik.http.routers.jewelry-dashboard.tls=true"
+      - "traefik.http.services.jewelry-dashboard.loadbalancer.server.port=80"
 
 networks:
   jewelry_network:

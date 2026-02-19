@@ -1,38 +1,48 @@
-<?php
-/**
- * Dashboard page template.
- *
- * @package Jewelry_Dashboard
- */
-
-defined( 'ABSPATH' ) || exit;
-?>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jewelry Dashboard — Catálogo WooCommerce</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💎</text></svg>">
+    <link rel="stylesheet" href="css/dashboard.css">
+</head>
+<body>
 <div id="jewd-app" class="jewd-wrap">
 
     <!-- TOPBAR -->
     <div class="jewd-topbar">
         <h1 class="jewd-title">
-            <span class="dashicons dashicons-diamond"></span>
+            <span class="jewd-icon">💎</span>
             Jewelry Dashboard
-            <span class="jewd-version">v<?php echo esc_html( JEWD_VERSION ); ?></span>
+            <span class="jewd-version" id="versionTag">v2.0.0</span>
         </h1>
         <div class="jewd-actions">
             <button class="jewd-btn jewd-btn-outline jewd-btn-sm" id="btnExpandAll" title="Expandir/Colapsar todo">
-                <span class="dashicons dashicons-editor-expand"></span> Expandir Todo
+                ⊞ Expandir Todo
             </button>
             <button class="jewd-btn jewd-btn-outline jewd-btn-sm" id="btnExportJSON" title="Exportar JSON">
-                <span class="dashicons dashicons-download"></span> JSON
+                ⬇ JSON
             </button>
             <button class="jewd-btn jewd-btn-outline jewd-btn-sm" id="btnExportCSV" title="Exportar CSV">
-                <span class="dashicons dashicons-media-spreadsheet"></span> CSV
+                📊 CSV
             </button>
             <button class="jewd-btn jewd-btn-outline jewd-btn-sm" id="btnRefresh" title="Refrescar datos">
-                <span class="dashicons dashicons-update"></span> Refrescar
+                🔄 Refrescar
             </button>
+            <a class="jewd-btn jewd-btn-outline jewd-btn-sm" id="btnWPAdmin" href="#" target="_blank" title="Ir a WP Admin">
+                ⚙ WP Admin
+            </a>
             <button class="jewd-btn-theme" id="btnTheme" title="Cambiar tema">
-                <span class="dashicons dashicons-welcome-view-site"></span>
+                🌙
             </button>
         </div>
+    </div>
+
+    <!-- CONNECTION STATUS -->
+    <div class="jewd-connection" id="connectionStatus">
+        <span class="jewd-conn-dot"></span>
+        <span id="connText">Conectando a WooCommerce...</span>
     </div>
 
     <!-- STATS -->
@@ -45,7 +55,7 @@ defined( 'ABSPATH' ) || exit;
 
     <!-- FILTERS -->
     <div class="jewd-filters">
-        <input type="text" id="filterSearch" class="jewd-input" placeholder="Buscar nombre, SKU, categoría...">
+        <input type="text" id="filterSearch" class="jewd-input" placeholder="🔍 Buscar nombre, SKU, categoría...">
         <select id="filterCategory" class="jewd-select">
             <option value="">Todas categorías</option>
         </select>
@@ -83,7 +93,7 @@ defined( 'ABSPATH' ) || exit;
             <tbody id="productsTable">
                 <tr>
                     <td colspan="11" class="jewd-loading-row">
-                        <span class="spinner is-active"></span>
+                        <div class="jewd-spinner"></div>
                         Cargando catálogo desde WooCommerce...
                     </td>
                 </tr>
@@ -104,10 +114,10 @@ defined( 'ABSPATH' ) || exit;
             <div class="jewd-modal-body" id="modalBody"></div>
             <div class="jewd-modal-footer">
                 <a href="#" class="jewd-btn jewd-btn-outline" id="modalEditLink" target="_blank">
-                    <span class="dashicons dashicons-edit"></span> Editar en WooCommerce
+                    ✏️ Editar en WooCommerce
                 </a>
                 <a href="#" class="jewd-btn jewd-btn-outline" id="modalViewLink" target="_blank">
-                    <span class="dashicons dashicons-visibility"></span> Ver en Tienda
+                    👁 Ver en Tienda
                 </a>
                 <button class="jewd-btn jewd-btn-gold" id="modalCloseBtn">Cerrar</button>
             </div>
@@ -122,3 +132,11 @@ defined( 'ABSPATH' ) || exit;
     <!-- TOAST -->
     <div class="jewd-toast" id="toast"></div>
 </div>
+
+<!-- Config (gitignored — contains API keys) -->
+<script src=".env.js"></script>
+<!-- Application -->
+<script src="js/api.js"></script>
+<script src="js/dashboard.js"></script>
+</body>
+</html>

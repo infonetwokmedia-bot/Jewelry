@@ -99,4 +99,8 @@ data/wordpress/wp-content/plugins/bogo/
 !data/wordpress/wp-content/
 !data/wordpress/wp-content/plugins/
 !data/wordpress/wp-content/plugins/jewelry-dashboard/
-!data/wordpress/wp-content/plugins/jewelry-dashboard/**
+!data/wordpress/wp-content/plugins/jewelry-dashboard/jewelry-dashboard.php
+
+# ===== DASHBOARD SPA (tracked in git) =====
+!dashboard/
+dashboard/.env.js
