@@ -23,6 +23,8 @@
   "MD040": false,
   // First line should be heading
   "MD041": false,
+  // Emphasis style (asterisk vs underscore)
+  "MD049": false,
   // Link fragments (Spanish accents)
   "MD051": false,
   // Blanks around tables

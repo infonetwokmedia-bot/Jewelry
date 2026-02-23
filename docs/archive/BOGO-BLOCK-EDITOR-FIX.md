@@ -674,4 +674,4 @@ Funcionan idénticamente. El mu-plugin registra `product` como tipo localizable 
 
 ---
 
-_Documento creado: 2026-02-11 | Proyecto: Remedio Joyería | Stack: WordPress 6.9 + Bogo 3.9.1 + Kadence + WooCommerce_
+*Documento creado: 2026-02-11 | Proyecto: Remedio Joyería | Stack: WordPress 6.9 + Bogo 3.9.1 + Kadence + WooCommerce*

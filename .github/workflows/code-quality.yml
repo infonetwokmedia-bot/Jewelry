@@ -134,6 +134,7 @@ jobs:
 
       - name: Install WordPress Coding Standards
         run: |
+          composer global config allow-plugins.dealerdirect/phpcodesniffer-composer-installer true
           composer global require --dev wp-coding-standards/wpcs:"^3.0" --no-interaction
           phpcs --config-set installed_paths $(composer global config home)/vendor/wp-coding-standards/wpcs
 
@@ -279,7 +280,7 @@ jobs:
       - name: Start WordPress environment
         if: steps.check-e2e.outputs.has_tests == 'true'
         run: |
-          docker compose -f .github/workflows/docker-compose.ci.yml up -d
+          docker compose -f .github/ci/docker-compose.ci.yml up -d
           timeout 120 bash -c 'until curl -f http://localhost:8080/wp-admin/install.php; do sleep 2; done'
 
       - name: Run E2E tests
@@ -290,7 +291,7 @@ jobs:
 
       - name: Cleanup
         if: steps.check-e2e.outputs.has_tests == 'true' && always()
-        run: docker compose -f .github/workflows/docker-compose.ci.yml down -v
+        run: docker compose -f .github/ci/docker-compose.ci.yml down -v
 
       - name: E2E tests skipped notice
         if: steps.check-e2e.outputs.has_tests == 'false'
