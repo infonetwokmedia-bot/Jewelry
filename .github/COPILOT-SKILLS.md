@@ -8,7 +8,7 @@ Guía completa de skills especializados para desarrollo eficiente del sitio web 
 2. [Páginas y Contenido](#páginas-y-contenido)
 3. [WooCommerce](#woocommerce)
 4. [Base de Datos](#base-de-datos)
-5. [Bogo y Multiidioma](#bogo-y-multiidioma)
+5. [TranslatePress y Multiidioma](#translatepress-y-multiidioma)
 6. [Gutenberg](#gutenberg)
 7. [Seguridad](#seguridad)
 8. [Testing y Datos de Prueba](#testing-y-datos-de-prueba)
@@ -21,114 +21,93 @@ Guía completa de skills especializados para desarrollo eficiente del sitio web 
 ### Skill 1: Crear Producto Bilingüe Completo
 
 **Prompt para Copilot:**
+
 ```
-Create a complete bilingual WooCommerce product using Bogo plugin.
+Create a bilingual WooCommerce product using TranslatePress.
 Product details:
-- Spanish: [name_es], [description_es], [price]
-- English: [name_en], [description_en], [price]
+- Spanish (primary): [name_es], [description_es], [price]
 - SKU: [sku]
 - Categories: [categories]
-Link both products with Bogo meta fields.
+Create ONE product in Spanish. Translation to English is done visually via TranslatePress.
 ```
 
 **Código esperado:**
+
 ```php
-function jewelry_create_bilingual_product( $data_es, $data_en, $sku, $price, $categories = array() ) {
-    // Producto en español
-    $product_es = new WC_Product_Simple();
-    $product_es->set_name( $data_es['name'] );
-    $product_es->set_description( $data_es['description'] );
-    $product_es->set_short_description( $data_es['short_description'] );
-    $product_es->set_regular_price( $price );
-    $product_es->set_sku( $sku . '-ES' );
-    $product_es->set_catalog_visibility( 'visible' );
-    $product_es->set_category_ids( $categories['es'] );
-    $product_id_es = $product_es->save();
-    
-    update_post_meta( $product_id_es, '_locale', 'es_ES' );
-    
-    // Producto en inglés
-    $product_en = new WC_Product_Simple();
-    $product_en->set_name( $data_en['name'] );
-    $product_en->set_description( $data_en['description'] );
-    $product_en->set_short_description( $data_en['short_description'] );
-    $product_en->set_regular_price( $price );
-    $product_en->set_sku( $sku . '-EN' );
-    $product_en->set_catalog_visibility( 'visible' );
-    $product_en->set_category_ids( $categories['en'] );
-    $product_id_en = $product_en->save();
-    
-    update_post_meta( $product_id_en, '_locale', 'en_US' );
-    
-    // Vincular con Bogo
-    $translations = array(
-        'es_ES' => $product_id_es,
-        'en_US' => $product_id_en
-    );
-    update_post_meta( $product_id_es, '_bogo_translations', $translations );
-    update_post_meta( $product_id_en, '_bogo_translations', $translations );
-    
-    return array( 'es' => $product_id_es, 'en' => $product_id_en );
+function jewelry_create_bilingual_product( $data_es, $sku, $price, $categories = array() ) {
+    // Crear UN SOLO producto en español (idioma principal)
+    $product = new WC_Product_Simple();
+    $product->set_name( $data_es['name'] );
+    $product->set_description( $data_es['description'] );
+    $product->set_short_description( $data_es['short_description'] );
+    $product->set_regular_price( $price );
+    $product->set_sku( $sku );
+    $product->set_catalog_visibility( 'visible' );
+    $product->set_category_ids( $categories );
+    $product->set_status( 'publish' );
+    $product_id = $product->save();
+
+    // La traducción al inglés se hace visualmente con TranslatePress:
+    // 1. Ir al frontend del producto
+    // 2. Añadir ?trp-edit-translation=true a la URL
+    // 3. Clic en cada texto para traducirlo
+    // Las traducciones se almacenan en tablas wp_trp_*
+
+    return $product_id;
 }
 ```
 
 ### Skill 2: Importar Productos desde CSV
 
 **Prompt para Copilot:**
+
 ```
-Create a function to import bilingual products from CSV file.
-CSV structure: sku, name_es, name_en, description_es, description_en, price, category_es, category_en
-Parse CSV and create products in both languages linked with Bogo.
+Create a function to import products from CSV file.
+CSV structure: sku, name_es, description_es, short_description_es, price, category_slug
+Create products in Spanish (primary). English translations done via TranslatePress.
 Include error handling and logging.
 ```
 
 **Uso:**
+
 ```php
 // Ejemplo de CSV:
-// sku,name_es,name_en,description_es,description_en,price,category_es,category_en
-// CUB001,Cadena Cubana 10k,Cuban Link 10k,Descripción ES,Description EN,499.99,cadenas-de-oro,gold-chains
+// sku,name_es,description_es,short_description_es,price,category_slug
+// CUB001,Cadena Cubana 10k,Descripción ES,Desc corta,499.99,cadenas
 
 function jewelry_import_products_from_csv( $csv_file_path ) {
     $file = fopen( $csv_file_path, 'r' );
     $header = fgetcsv( $file );
     $imported = 0;
     $errors = array();
-    
+
     while ( ( $row = fgetcsv( $file ) ) !== false ) {
         $data = array_combine( $header, $row );
-        
+
         try {
             $data_es = array(
                 'name' => $data['name_es'],
                 'description' => $data['description_es'],
-                'short_description' => ''
+                'short_description' => $data['short_description_es'],
             );
-            
-            $data_en = array(
-                'name' => $data['name_en'],
-                'description' => $data['description_en'],
-                'short_description' => ''
-            );
-            
-            // Obtener IDs de categorías
-            $cat_es = get_term_by( 'slug', $data['category_es'], 'product_cat' );
-            $cat_en = get_term_by( 'slug', $data['category_en'], 'product_cat' );
-            
-            $categories = array(
-                'es' => $cat_es ? array( $cat_es->term_id ) : array(),
-                'en' => $cat_en ? array( $cat_en->term_id ) : array()
-            );
-            
-            jewelry_create_bilingual_product( $data_es, $data_en, $data['sku'], $data['price'], $categories );
+
+            // Obtener ID de categoría
+            $cat = get_term_by( 'slug', $data['category_slug'], 'product_cat' );
+            $categories = $cat ? array( $cat->term_id ) : array();
+
+            jewelry_create_bilingual_product( $data_es, $data['sku'], $data['price'], $categories );
             $imported++;
-            
+
         } catch ( Exception $e ) {
             $errors[] = "Error in row {$imported}: " . $e->getMessage();
         }
     }
-    
+
     fclose( $file );
-    
+
+    // Nota: Las traducciones al inglés se hacen visualmente con TranslatePress
+    // desde el frontend: ?trp-edit-translation=true
+
     return array(
         'imported' => $imported,
         'errors' => $errors
@@ -139,26 +118,23 @@ function jewelry_import_products_from_csv( $csv_file_path ) {
 ### Skill 3: Actualizar Precios Masivamente
 
 **Prompt para Copilot:**
+
 ```
 Create a function to bulk update product prices by category or SKU pattern.
 Support percentage increase/decrease and fixed amount adjustment.
-Update both Spanish and English linked products.
+With TranslatePress, only ONE product exists per item (no duplicates).
 ```
 
 **Código:**
+
 ```php
 function jewelry_bulk_update_prices( $category_slug = '', $sku_pattern = '', $adjustment_type = 'percentage', $adjustment_value = 0 ) {
     $args = array(
         'post_type' => 'product',
         'posts_per_page' => -1,
-        'meta_query' => array(
-            array(
-                'key' => '_locale',
-                'value' => 'es_ES'
-            )
-        )
+        'post_status' => 'publish',
     );
-    
+
     if ( $category_slug ) {
         $args['tax_query'] = array(
             array(
@@ -168,45 +144,40 @@ function jewelry_bulk_update_prices( $category_slug = '', $sku_pattern = '', $ad
             )
         );
     }
-    
+
     $products = get_posts( $args );
     $updated = 0;
-    
+
     foreach ( $products as $post ) {
         $product = wc_get_product( $post->ID );
-        
+
         if ( $sku_pattern && ! preg_match( "/{$sku_pattern}/", $product->get_sku() ) ) {
             continue;
         }
-        
+
         $current_price = $product->get_regular_price();
-        
+
         if ( 'percentage' === $adjustment_type ) {
             $new_price = $current_price * ( 1 + ( $adjustment_value / 100 ) );
         } else {
             $new_price = $current_price + $adjustment_value;
         }
-        
+
         $product->set_regular_price( $new_price );
         $product->save();
-        
-        // Actualizar también el producto en inglés
-        $translations = get_post_meta( $post->ID, '_bogo_translations', true );
-        if ( isset( $translations['en_US'] ) ) {
-            $product_en = wc_get_product( $translations['en_US'] );
-            $product_en->set_regular_price( $new_price );
-            $product_en->save();
-        }
-        
+
+        // Con TranslatePress, solo existe UN producto (no hay duplicado EN).
+        // El precio se muestra automáticamente en ambos idiomas.
+
         $updated++;
     }
-    
+
     return $updated;
 }
 
 // Uso:
-// Aumentar 10% todos los productos de "cadenas-de-oro"
-jewelry_bulk_update_prices( 'cadenas-de-oro', '', 'percentage', 10 );
+// Aumentar 10% todos los productos de "cadenas"
+jewelry_bulk_update_prices( 'cadenas', '', 'percentage', 10 );
 
 // Reducir $50 todos los productos con SKU que contenga "CUB"
 jewelry_bulk_update_prices( '', 'CUB', 'fixed', -50 );
@@ -215,86 +186,53 @@ jewelry_bulk_update_prices( '', 'CUB', 'fixed', -50 );
 ### Skill 4: Crear Variaciones de Productos
 
 **Prompt para Copilot:**
+
 ```
-Create a variable product with size variations (6mm, 8mm, 10mm) in both languages.
-Each variation has different price. Link parent products with Bogo.
+Create a variable product with size variations (6mm, 8mm, 10mm) in Spanish.
+Each variation has different price. Translation via TranslatePress (no duplicates).
 ```
 
 **Código:**
+
 ```php
-function jewelry_create_variable_product_bilingual( $base_name_es, $base_name_en, $variations ) {
+function jewelry_create_variable_product( $base_name_es, $variations ) {
     // Crear atributo de tamaño si no existe
-    $attribute_name = 'pa_size';
-    
-    if ( ! taxonomy_exists( $attribute_name ) ) {
-        wc_create_attribute( array(
-            'name' => 'Size',
-            'slug' => 'size',
-            'type' => 'select',
-            'has_archives' => false
-        ) );
-    }
-    
-    // Producto variable en español
-    $product_es = new WC_Product_Variable();
-    $product_es->set_name( $base_name_es );
-    
-    $attribute_es = new WC_Product_Attribute();
-    $attribute_es->set_name( $attribute_name );
-    $attribute_es->set_options( array_keys( $variations ) );
-    $attribute_es->set_visible( true );
-    $attribute_es->set_variation( true );
-    $product_es->set_attributes( array( $attribute_es ) );
-    
-    $product_id_es = $product_es->save();
-    update_post_meta( $product_id_es, '_locale', 'es_ES' );
-    
-    // Producto variable en inglés
-    $product_en = new WC_Product_Variable();
-    $product_en->set_name( $base_name_en );
-    
-    $attribute_en = new WC_Product_Attribute();
-    $attribute_en->set_name( $attribute_name );
-    $attribute_en->set_options( array_keys( $variations ) );
-    $attribute_en->set_visible( true );
-    $attribute_en->set_variation( true );
-    $product_en->set_attributes( array( $attribute_en ) );
-    
-    $product_id_en = $product_en->save();
-    update_post_meta( $product_id_en, '_locale', 'en_US' );
-    
+    $attribute_name = 'pa_ancho-mm';
+
+    // Producto variable en español (ÚNICA instancia)
+    $product = new WC_Product_Variable();
+    $product->set_name( $base_name_es );
+    $product->set_status( 'publish' );
+
+    $attribute = new WC_Product_Attribute();
+    $attribute->set_name( $attribute_name );
+    $attribute->set_options( array_keys( $variations ) );
+    $attribute->set_visible( true );
+    $attribute->set_variation( true );
+    $product->set_attributes( array( $attribute ) );
+
+    $product_id = $product->save();
+
     // Crear variaciones
     foreach ( $variations as $size => $price ) {
-        // Variación ES
-        $variation_es = new WC_Product_Variation();
-        $variation_es->set_parent_id( $product_id_es );
-        $variation_es->set_regular_price( $price );
-        $variation_es->set_attributes( array( $attribute_name => $size ) );
-        $variation_es->save();
-        
-        // Variación EN
-        $variation_en = new WC_Product_Variation();
-        $variation_en->set_parent_id( $product_id_en );
-        $variation_en->set_regular_price( $price );
-        $variation_en->set_attributes( array( $attribute_name => $size ) );
-        $variation_en->save();
+        $variation = new WC_Product_Variation();
+        $variation->set_parent_id( $product_id );
+        $variation->set_regular_price( $price );
+        $variation->set_attributes( array( $attribute_name => $size ) );
+        $variation->set_stock_status( 'instock' );
+        $variation->save();
     }
-    
-    // Vincular con Bogo
-    $translations = array(
-        'es_ES' => $product_id_es,
-        'en_US' => $product_id_en
-    );
-    update_post_meta( $product_id_es, '_bogo_translations', $translations );
-    update_post_meta( $product_id_en, '_bogo_translations', $translations );
-    
-    return array( 'es' => $product_id_es, 'en' => $product_id_en );
+
+    // La traducción al inglés se hace con TranslatePress:
+    // Ir a la URL del producto + ?trp-edit-translation=true
+    // Traducir nombre, descripción y atributos visualmente
+
+    return $product_id;
 }
 
 // Uso:
-jewelry_create_variable_product_bilingual(
+jewelry_create_variable_product(
     'Cadena Cubana Miami',
-    'Miami Cuban Link',
     array(
         '6mm' => 399.99,
         '8mm' => 549.99,
@@ -307,69 +245,46 @@ jewelry_create_variable_product_bilingual(
 
 ## 📄 Páginas y Contenido
 
-### Skill 5: Crear Página Bilingüe con Template
+### Skill 5: Crear Página con Template
 
 **Prompt para Copilot:**
+
 ```
-Create a bilingual page with custom template.
-Include Spanish and English content, link with Bogo.
+Create a page in Spanish with custom template.
+With TranslatePress, create ONE page. Translate visually from the frontend.
 Set page template and featured image.
 ```
 
 **Código:**
+
 ```php
-function jewelry_create_page_with_template( $title_es, $title_en, $content_es, $content_en, $template = '', $featured_image_id = 0 ) {
-    // Página en español
-    $page_data_es = array(
+function jewelry_create_page_with_template( $title_es, $content_es, $template = '', $featured_image_id = 0 ) {
+    // Crear UNA SOLA página en español (idioma principal)
+    $page_data = array(
         'post_title'    => $title_es,
         'post_content'  => $content_es,
         'post_status'   => 'publish',
         'post_type'     => 'page',
         'post_author'   => 1,
     );
-    
-    $page_id_es = wp_insert_post( $page_data_es );
-    
-    update_post_meta( $page_id_es, '_locale', 'es_ES' );
-    
+
+    $page_id = wp_insert_post( $page_data );
+
     if ( $template ) {
-        update_post_meta( $page_id_es, '_wp_page_template', $template );
+        update_post_meta( $page_id, '_wp_page_template', $template );
     }
-    
+
     if ( $featured_image_id ) {
-        set_post_thumbnail( $page_id_es, $featured_image_id );
+        set_post_thumbnail( $page_id, $featured_image_id );
     }
-    
-    // Página en inglés
-    $page_data_en = array(
-        'post_title'    => $title_en,
-        'post_content'  => $content_en,
-        'post_status'   => 'publish',
-        'post_type'     => 'page',
-        'post_author'   => 1,
-    );
-    
-    $page_id_en = wp_insert_post( $page_data_en );
-    
-    update_post_meta( $page_id_en, '_locale', 'en_US' );
-    
-    if ( $template ) {
-        update_post_meta( $page_id_en, '_wp_page_template', $template );
-    }
-    
-    if ( $featured_image_id ) {
-        set_post_thumbnail( $page_id_en, $featured_image_id );
-    }
-    
-    // Vincular con Bogo
-    $translations = array(
-        'es_ES' => $page_id_es,
-        'en_US' => $page_id_en
-    );
-    update_post_meta( $page_id_es, '_bogo_translations', $translations );
-    update_post_meta( $page_id_en, '_bogo_translations', $translations );
-    
-    return array( 'es' => $page_id_es, 'en' => $page_id_en );
+
+    // La traducción al inglés se hace visualmente con TranslatePress:
+    // 1. Ir al frontend de la página
+    // 2. Añadir ?trp-edit-translation=true a la URL
+    // 3. Clic en cada texto para traducirlo
+    // Las traducciones se almacenan en tablas wp_trp_*
+
+    return $page_id;
 }
 ```
 
@@ -380,12 +295,14 @@ function jewelry_create_page_with_template( $title_es, $title_en, $content_es, $
 ### Skill 6: Personalizar Emails de WooCommerce Bilingües
 
 **Prompt para Copilot:**
+
 ```
-Override WooCommerce email templates to support Bogo multilingual.
+Override WooCommerce email templates to support TranslatePress multilingual.
 Detect order language and send email in correct language.
 ```
 
 **Código:**
+
 ```php
 /**
  * Detectar idioma de una orden y enviar email correspondiente.
@@ -393,12 +310,12 @@ Detect order language and send email in correct language.
 function jewelry_get_order_language( $order_id ) {
     $order = wc_get_order( $order_id );
     $locale = get_post_meta( $order_id, '_order_locale', true );
-    
+
     if ( ! $locale ) {
         // Detectar por URL o configuración del sitio
         $locale = get_locale();
     }
-    
+
     return $locale;
 }
 
@@ -409,10 +326,10 @@ add_filter( 'woocommerce_email_setup_locale', 'jewelry_email_setup_locale' );
 function jewelry_email_setup_locale( $email ) {
     if ( isset( $email->object ) && is_a( $email->object, 'WC_Order' ) ) {
         $locale = jewelry_get_order_language( $email->object->get_id() );
-        
+
         if ( $locale ) {
             switch_to_locale( $locale );
-            
+
             // Recargar traducciones de WooCommerce
             $wc_domain = 'woocommerce';
             unload_textdomain( $wc_domain );
@@ -434,12 +351,14 @@ function jewelry_save_order_language( $order_id ) {
 ### Skill 7: Agregar Campos Personalizados en Checkout
 
 **Prompt para Copilot:**
+
 ```
 Add custom checkout field "Gift message" with bilingual labels.
 Validate, save to order meta, and display in admin and emails.
 ```
 
 **Código:**
+
 ```php
 /**
  * Agregar campo personalizado al checkout.
@@ -447,15 +366,15 @@ Validate, save to order meta, and display in admin and emails.
 add_action( 'woocommerce_after_order_notes', 'jewelry_add_checkout_custom_field' );
 function jewelry_add_checkout_custom_field( $checkout ) {
     $locale = jewelry_get_current_locale();
-    
-    $label = ( 'es_ES' === $locale ) 
-        ? 'Mensaje de regalo (opcional)' 
+
+    $label = ( 'es_ES' === $locale )
+        ? 'Mensaje de regalo (opcional)'
         : 'Gift message (optional)';
-    
+
     $placeholder = ( 'es_ES' === $locale )
         ? 'Escriba su mensaje aquí...'
         : 'Write your message here...';
-    
+
     woocommerce_form_field( 'gift_message', array(
         'type'        => 'textarea',
         'class'       => array( 'gift-message-field form-row-wide' ),
@@ -496,7 +415,7 @@ function jewelry_save_custom_checkout_field( $order_id ) {
 add_action( 'woocommerce_admin_order_data_after_billing_address', 'jewelry_display_custom_field_in_admin' );
 function jewelry_display_custom_field_in_admin( $order ) {
     $gift_message = get_post_meta( $order->get_id(), '_gift_message', true );
-    
+
     if ( $gift_message ) {
         echo '<p><strong>Gift Message:</strong> ' . esc_html( $gift_message ) . '</p>';
     }
@@ -510,12 +429,14 @@ function jewelry_display_custom_field_in_admin( $order ) {
 ### Skill 8: Ejecutar Comandos WP-CLI en Docker
 
 **Prompt para Copilot:**
+
 ```
 Create helper functions to execute WP-CLI commands inside Docker container.
 Include commands for: list plugins, export/import database, flush cache.
 ```
 
 **Comandos útiles:**
+
 ```bash
 # Listar plugins
 docker exec jewelry_wordpress wp plugin list --allow-root
@@ -571,6 +492,7 @@ docker exec jewelry_wordpress wp plugin update --all --allow-root
 ### Skill 9: Backups y Restauración
 
 **Script de backup:**
+
 ```bash
 #!/bin/bash
 # backup-jewelry.sh
@@ -600,38 +522,36 @@ ls -lh $BACKUP_DIR/*$TIMESTAMP*
 ### Skill 10: Queries Personalizadas con WP_Query
 
 **Prompt para Copilot:**
+
 ```
 Create WP_Query examples for common jewelry website queries:
-1. Get featured products in current language
-2. Get products by price range in current language
-3. Get recent blog posts in current language
+1. Get featured products
+2. Get products by price range
+3. Get recent blog posts
 4. Get products from specific category with pagination
+Note: TranslatePress handles language filtering automatically — no _locale meta needed.
 ```
 
 **Código:**
+
 ```php
 /**
- * Obtener productos destacados en el idioma actual.
+ * Obtener productos destacados.
+ * Con TranslatePress, NO se necesita filtrar por _locale.
+ * TranslatePress traduce el contenido automáticamente según el idioma activo.
  */
 function jewelry_get_featured_products( $limit = 10 ) {
-    $locale = jewelry_get_current_locale();
-    
     $args = array(
         'post_type' => 'product',
         'posts_per_page' => $limit,
         'meta_query' => array(
-            'relation' => 'AND',
-            array(
-                'key' => '_locale',
-                'value' => $locale,
-            ),
             array(
                 'key' => '_featured',
                 'value' => 'yes',
             ),
         ),
     );
-    
+
     return new WP_Query( $args );
 }
 
@@ -639,17 +559,10 @@ function jewelry_get_featured_products( $limit = 10 ) {
  * Obtener productos por rango de precio.
  */
 function jewelry_get_products_by_price_range( $min_price, $max_price, $limit = 20 ) {
-    $locale = jewelry_get_current_locale();
-    
     $args = array(
         'post_type' => 'product',
         'posts_per_page' => $limit,
         'meta_query' => array(
-            'relation' => 'AND',
-            array(
-                'key' => '_locale',
-                'value' => $locale,
-            ),
             array(
                 'key' => '_price',
                 'value' => array( $min_price, $max_price ),
@@ -661,7 +574,7 @@ function jewelry_get_products_by_price_range( $min_price, $max_price, $limit = 2
         'meta_key' => '_price',
         'order' => 'ASC',
     );
-    
+
     return new WP_Query( $args );
 }
 
@@ -669,21 +582,13 @@ function jewelry_get_products_by_price_range( $min_price, $max_price, $limit = 2
  * Obtener posts recientes del blog.
  */
 function jewelry_get_recent_posts( $limit = 5 ) {
-    $locale = jewelry_get_current_locale();
-    
     $args = array(
         'post_type' => 'post',
         'posts_per_page' => $limit,
-        'meta_query' => array(
-            array(
-                'key' => '_locale',
-                'value' => $locale,
-            ),
-        ),
         'orderby' => 'date',
         'order' => 'DESC',
     );
-    
+
     return new WP_Query( $args );
 }
 
@@ -691,8 +596,6 @@ function jewelry_get_recent_posts( $limit = 5 ) {
  * Obtener productos de categoría con paginación.
  */
 function jewelry_get_products_by_category( $category_slug, $paged = 1, $per_page = 12 ) {
-    $locale = jewelry_get_current_locale();
-    
     $args = array(
         'post_type' => 'product',
         'posts_per_page' => $per_page,
@@ -704,200 +607,171 @@ function jewelry_get_products_by_category( $category_slug, $paged = 1, $per_page
                 'terms' => $category_slug,
             ),
         ),
-        'meta_query' => array(
-            array(
-                'key' => '_locale',
-                'value' => $locale,
-            ),
-        ),
     );
-    
+
     return new WP_Query( $args );
 }
 ```
 
 ---
 
-## 🌐 Bogo y Multiidioma
+## 🌐 TranslatePress y Multiidioma
 
-### Skill 11: Vincular Entidades con Bogo
+### Skill 11: Verificar Estado de Traducciones
 
 **Prompt para Copilot:**
+
 ```
-Create utility functions to link posts/products/terms with Bogo.
-Include validation to ensure both locales exist before linking.
+Create utility functions to check translation status with TranslatePress.
+Query wp_trp_* tables to find untranslated content.
 ```
 
 **Código:**
+
 ```php
 /**
- * Vincular dos posts/productos con Bogo.
+ * Obtener estadísticas de traducciones de TranslatePress.
  */
-function jewelry_link_posts_bogo( $post_id_es, $post_id_en ) {
-    // Validar que ambos posts existan
-    if ( ! get_post( $post_id_es ) || ! get_post( $post_id_en ) ) {
-        return new WP_Error( 'invalid_post', 'One or both posts do not exist' );
-    }
-    
-    // Establecer locales
-    update_post_meta( $post_id_es, '_locale', 'es_ES' );
-    update_post_meta( $post_id_en, '_locale', 'en_US' );
-    
-    // Crear vinculación bidireccional
-    $translations = array(
-        'es_ES' => $post_id_es,
-        'en_US' => $post_id_en
+function jewelry_get_translation_stats() {
+    global $wpdb;
+
+    $table = $wpdb->prefix . 'trp_dictionary_es_es_en_us';
+
+    $total      = $wpdb->get_var( "SELECT COUNT(*) FROM {$table}" );
+    $translated = $wpdb->get_var( "SELECT COUNT(*) FROM {$table} WHERE translated != '' AND translated IS NOT NULL" );
+    $pending    = $total - $translated;
+
+    return array(
+        'total'      => $total,
+        'translated' => $translated,
+        'pending'    => $pending,
+        'percentage' => $total > 0 ? round( ( $translated / $total ) * 100, 1 ) : 0,
     );
-    
-    update_post_meta( $post_id_es, '_bogo_translations', $translations );
-    update_post_meta( $post_id_en, '_bogo_translations', $translations );
-    
-    return true;
 }
 
 /**
- * Vincular términos (categorías, etiquetas) con Bogo.
+ * Buscar texto sin traducir en TranslatePress.
  */
-function jewelry_link_terms_bogo( $term_id_es, $term_id_en, $taxonomy = 'product_cat' ) {
-    // Validar términos
-    if ( ! term_exists( $term_id_es, $taxonomy ) || ! term_exists( $term_id_en, $taxonomy ) ) {
-        return new WP_Error( 'invalid_term', 'One or both terms do not exist' );
-    }
-    
-    // Establecer locales
-    update_term_meta( $term_id_es, '_locale', 'es_ES' );
-    update_term_meta( $term_id_en, '_locale', 'en_US' );
-    
-    // Crear vinculación
-    $translations = array(
-        'es_ES' => $term_id_es,
-        'en_US' => $term_id_en
-    );
-    
-    update_term_meta( $term_id_es, '_bogo_translations', $translations );
-    update_term_meta( $term_id_en, '_bogo_translations', $translations );
-    
-    return true;
+function jewelry_find_untranslated_strings( $limit = 50 ) {
+    global $wpdb;
+
+    $table = $wpdb->prefix . 'trp_dictionary_es_es_en_us';
+
+    return $wpdb->get_results( $wpdb->prepare(
+        "SELECT original, status FROM {$table} WHERE translated = '' OR translated IS NULL LIMIT %d",
+        $limit
+    ) );
 }
 
 /**
- * Obtener traducción de un post.
+ * Verificar si un texto específico tiene traducción.
  */
-function jewelry_get_translation( $post_id, $target_locale ) {
-    $translations = get_post_meta( $post_id, '_bogo_translations', true );
-    
-    if ( isset( $translations[ $target_locale ] ) ) {
-        return $translations[ $target_locale ];
-    }
-    
-    return null;
+function jewelry_check_translation( $text ) {
+    global $wpdb;
+
+    $table = $wpdb->prefix . 'trp_dictionary_es_es_en_us';
+
+    return $wpdb->get_row( $wpdb->prepare(
+        "SELECT original, translated, status FROM {$table} WHERE original = %s",
+        $text
+    ) );
 }
 ```
 
-### Skill 12: Detectar Contenido Sin Traducir
+### Skill 12: Generar Reporte de Traducciones
 
 **Prompt para Copilot:**
+
 ```
-Create admin tool to detect products/pages without translations.
-Generate report with missing translations.
+Create admin tool to generate a translation coverage report.
+Query TranslatePress tables for translation status per content type.
 ```
 
 **Código:**
+
 ```php
 /**
- * Detectar productos sin traducción.
- */
-function jewelry_find_untranslated_products() {
-    $args = array(
-        'post_type' => 'product',
-        'posts_per_page' => -1,
-        'meta_query' => array(
-            array(
-                'key' => '_locale',
-                'value' => 'es_ES',
-            ),
-        ),
-    );
-    
-    $products = get_posts( $args );
-    $untranslated = array();
-    
-    foreach ( $products as $product ) {
-        $translations = get_post_meta( $product->ID, '_bogo_translations', true );
-        
-        if ( ! isset( $translations['en_US'] ) || ! get_post( $translations['en_US'] ) ) {
-            $untranslated[] = array(
-                'id' => $product->ID,
-                'title' => $product->post_title,
-                'edit_link' => get_edit_post_link( $product->ID ),
-            );
-        }
-    }
-    
-    return $untranslated;
-}
-
-/**
- * Generar reporte de contenido sin traducir.
+ * Generar reporte completo de traducciones.
  */
 function jewelry_generate_translation_report() {
+    $stats = jewelry_get_translation_stats();
+    $untranslated = jewelry_find_untranslated_strings( 20 );
+
     $report = array(
-        'products' => jewelry_find_untranslated_products(),
-        'pages' => jewelry_find_untranslated_pages(),
+        'stats'        => $stats,
+        'untranslated' => $untranslated,
     );
-    
+
     return $report;
+}
+
+/**
+ * Mostrar reporte en admin.
+ */
+function jewelry_display_translation_report() {
+    $report = jewelry_generate_translation_report();
+
+    echo '<div class="wrap">';
+    echo '<h1>Translation Report</h1>';
+    echo '<p>Total strings: ' . esc_html( $report['stats']['total'] ) . '</p>';
+    echo '<p>Translated: ' . esc_html( $report['stats']['translated'] ) . ' (' . esc_html( $report['stats']['percentage'] ) . '%)</p>';
+    echo '<p>Pending: ' . esc_html( $report['stats']['pending'] ) . '</p>';
+
+    if ( ! empty( $report['untranslated'] ) ) {
+        echo '<h2>Untranslated Strings (sample)</h2>';
+        echo '<ul>';
+        foreach ( $report['untranslated'] as $item ) {
+            echo '<li>' . esc_html( $item->original ) . '</li>';
+        }
+        echo '</ul>';
+    }
+
+    echo '</div>';
 }
 ```
 
-### Skill 13: Crear Language Switcher Personalizado
+### Skill 13: Usar el Language Switcher de TranslatePress
 
 **Prompt para Copilot:**
+
 ```
-Create custom language switcher widget that shows current language flags.
-Include dropdown with available translations of current page.
+Show how to use the TranslatePress language switcher shortcode
+and how to detect the current language programmatically.
 ```
 
 **Código:**
+
 ```php
 /**
- * Shortcode para language switcher personalizado.
+ * Usar el shortcode de TranslatePress para el language switcher.
+ * TranslatePress proporciona su propio switcher — no necesitas crear uno custom.
  */
-add_shortcode( 'jewelry_language_switcher', 'jewelry_language_switcher_shortcode' );
-function jewelry_language_switcher_shortcode() {
-    $current_locale = jewelry_get_current_locale();
-    $post_id = get_the_ID();
-    
-    $translations = get_post_meta( $post_id, '_bogo_translations', true );
-    
-    if ( ! $translations || count( $translations ) < 2 ) {
-        return '';
+
+// En cualquier template o widget:
+echo do_shortcode( '[language-switcher]' );
+
+/**
+ * Obtener idioma actual con TranslatePress.
+ */
+function jewelry_get_current_locale() {
+    global $TRP_LANGUAGE;
+    if ( ! empty( $TRP_LANGUAGE ) ) {
+        return $TRP_LANGUAGE;
     }
-    
-    $output = '<div class="jewelry-language-switcher">';
-    
-    foreach ( $translations as $locale => $trans_id ) {
-        if ( $locale === $current_locale ) {
-            continue; // Skip current language
-        }
-        
-        $url = get_permalink( $trans_id );
-        $flag = ( 'es_ES' === $locale ) ? '🇪🇸' : '🇺🇸';
-        $label = ( 'es_ES' === $locale ) ? 'Español' : 'English';
-        
-        $output .= sprintf(
-            '<a href="%s" class="language-switch-link" data-locale="%s">%s %s</a>',
-            esc_url( $url ),
-            esc_attr( $locale ),
-            $flag,
-            esc_html( $label )
-        );
-    }
-    
-    $output .= '</div>';
-    
-    return $output;
+    return get_locale();
 }
+
+/**
+ * Verificar si TranslatePress está activo.
+ */
+function jewelry_is_translatepress_active() {
+    return class_exists( 'TRP_Translate_Press' );
+}
+
+/**
+ * Obtener URL en otro idioma (TranslatePress lo maneja automáticamente).
+ * Las URLs en inglés llevan prefijo /en/: /en/shop/, /en/about-us/, etc.
+ */
 ```
 
 ---
@@ -907,12 +781,15 @@ function jewelry_language_switcher_shortcode() {
 ### Skill 14: Bloques Gutenberg Personalizados
 
 **Prompt para Copilot:**
+
 ```
-Create custom Gutenberg block "Featured Products Carousel" that shows products in current language.
+Create custom Gutenberg block "Featured Products Carousel" that shows featured products.
 Include block controls for category selection and number of products.
+TranslatePress handles translation automatically — no _locale filtering needed.
 ```
 
 **Código (registro del bloque):**
+
 ```php
 /**
  * Registrar bloque personalizado de productos destacados.
@@ -936,28 +813,24 @@ function jewelry_register_featured_products_block() {
 
 /**
  * Render del bloque.
+ * Con TranslatePress, NO se filtra por _locale.
+ * TranslatePress traduce el contenido automáticamente según el idioma activo.
  */
 function jewelry_render_featured_products_block( $attributes ) {
-    $locale = jewelry_get_current_locale();
     $number = isset( $attributes['numberOfProducts'] ) ? intval( $attributes['numberOfProducts'] ) : 4;
     $category_id = isset( $attributes['categoryId'] ) ? intval( $attributes['categoryId'] ) : 0;
-    
+
     $args = array(
         'post_type' => 'product',
         'posts_per_page' => $number,
         'meta_query' => array(
-            'relation' => 'AND',
-            array(
-                'key' => '_locale',
-                'value' => $locale,
-            ),
             array(
                 'key' => '_featured',
                 'value' => 'yes',
             ),
         ),
     );
-    
+
     if ( $category_id > 0 ) {
         $args['tax_query'] = array(
             array(
@@ -967,26 +840,26 @@ function jewelry_render_featured_products_block( $attributes ) {
             ),
         );
     }
-    
+
     $query = new WP_Query( $args );
-    
+
     if ( ! $query->have_posts() ) {
         return '<p>No featured products found.</p>';
     }
-    
+
     ob_start();
-    
+
     echo '<div class="jewelry-featured-products">';
-    
+
     while ( $query->have_posts() ) {
         $query->the_post();
         wc_get_template_part( 'content', 'product' );
     }
-    
+
     echo '</div>';
-    
+
     wp_reset_postdata();
-    
+
     return ob_get_clean();
 }
 ```
@@ -998,12 +871,14 @@ function jewelry_render_featured_products_block( $attributes ) {
 ### Skill 15: Rate Limiting y Seguridad
 
 **Prompt para Copilot:**
+
 ```
 Implement rate limiting for checkout and login forms.
 Add security headers and sanitization for all custom inputs.
 ```
 
 **Código:**
+
 ```php
 /**
  * Rate limiting para formularios.
@@ -1011,18 +886,18 @@ Add security headers and sanitization for all custom inputs.
 function jewelry_check_rate_limit( $action, $max_attempts = 5, $time_window = 300 ) {
     $ip = $_SERVER['REMOTE_ADDR'];
     $transient_key = "jewelry_rate_{$action}_{$ip}";
-    
+
     $attempts = get_transient( $transient_key );
-    
+
     if ( false === $attempts ) {
         set_transient( $transient_key, 1, $time_window );
         return true;
     }
-    
+
     if ( $attempts >= $max_attempts ) {
         return false;
     }
-    
+
     set_transient( $transient_key, $attempts + 1, $time_window );
     return true;
 }
@@ -1060,12 +935,14 @@ function jewelry_add_security_headers() {
 ### Skill 16: Crear Datos de Prueba
 
 **Prompt para Copilot:**
+
 ```
 Create function to generate test products in both languages for development.
 Include various categories, price ranges, and product types.
 ```
 
 **Código:**
+
 ```php
 /**
  * Generar productos de prueba bilingües.
@@ -1073,38 +950,38 @@ Include various categories, price ranges, and product types.
 function jewelry_create_test_products( $count = 10 ) {
     $categories_es = array( 'cadenas-de-oro', 'pulseras', 'urban-iced-out' );
     $categories_en = array( 'gold-chains', 'bracelets', 'urban-iced-out' );
-    
+
     $products_created = 0;
-    
+
     for ( $i = 1; $i <= $count; $i++ ) {
         $price = rand( 299, 999 ) . '.99';
         $sku = 'TEST-' . str_pad( $i, 4, '0', STR_PAD_LEFT );
-        
+
         $cat_index = rand( 0, count( $categories_es ) - 1 );
         $cat_es = get_term_by( 'slug', $categories_es[ $cat_index ], 'product_cat' );
         $cat_en = get_term_by( 'slug', $categories_en[ $cat_index ], 'product_cat' );
-        
+
         $data_es = array(
             'name' => "Producto de Prueba #{$i}",
             'description' => "Descripción detallada del producto de prueba #{$i}",
             'short_description' => "Descripción corta #{$i}"
         );
-        
+
         $data_en = array(
             'name' => "Test Product #{$i}",
             'description' => "Detailed description of test product #{$i}",
             'short_description' => "Short description #{$i}"
         );
-        
+
         $categories = array(
             'es' => $cat_es ? array( $cat_es->term_id ) : array(),
             'en' => $cat_en ? array( $cat_en->term_id ) : array()
         );
-        
+
         jewelry_create_bilingual_product( $data_es, $data_en, $sku, $price, $categories );
         $products_created++;
     }
-    
+
     return $products_created;
 }
 
@@ -1123,15 +1000,15 @@ function jewelry_delete_test_products() {
             )
         )
     );
-    
+
     $products = get_posts( $args );
     $deleted = 0;
-    
+
     foreach ( $products as $product ) {
         wp_delete_post( $product->ID, true );
         $deleted++;
     }
-    
+
     return $deleted;
 }
 ```
@@ -1143,27 +1020,30 @@ function jewelry_delete_test_products() {
 ### Tips para Usar Copilot Eficientemente
 
 1. **Contexto Claro en Comentarios**
+
    ```php
    // Create a bilingual product for Miami Cuban Link 10k 6mm
    // Spanish: Cadena Cubana Miami 10k 6mm
    // English: Miami Cuban Link 10k 6mm
    // Price: $499.99, SKU: CUB-10K-6MM
-   // Link both products with Bogo
+   // Translate product with TranslatePress
    ```
 
 2. **Usar Nombres Descriptivos**
+
    ```php
    // ✅ Bueno
    function jewelry_create_bilingual_product_with_variations()
-   
+
    // ❌ Malo
    function create_prod()
    ```
 
 3. **Documentación PHPDoc Completa**
+
    ```php
    /**
-    * Creates a bilingual WooCommerce product with Bogo linking.
+    * Creates a WooCommerce product with TranslatePress translation.
     *
     * @param array $data_es Spanish product data (name, description, short_description).
     * @param array $data_en English product data (name, description, short_description).
@@ -1175,6 +1055,7 @@ function jewelry_delete_test_products() {
    ```
 
 4. **Usar Variables con Nombres en Contexto**
+
    ```php
    $product_es // Copilot sabrá que es producto en español
    $product_en // Copilot sabrá que es producto en inglés
@@ -1182,14 +1063,16 @@ function jewelry_delete_test_products() {
    ```
 
 5. **Escribir Tests con Describe/It Style**
+
    ```php
-   // Test: should create bilingual product and link with Bogo
+   // Test: should create bilingual product with TranslatePress translation
    // Given: product data in Spanish and English
    // When: calling jewelry_create_bilingual_product
    // Then: should return both product IDs and both should be linked
    ```
 
 6. **Solicitar Código Seguro**
+
    ```php
    // Create checkout field with:
    // - Nonce verification
@@ -1212,11 +1095,11 @@ function jewelry_delete_test_products() {
 
 - **WordPress Developer Docs:** https://developer.wordpress.org/
 - **WooCommerce Code Reference:** https://woocommerce.github.io/code-reference/
-- **Bogo Plugin:** https://wordpress.org/plugins/bogo/
+- **TranslatePress:** https://translatepress.com/docs/
 - **WordPress Coding Standards:** https://developer.wordpress.org/coding-standards/
 - **Docker Documentation:** https://docs.docker.com/
 - **WP-CLI Commands:** https://developer.wordpress.org/cli/commands/
 
 ---
 
-**Nota:** Todos estos skills están diseñados para el proyecto Jewelry con contenido bilingüe (Español/Inglés) usando Bogo. Siempre crear contenido en ambos idiomas simultáneamente.
+**Nota:** Todos estos skills están diseñados para el proyecto Jewelry con contenido bilingüe (Español/Inglés) usando TranslatePress. El contenido se crea una vez en español y se traduce visualmente desde el frontend.

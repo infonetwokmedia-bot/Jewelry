@@ -7,7 +7,7 @@ Guía de troubleshooting para problemas frecuentes en el desarrollo y operación
 - [Docker & Contenedores](#docker--contenedores)
 - [WordPress](#wordpress)
 - [WooCommerce](#woocommerce)
-- [Bogo & Multiidioma](#bogo--multiidioma)
+- [TranslatePress & Multiidioma](#translatepress--multiidioma)
 - [Base de Datos](#base-de-datos)
 - [Performance](#performance)
 - [Seguridad](#seguridad)
@@ -212,8 +212,8 @@ docker exec jewelry_wordpress wp post list \
     --post_status=publish \
     --allow-root
 
-# Verificar locale correcto (si es problema de Bogo)
-docker exec jewelry_wordpress wp post meta get <PRODUCT_ID> _locale --allow-root
+# Verificar que TranslatePress esté activo
+docker exec jewelry_wordpress wp plugin is-active translatepress-multilingual --allow-root
 
 # Regenerar lookup tables
 docker exec jewelry_wordpress wp wc tool run regenerate_product_lookup_tables --allow-root
@@ -237,81 +237,69 @@ docker exec jewelry_wordpress wp cache flush --allow-root
 
 ---
 
-## 🌍 Bogo & Multiidioma
+## 🌍 TranslatePress & Multiidioma
 
 ### Cambio de idioma no funciona
 
 **Síntomas:**
 
 - Selector de idioma no cambia el contenido
-- URLs no cambian entre idiomas
+- URLs no cambian entre idiomas (ej. `/en/` no funciona)
 
 **Solución:**
 
 ```bash
-# 1. Verificar que Bogo esté activo
-docker exec jewelry_wordpress wp plugin is-active bogo --allow-root
+# 1. Verificar que TranslatePress esté activo
+docker exec jewelry_wordpress wp plugin is-active translatepress-multilingual --allow-root
 
-# 2. Verificar configuración de Bogo
-docker exec jewelry_wordpress wp option get bogo_available_languages --allow-root
+# 2. Verificar configuración de TranslatePress
+docker exec jewelry_wordpress wp option get trp_settings --allow-root
 
 # 3. Verificar permalinks
 docker exec jewelry_wordpress wp rewrite flush --allow-root
 
-# 4. Verificar vinculación de posts
-docker exec jewelry_wordpress wp post meta get <POST_ID> _bogo_translations --allow-root
-docker exec jewelry_wordpress wp post meta get <POST_ID> _locale --allow-root
+# 4. Verificar que las tablas de traducción existan
+docker exec jewelry_wordpress wp db query "SHOW TABLES LIKE 'wp_trp_%';" --allow-root
 ```
 
 ### Productos sin traducción
 
 **Solución:**
 
+TranslatePress NO duplica posts/productos. Las traducciones se almacenan en las tablas `wp_trp_*`. Para traducir:
+
+1. Ir al frontend del producto
+2. Clic en **"Translate Page"** en la admin bar (o agregar `?trp-edit-translation=true` a la URL)
+3. Clic en cada texto para editarlo en inglés
+4. Guardar
+
 ```bash
-# Encontrar productos sin traducción
-docker exec jewelry_wordpress wp eval "
-\$args = array(
-    'post_type' => 'product',
-    'posts_per_page' => -1,
-    'meta_query' => array(
-        array( 'key' => '_locale', 'value' => 'es_ES' )
-    )
-);
-\$products = get_posts( \$args );
-foreach ( \$products as \$product ) {
-    \$translations = get_post_meta( \$product->ID, '_bogo_translations', true );
-    if ( ! isset( \$translations['en_US'] ) ) {
-        echo 'Sin traducción: ' . \$product->ID . ' - ' . \$product->post_title . PHP_EOL;
-    }
-}
-" --allow-root
+# Verificar traducciones existentes en la tabla de TranslatePress
+docker exec jewelry_wordpress wp db query "
+SELECT original, translated, status
+FROM wp_trp_dictionary_en_us_
+WHERE original LIKE '%texto del producto%'
+LIMIT 10;" --allow-root
 ```
 
-### Vincular manualmente con Bogo
+### Traducir contenido con TranslatePress
 
-**Solución:**
+**Método visual (recomendado):**
+
+1. Ir a la página/producto en el frontend
+2. En la admin bar, clic en **"Translate Page"**
+3. Se abre el editor visual de TranslatePress
+4. Clic en cualquier texto para editarlo en el idioma destino
+5. Guardar
+
+**Shortcode del language switcher:**
 
 ```php
-// Ejecutar con wp eval
-docker exec jewelry_wordpress wp eval "
-\$post_id_es = 123; // ID producto en español
-\$post_id_en = 456; // ID producto en inglés
-
-// Marcar locales
-update_post_meta( \$post_id_es, '_locale', 'es_ES' );
-update_post_meta( \$post_id_en, '_locale', 'en_US' );
-
-// Vincular
-\$translations = array(
-    'es_ES' => \$post_id_es,
-    'en_US' => \$post_id_en
-);
-update_post_meta( \$post_id_es, '_bogo_translations', \$translations );
-update_post_meta( \$post_id_en, '_bogo_translations', \$translations );
-
-echo 'Vinculados correctamente';
-" --allow-root
+echo do_shortcode( '[language-switcher]' );
 ```
+
+> **Nota:** La sección anterior usaba Bogo, que vinculaba posts duplicados con `_bogo_translations` meta.
+> El sistema actual usa TranslatePress, que NO duplica contenido — almacena traducciones en tablas `wp_trp_*`.
 
 ---
 

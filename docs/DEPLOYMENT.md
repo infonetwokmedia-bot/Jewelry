@@ -377,14 +377,14 @@ wp post list --post_type=shop_order --post_status=failed --allow-root
 
 ### Errores Comunes en Deploy
 
-| Error                     | Causa                           | Solución                            |
-| ------------------------- | ------------------------------- | ----------------------------------- |
-| 500 Internal Server Error | Syntax error PHP                | Ver logs Apache/PHP-FPM             |
-| 404 en páginas            | Permalinks no regenerados       | `wp rewrite flush`                  |
-| Tienda vacía              | Problema locale Bogo            | Verificar `_locale` meta            |
-| Checkout roto             | Plugin incompatible actualizado | Desactivar plugin, rollback versión |
-| Imágenes rotas            | Permisos uploads/               | `chmod 755`, `chown www-data`       |
-| SSL error                 | Certificado expirado            | Renovar Let's Encrypt o comercial   |
+| Error                     | Causa                              | Solución                            |
+| ------------------------- | ---------------------------------- | ----------------------------------- |
+| 500 Internal Server Error | Syntax error PHP                   | Ver logs Apache/PHP-FPM             |
+| 404 en páginas            | Permalinks no regenerados          | `wp rewrite flush`                  |
+| Tienda vacía              | Problema traducción TranslatePress | Verificar tablas `wp_trp_*`         |
+| Checkout roto             | Plugin incompatible actualizado    | Desactivar plugin, rollback versión |
+| Imágenes rotas            | Permisos uploads/                  | `chmod 755`, `chown www-data`       |
+| SSL error                 | Certificado expirado               | Renovar Let's Encrypt o comercial   |
 
 ### Logs Importantes
 

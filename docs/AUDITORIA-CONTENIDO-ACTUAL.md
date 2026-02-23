@@ -316,4 +316,4 @@ ES Form Labels:
 - Home page EN: https://jewelry.local.dev/en/home/ (ID: 1403)
 - Admin editor: https://jewelry.local.dev/wp-admin/post.php?post=1388&action=edit
 
-**Nota:** Todas las páginas están vinculadas con Bogo. Cambios en la versión EN/ES se replican automáticamente.
+**Nota:** Todas las traducciones se gestionan con TranslatePress. NO se duplican páginas — las traducciones se almacenan en tablas `wp_trp_*` y se editan visualmente desde el frontend.

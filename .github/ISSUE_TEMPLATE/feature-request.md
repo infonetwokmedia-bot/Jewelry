@@ -18,15 +18,15 @@ assignees: []
 
 - [ ] Requiere contenido en Espanol (es_ES)
 - [ ] Requiere contenido en Ingles (en_US)
-- [ ] Requiere vinculacion Bogo
+- [ ] Requiere traduccion con TranslatePress
 
 ## Criterios de Aceptacion
 
 - [ ] Funciona en espanol
 - [ ] Funciona en ingles
-- [ ] Vinculado con Bogo (si aplica)
+- [ ] Traducido con TranslatePress (si aplica)
 - [ ] Sin errores PHP en logs
-- [ ] Codigo con prefijo jewelry_
+- [ ] Codigo con prefijo jewelry\_
 
 ## Contexto Adicional
 

@@ -18,6 +18,11 @@ data/wordpress/wp-content/*
 data/wordpress/wp-content/plugins/*
 !data/wordpress/wp-content/plugins/jewelry-dashboard/
 
+# ===== EXCEPT: MU-plugin tracked in git =====
+!data/wordpress/wp-content/mu-plugins/
+data/wordpress/wp-content/mu-plugins/*
+!data/wordpress/wp-content/mu-plugins/jewelry-image-optimization.php
+
 # ===== DASHBOARD SPA (tracked in git) =====
 # dashboard/ folder is tracked; only exclude secrets
 dashboard/.env.js

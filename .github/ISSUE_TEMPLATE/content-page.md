@@ -14,23 +14,19 @@ assignees: []
 
 ## Contenido - Espanol
 
-**Titulo:** 
+**Titulo:**
 
-**Slug:** 
+**Slug:**
 
 **Contenido:**
-
-
 
 ## Contenido - English
 
-**Titulo:** 
+**Titulo:**
 
-**Slug:** 
+**Slug:**
 
 **Contenido:**
-
-
 
 ## Metadata
 
@@ -40,14 +36,14 @@ assignees: []
 
 ## SEO
 
-- **Meta Description ES:** 
+- **Meta Description ES:**
 - **Meta Description EN:**
 
 ## Checklist
 
 - [ ] Pagina/post creado en espanol (es_ES)
-- [ ] Pagina/post creado en ingles (en_US)
-- [ ] Vinculados con Bogo (_bogo_translations)
+- [ ] Traducido al ingles (en_US) con TranslatePress
+- [ ] Traduccion verificada en tablas wp*trp*\*
 - [ ] Featured image configurada (si aplica)
 - [ ] Parent page asignado (si aplica)
 - [ ] SEO configurado

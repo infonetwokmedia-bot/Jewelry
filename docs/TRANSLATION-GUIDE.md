@@ -256,7 +256,7 @@ Traducción: "Nueva Colección de Joyas Hechas a Mano"
 
 ## ⚠️ Notas Importantes
 
-1. **NO traducir URLs** - Las categorías y páginas las maneja Bogo automáticamente
+1. **NO traducir URLs** - Las categorías y páginas las maneja TranslatePress automáticamente (usa prefijos de URL como `/en/`)
 2. **NO cambiar metadatos de diseño** - Mantener `align`, `size`, `position`, `colors`, etc.
 3. **Mantener formato HTML** en text-editors - `<p>`, `<strong>`, etc.
 4. **Probar en móvil** - Algunos textos truncan en responsive

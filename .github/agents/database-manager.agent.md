@@ -23,7 +23,7 @@ Contenedores:
 Base de Datos:
   - Database: jewelry_db
   - User: jewelry_user
-  - Password: jewelry_pass_2026!
+  - Password: ${MYSQL_PASSWORD}
 
 URLs:
   - Frontend: https://jewelry.local.dev
@@ -48,7 +48,7 @@ docker run --rm --volumes-from jewelry_wordpress \
   -e WORDPRESS_DB_HOST=mysql \
   -e WORDPRESS_DB_NAME=jewelry_db \
   -e WORDPRESS_DB_USER=jewelry_user \
-  -e WORDPRESS_DB_PASSWORD='jewelry_pass_2026!' \
+  -e WORDPRESS_DB_PASSWORD='${MYSQL_PASSWORD}' \
   wordpress:cli wp [COMANDO] --allow-root
 ```
 
@@ -153,20 +153,20 @@ docker exec jewelry_wordpress php /var/www/html/wp-cli.phar search-replace \
 # Backup completo con timestamp
 docker exec jewelry_mysql mysqldump \
   -u jewelry_user \
-  -p'jewelry_pass_2026!' \
+  -p"${MYSQL_PASSWORD}" \
   jewelry_db > /srv/stacks/jewelry/backups/backup_$(date +%Y%m%d_%H%M%S).sql
 
 # Backup solo tablas específicas
 docker exec jewelry_mysql mysqldump \
   -u jewelry_user \
-  -p'jewelry_pass_2026!' \
+  -p"${MYSQL_PASSWORD}" \
   jewelry_db wp_posts wp_postmeta > /srv/stacks/jewelry/backups/posts_backup.sql
 
 # Backup tablas TranslatePress
 docker exec jewelry_mysql mysqldump \
   -u jewelry_user \
-  -p'jewelry_pass_2026!' \
-  jewelry_db $(docker exec jewelry_mysql mysql -u jewelry_user -p'jewelry_pass_2026!' \
+  -p"${MYSQL_PASSWORD}" \
+  jewelry_db $(docker exec jewelry_mysql mysql -u jewelry_user -p"${MYSQL_PASSWORD}" \
   -N -e "SHOW TABLES LIKE 'wp_trp_%'" jewelry_db | tr '\n' ' ') \
   > /srv/stacks/jewelry/backups/trp_backup_$(date +%Y%m%d).sql
 ```
@@ -177,7 +177,7 @@ docker exec jewelry_mysql mysqldump \
 # Importar backup completo
 docker exec -i jewelry_mysql mysql \
   -u jewelry_user \
-  -p'jewelry_pass_2026!' \
+  -p"${MYSQL_PASSWORD}" \
   jewelry_db < backup.sql
 ```
 
@@ -188,7 +188,7 @@ docker exec -i jewelry_mysql mysql \
 ```bash
 docker exec jewelry_mysql mysqlcheck \
   -u jewelry_user \
-  -p'jewelry_pass_2026!' \
+  -p"${MYSQL_PASSWORD}" \
   --optimize jewelry_db
 ```
 
@@ -197,7 +197,7 @@ docker exec jewelry_mysql mysqlcheck \
 ```bash
 docker exec jewelry_mysql mysql \
   -u jewelry_user \
-  -p'jewelry_pass_2026!' \
+  -p"${MYSQL_PASSWORD}" \
   -e "SELECT table_name AS 'Table',
       ROUND(((data_length + index_length) / 1024 / 1024), 2) AS 'Size (MB)'
       FROM information_schema.TABLES

@@ -1,7 +1,7 @@
 # 🎨 PLAN DE CREACIÓN DE CONTENIDO - Remedio Joyería
 
 **Objetivo:** Reemplazar Lorem ipsum con contenido real en AMBOS idiomas (ES/EN)  
-**Herramienta:** WordPress Block Editor (Kadence Blocks) + Bogo (multiidioma)  
+**Herramienta:** WordPress Block Editor (Elementor) + TranslatePress (multiidioma)  
 **Estructura:** Bilingual pair pages (ES + EN linked)
 
 ---
@@ -19,7 +19,7 @@
 │ 2. DUPLICAR / TRADUCIR A INGLÉS (en_US)                    │
 │    └─> Editar página correspondiente EN INGLÉS             │
 │    └─> Cambiar contenido manteniendo estructura            │
-│    └─> VERIFICAR BOGO LINKING                              │
+│    └─> VERIFICAR TRADUCCIÓN EN TRANSLATEPRESS               │
 └─────────────────────────────────────────────────────────────┘
          ↓
 ┌─────────────────────────────────────────────────────────────┐
@@ -560,10 +560,10 @@ Section 2: SERVICES
    - Repetir pasos 2-3
    - Verificar en: https://jewelry.local.dev/en/[slug]/
 
-5. **Verificar Bogo Linking:**
-   - Ir a página ES
-   - Abajo en "Document" → Bogo
-   - Verificar que está linked a página EN
+5. **Verificar traducción en TranslatePress:**
+   - Ir a la página en el frontend
+   - Clic en "Translate Page" en la admin bar (o ir a `?trp-edit-translation=true`)
+   - Verificar que la traducción EN está completa
 
 ---
 

@@ -19,7 +19,7 @@ Error al editar páginas en WordPress admin:
 - ✓ Posts existen (verificado)
 - ✓ Datos intactos (112KB cada página)
 - ✓ Bloques Kadence válidos
-- ✓ Bogo linking correcto
+- ✓ TranslatePress traducciones correctas
 - ✓ Contenido actualizado vía script
 
 **Conclusión:** Es un issue del navegador/editor visual, **NO de datos**.
@@ -199,7 +199,7 @@ Output muestra:
 
 - ✓ Post existence
 - ✓ Plugin status
-- ✓ Bogo meta
+- ✓ TranslatePress translations
 - ✓ Content integrity
 - ✓ Cache state
 

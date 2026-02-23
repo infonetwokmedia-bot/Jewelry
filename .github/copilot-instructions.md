@@ -110,12 +110,14 @@ Usar acciones y filtros de WordPress apropiadamente.
 ### Elementor
 
 El diseno del sitio se edita con **Elementor**:
+
 - Editar paginas: Admin > Paginas > Editar con Elementor
 - NO editar templates PHP directamente a menos que sea necesario
 
 ### Funciones Custom
 
 Para personalizaciones usar **child theme** o **plugin custom**:
+
 - **Child theme:** `data/wordpress/wp-content/themes/astra-child/functions.php`
 - **Plugin custom:** `data/wordpress/wp-content/plugins/jewelry-custom/jewelry-custom.php`
 

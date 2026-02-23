@@ -69,7 +69,7 @@ git checkout -b refactor/optimizar-queries
 Si creas/editas contenido WordPress (páginas, productos, posts):
 
 1. **SIEMPRE crear en AMBOS idiomas:** Español (es_ES) + Inglés (en_US)
-2. **SIEMPRE vincular con Bogo:** Ver ejemplos en [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md#crear-producto-bilingüe)
+2. **SIEMPRE traducir con TranslatePress:** Ver ejemplos en [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md#crear-producto-bilingüe)
 3. **Verificar vinculación:** Antes de commit, confirmar que ambos posts están linkeados
 
 **Prefijo de funciones:**
@@ -266,7 +266,7 @@ const add = (a, b) => a + b;
 git commit -m "feat(products): añadir filtro por precio en shop"
 
 # Bug fix
-git commit -m "fix(bogo): corregir vinculación de productos bilingües"
+git commit -m "fix(translatepress): corregir traducción de productos bilingües"
 
 # Documentación
 git commit -m "docs(readme): actualizar sección de instalación"
@@ -324,7 +324,7 @@ find data/wordpress/wp-content/themes/kadence/functions-custom.php \
 - [ ] Cambio de idioma funciona (ES ↔ EN)
 - [ ] Si cambios en productos: Shop muestra correctamente
 - [ ] Si cambios en checkout: Proceso completo funciona
-- [ ] Si cambios en Bogo: Vinculación correcta de traducciones
+- [ ] Si cambios en TranslatePress: Traducciones correctas en ambos idiomas
 - [ ] No hay errores en consola del navegador
 - [ ] No hay errores en logs Docker
 
@@ -344,9 +344,9 @@ docker exec jewelry_wordpress wp post list \
     --post_title="Nombre del Producto" \
     --allow-root
 
-# Verificar vinculación Bogo
-docker exec jewelry_wordpress wp post meta get <ID> _bogo_translations --allow-root
-docker exec jewelry_wordpress wp post meta get <ID> _locale --allow-root
+# Verificar que TranslatePress esté activo y traducciones existan
+docker exec jewelry_wordpress wp plugin is-active translatepress-multilingual --allow-root
+# Revisar traducciones visualmente en: https://jewelry.local.dev/en/<slug>/
 ```
 
 ---
@@ -360,7 +360,7 @@ docker exec jewelry_wordpress wp post meta get <ID> _locale --allow-root
 1. **Conventional Commits:** Formato correcto
 2. **Prefijo jewelry\_:** En funciones custom PHP
 3. **Bilingüismo:** Si hay contenido, está en ES + EN
-4. **Bogo linking:** Traduciones vinculadas correctamente
+4. **TranslatePress:** Traducciones correctas en ambos idiomas
 5. **Seguridad:** Sanitización y escape
 6. **WordPress Standards:** Indentación, Yoda conditions, etc.
 7. **Tests:** CI passing, tests manuales realizados
@@ -376,7 +376,7 @@ docker exec jewelry_wordpress wp post meta get <ID> _locale --allow-root
 - [ ] Conventional commits usados
 - [ ] Funciones custom con prefijo `jewelry_`
 - [ ] Contenido creado en ES + EN (si aplica)
-- [ ] Bogo linking verificado (si aplica)
+- [ ] Traducciones TranslatePress verificadas (si aplica)
 - [ ] Input sanitizado, output escapado
 - [ ] WordPress Coding Standards seguidos
 - [ ] Tests ejecutados (`./scripts/test-connections.sh`)

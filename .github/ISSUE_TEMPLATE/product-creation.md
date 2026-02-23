@@ -8,11 +8,11 @@ assignees: []
 
 ## Producto(s) a Crear
 
-| Campo | Espanol | English |
-|-------|---------|---------|
-| Nombre | | |
-| Descripcion corta | | |
-| Categoria | | |
+| Campo             | Espanol | English |
+| ----------------- | ------- | ------- |
+| Nombre            |         |         |
+| Descripcion corta |         |         |
+| Categoria         |         |         |
 
 ## Detalles
 
@@ -25,14 +25,15 @@ assignees: []
 ## Imagenes
 
 Referencia a las fotos del chat WhatsApp:
+
 - Archivo(s): IMG-XXXXXXXX-WAXXXX.jpg
 
 ## Checklist
 
 - [ ] Producto creado en espanol (es_ES)
-- [ ] Producto creado en ingles (en_US)
-- [ ] Vinculados con Bogo (_bogo_translations)
-- [ ] Categoria asignada en ambos idiomas
+- [ ] Traducido al ingles (en_US) con TranslatePress
+- [ ] Traduccion verificada en tablas wp*trp*\*
+- [ ] Categoria asignada
 - [ ] SKU asignado
 - [ ] Precio configurado
 - [ ] Imagen(es) subida(s)

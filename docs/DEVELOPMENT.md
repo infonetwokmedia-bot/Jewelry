@@ -33,7 +33,7 @@ Guía completa para desarrollar en el proyecto Jewelry (WordPress + WooCommerce 
 - PHP 8.1+
 - WordPress 6.x
 - WooCommerce 10.x
-- Plugin Bogo para multiidioma
+- Plugin TranslatePress para multiidioma
 - Docker básico
 - Git workflows
 
@@ -211,7 +211,7 @@ Formato:
 
 ```
 feat(products): añadir script de creación bilingüe
-fix(bogo): corregir vinculación de categorías
+fix(translatepress): corregir traducción de categorías
 docs(ai-tools): actualizar guía de Claude
 security: eliminar wp-config backups
 ```
@@ -224,7 +224,7 @@ security: eliminar wp-config backups
 
 ```php
 /**
- * Crear producto bilingüe con vinculación Bogo.
+ * Crear producto bilingüe con TranslatePress.
  *
  * @param array $data_es Datos en español.
  * @param array $data_en Datos en inglés.
@@ -376,7 +376,7 @@ El proyecto está optimizado para uso con múltiples IAs:
 
 - `@product-creator` - Crear productos WooCommerce
 - `@page-builder` - Crear páginas bilingües
-- `@bogo-expert` - Vincular contenido multiidioma
+- `@translatepress-expert` - Vincular contenido multiidioma
 - `@woocommerce-expert` - Configurar WooCommerce
 - `@security-reviewer` - Revisar seguridad
 - `@database-manager` - Gestión de DB
@@ -417,7 +417,7 @@ Autocompletado complementario a Copilot.
 - [DEPLOYMENT.md](./DEPLOYMENT.md) - Despliegue a producción
 - [WordPress Codex](https://codex.wordpress.org/)
 - [WooCommerce Docs](https://woocommerce.github.io/code-reference/)
-- [Bogo Plugin](https://wordpress.org/plugins/bogo/)
+- [TranslatePress Plugin](https://wordpress.org/plugins/translatepress-multilingual/)
 
 ---
 
