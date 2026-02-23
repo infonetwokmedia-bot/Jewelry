@@ -23,6 +23,7 @@ data/wordpress/wp-content/plugins/*
 data/wordpress/wp-content/mu-plugins/*
 !data/wordpress/wp-content/mu-plugins/jewelry-image-optimization.php
 !data/wordpress/wp-content/mu-plugins/jewelry-security.php
+!data/wordpress/wp-content/mu-plugins/jewelry-dev-domain.php
 
 # ===== DASHBOARD SPA (tracked in git) =====
 # dashboard/ folder is tracked; only exclude secrets

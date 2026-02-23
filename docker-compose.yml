@@ -55,10 +55,13 @@ services:
       - "traefik.http.routers.jewelry.rule=Host(`jewelry.local.dev`)"
       - "traefik.http.routers.jewelry.entrypoints=websecure"
       - "traefik.http.routers.jewelry.tls=true"
-      # Router público (acceso externo al dev local)
+      # Router público (acceso externo via Cloudflare Tunnel)
       - "traefik.http.routers.jewelry-public.rule=Host(`dev.tujoyita.com`)"
       - "traefik.http.routers.jewelry-public.entrypoints=websecure"
       - "traefik.http.routers.jewelry-public.tls=true"
+      # Router HTTP para Cloudflare Tunnel (llega por puerto 80)
+      - "traefik.http.routers.jewelry-tunnel.rule=Host(`dev.tujoyita.com`)"
+      - "traefik.http.routers.jewelry-tunnel.entrypoints=web"
       # Servicio compartido
       - "traefik.http.services.jewelry.loadbalancer.server.port=80"
 
@@ -129,6 +132,15 @@ services:
       - "traefik.http.routers.jewelry-dashboard-path-public-redirect.rule=Host(`dev.tujoyita.com`) && Path(`/dashboard`)"
       - "traefik.http.routers.jewelry-dashboard-path-public-redirect.entrypoints=websecure"
       - "traefik.http.routers.jewelry-dashboard-path-public-redirect.tls=true"
+      # Routers HTTP para Cloudflare Tunnel (llega por puerto 80)
+      - "traefik.http.routers.jewelry-dashboard-tunnel.rule=Host(`dev.tujoyita.com`) && PathPrefix(`/dashboard/`)"
+      - "traefik.http.routers.jewelry-dashboard-tunnel.entrypoints=web"
+      - "traefik.http.routers.jewelry-dashboard-tunnel.priority=300"
+      - "traefik.http.routers.jewelry-dashboard-tunnel.middlewares=jewelry-dashboard-strip@docker"
+      - "traefik.http.routers.jewelry-dashboard-tunnel-redirect.rule=Host(`dev.tujoyita.com`) && Path(`/dashboard`)"
+      - "traefik.http.routers.jewelry-dashboard-tunnel-redirect.entrypoints=web"
+      - "traefik.http.routers.jewelry-dashboard-tunnel-redirect.priority=301"
+      - "traefik.http.routers.jewelry-dashboard-tunnel-redirect.middlewares=jewelry-dashboard-addslash@docker"
       - "traefik.http.routers.jewelry-dashboard-path-public-redirect.priority=301"
       - "traefik.http.routers.jewelry-dashboard-path-public-redirect.middlewares=jewelry-dashboard-addslash@docker"
       - "traefik.http.middlewares.jewelry-dashboard-strip.stripprefix.prefixes=/dashboard"
