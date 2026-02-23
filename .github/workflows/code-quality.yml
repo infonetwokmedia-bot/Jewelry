@@ -79,26 +79,22 @@ jobs:
           php-version: "8.1"
           coverage: none
 
-      - name: PHP Syntax Check - Kadence Theme
-        run: |
-          echo "🔍 Checking PHP syntax in Kadence theme..."
-
-          if [ -f "data/wordpress/wp-content/themes/kadence/functions-custom.php" ]; then
-            php -l data/wordpress/wp-content/themes/kadence/functions-custom.php
-            echo "✅ functions-custom.php syntax OK"
-          else
-            echo "⚠️  functions-custom.php not found (might be new repo)"
-          fi
-
       - name: PHP Syntax Check - Custom Plugins
         run: |
           echo "🔍 Checking PHP syntax in custom plugins..."
 
+          # Check jewelry-dashboard plugin (tracked in git)
+          if [ -d "data/wordpress/wp-content/plugins/jewelry-dashboard" ]; then
+            find data/wordpress/wp-content/plugins/jewelry-dashboard -name "*.php" -exec php -l {} \;
+            echo "✅ jewelry-dashboard plugin syntax OK"
+          else
+            echo "⚠️  jewelry-dashboard plugin not found"
+          fi
+
+          # Check any other jewelry-* plugins
           if [ -d "data/wordpress/wp-content/plugins/jewelry-custom" ]; then
             find data/wordpress/wp-content/plugins/jewelry-custom -name "*.php" -exec php -l {} \;
-            echo "✅ All custom plugin files syntax OK"
-          else
-            echo "⚠️  No custom plugins found yet"
+            echo "✅ jewelry-custom plugin syntax OK"
           fi
 
       - name: PHP Syntax Check - Scripts

@@ -32,9 +32,9 @@ Selecciona el tipo de cambio (marca con `x`):
 ### Bilingüismo (si aplica)
 
 - [ ] 🌍 Contenido creado en **AMBOS idiomas** (ES + EN)
-- [ ] 🔗 Posts/productos vinculados con **Bogo** correctamente
-- [ ] ✅ Meta `_locale` configurada (`es_ES` / `en_US`)
-- [ ] ✅ Meta `_bogo_translations` configurada
+- [ ] 🔗 Traducciones configuradas con **TranslatePress** (visual editor)
+- [ ] ✅ URLs en inglés con prefijo `/en/` verificadas
+- [ ] ✅ Language switcher funciona correctamente
 - [ ] ✅ Menús/páginas verificados en ambos idiomas
 
 ### Testing

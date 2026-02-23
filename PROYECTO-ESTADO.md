@@ -1,138 +1,107 @@
-# Estado del Proyecto Jewelry Website
+# Estado del Proyecto — Tu Joyita Miami
 
-**Fecha:** 2026-02-11 18:15
-**URL:** https://jewelry.local.dev
-**Estado del Sistema:** ✅ Operativo - Error FTP resuelto
+**Fecha:** 2026-02-23
+**Dominio:** tujoyita.com
+**Dev local:** https://jewelry.local.dev
+**Repo principal:** https://github.com/tujoyitamiami-cpu/tujoyita
+**Estado del Sistema:** ✅ Operativo
 
 ## ✅ COMPLETADO
 
 ### Infraestructura
 
-- ✅ Docker Compose configurado
-- ✅ WordPress instalado y funcionando
-- ✅ Tema Kadence activado
-- ✅ WooCommerce configurado
-- ✅ Traefik configurado para acceso local HTTPS
+- ✅ Docker Compose configurado (5 servicios: WP, MySQL, phpMyAdmin, WP-CLI, Dashboard)
+- ✅ WordPress 6.9.1 instalado y funcionando
+- ✅ Tema Astra 4.12.3 + Elementor 3.35.4
+- ✅ WooCommerce 10.5.1 configurado
+- ✅ Traefik configurado para HTTPS local + dominio público
+- ✅ Dashboard SPA v2.0.0 (Nginx standalone)
 
 ### Idiomas
 
-- ✅ Plugin Bogo instalado y configurado
-- ✅ Español (es_ES) instalado y como idioma por defecto
-- ✅ Inglés (en_US) instalado
-- ✅ Sistema de traducción funcionando
+- ✅ TranslatePress 3.1 activo (traducción visual desde frontend)
+- ✅ Español (es_ES) como idioma por defecto
+- ✅ Inglés (en_US) con prefijo `/en/`
+- ✅ Language switcher flotante configurado
 
-### Páginas (12 EN + 12 ES = 24 páginas)
+### Git Multi-cuenta
 
-**Inglés:**
-
-- Home, Shop, About Us, Materials, Contacts, Blog
-- My Account, Cart, Checkout
-- Privacy Policy, Terms and Conditions, Refund Policy
-
-**Español:**
-
-- Inicio, Tienda, Nosotros, Materiales, Contacto, Blog
-- Mi Cuenta, Carrito, Finalizar Compra
-- Política de Privacidad, Términos y Condiciones, Política de Devoluciones
-
-**Vinculaciones:** ✅ Todas las páginas vinculadas EN ↔ ES con Bogo
-
-### Productos (5 parejas EN/ES = 10 productos)
-
-1. Miami Cuban Link 10k 6mm (EN/ES)
-2. Monaco Chain 14k 8mm (EN/ES)
-3. Karol G Style Choker 8mm (EN/ES)
-4. Monaco Bracelet with Panther Head (EN/ES)
-5. Custom ID Bracelet for Children (EN/ES)
-
-**Vinculaciones:** ✅ Todos los productos vinculados EN ↔ ES con Bogo
-
-### Categorías (4 parejas EN/ES = 8 categorías)
-
-1. Gold Chains / Cadenas de Oro (2 productos cada una)
-2. Urban & Iced Out EN/ES (1 producto cada una)
-3. Bracelets / Pulseras y Manillas (2 productos cada una)
-4. Luxury Watches / Relojes de Lujo (0 productos - preparada para futuro)
-
-**Vinculaciones:** ✅ Todas las categorías vinculadas EN ↔ ES con Bogo
-
-### Menús
-
-- ✅ Menú principal EN (primary_navigation_en) - 10 items
-- ✅ Menú principal ES (primary_navigation_es) - 10 items
-- ✅ Función custom para cambio automático de menú según idioma
-
-### Contenido
-
-- ✅ Páginas HOME/Inicio (ES + EN) - Contenido real + imágenes
-- ✅ Páginas ABOUT/Nosotros (ES + EN) - Contenido real + imágenes
-
-### Sistema
-
-- ✅ Error FTP resuelto - FS_METHOD='direct' configurado
-- ✅ Permisos de archivos arreglados - www-data:www-data
-- ✅ WordPress Admin accesible sin dialog FTP
-- ✅ WP-CLI funcionando correctamente
-- ✅ Scripts de automatización creados y testeados
-
-### WooCommerce
-
-- ✅ Páginas configuradas (Shop, Cart, Checkout, My Account)
-- ✅ Categorías de productos creadas
-- ✅ Productos de ejemplo creados
-
-## 🔄 PENDIENTE
+- ✅ **origin** → `tujoyitamiami-cpu/tujoyita` (producción + desarrollo)
+- ✅ **infonetwork** → `infonetwokmedia-bot/Jewelry` (legacy, read-only mirror)
+- ✅ **ppkapiro** → `ppkapiro/Jewelry` (fork personal)
+- ✅ SSH keys dedicadas por cuenta
+- ✅ Branches limpiadas (solo main activa)
 
 ### Productos
 
-- ⏳ Crear productos adicionales del catálogo WhatsApp (~50+ productos)
-- ⏳ Subir imágenes de productos
-- ⏳ Configurar precios y variaciones
-- ⏳ Asignar SKUs
+- ✅ 33 productos publicados (catálogo real en español)
+- ✅ Cadenas, gargantillas, pulsos, anillos, aretes, dijes
+- ✅ Plugin jewelry-dashboard API REST para gestión
 
-### Contenido
+### Páginas
 
-- ✅ HOME / Inicio (ES + EN) - Completado con contenido real
-- ✅ ABOUT / Nosotros (ES + EN) - Completado con contenido real
-- ⏳ MATERIALS / Materiales (ES + EN) - Estructura lista, contenido pendiente
-- ⏳ CONTACTS / Contactos (ES + EN) - Estructura lista, datos pendientes
+- ✅ Inicio, Nosotros, Contacto, Tienda — publicadas
+- ✅ Carrito, Finalizar Compra, Mi Cuenta — WooCommerce
+- ⏳ Política de Privacidad, Devoluciones — en draft
+
+### Menús
+
+- ✅ Main Menu (primary + mobile_menu) — 4 items
+- ✅ Footer Menu — 6 items
+
+### CI/CD
+
+- ✅ Workflow code-quality.yml (security audit, PHP lint, markdown, structure)
+- ✅ Workflow backup-weekly.yml (issue reminder)
+- ✅ PR template con checklist de calidad
+
+### Plugins Custom
+
+- ✅ `jewelry-dashboard` v2.0.0 — REST API + CORS (trackeado en Git)
+- ✅ `jewelry-image-optimization` — MU-plugin de optimización
+
+## 🔄 PENDIENTE — CAMINO A PRODUCCIÓN
+
+### Fase 1: Infraestructura Producción
+
+- ⏳ Crear VPS en Hetzner (proyecto 13570417)
+- ⏳ Configurar DNS tujoyita.com → Hetzner VPS
+- ⏳ SSL con Let's Encrypt vía Traefik
+- ⏳ Deploy automatizado (CI/CD)
+- ⏳ Backups automáticos reales
+
+### Fase 2: Contenido
+
+- ⏳ Completar página Materiales
+- ⏳ Publicar políticas (Privacy, Terms, Refund)
 - ⏳ Crear posts de blog iniciales
-- ⏳ Completar otras páginas legales
+- ⏳ Traducir todo el contenido al inglés con TranslatePress
+- ⏳ Subir imágenes de alta calidad para productos
 
-### Optimización
+### Fase 3: Optimización
 
-- ⏳ SEO: Instalar y configurar Yoast SEO o Rank Math
-- ⏳ Optimizar imágenes
-- ⏳ Configurar emails de WooCommerce en ambos idiomas
-- ⏳ Testing de rendimiento
+- ⏳ SEO: Instalar Rank Math
+- ⏳ Performance: Cache plugin, CDN, lazy loading
+- ⏳ Email transaccional: Configurar SMTP
+- ⏳ Seguridad: Headers, rate limiting, WP hardening
 
-### Diseño
+### Fase 4: Testing
 
-- ⏳ Personalizar header por idioma
-- ⏳ Personalizar footer por idioma
-- ⏳ Configurar widgets
-- ⏳ Ajustar colores y tipografías de marca
+- ⏳ Tests E2E con Playwright
+- ⏳ Tests PHP para plugin jewelry-dashboard
+- ⏳ QA bilingüe completo
 
 ## 📊 ESTADÍSTICAS
 
-- **Páginas:** 24 (12 EN + 12 ES)
-- **Productos:** 10 (5 EN + 5 ES)
-- **Categorías:** 8 (4 EN + 4 ES)
-- **Menús:** 2 (EN + ES)
-- **Plugins activos:** 7
-- **Idiomas:** 2 (Español, Inglés)
+- **Productos:** 33 publicados
+- **Páginas:** 9 (7 publish + 2 draft)
+- **Menús:** 2 (Main + Footer)
+- **Plugins activos:** 8
+- **Idiomas:** 2 (ES principal, EN secundario)
+- **Archivos trackeados:** ~142
 
-## 🔑 CREDENCIALES API
+## 🔑 API
 
-- **Usuario WordPress:** Ver archivo
-- **Password de aplicación:** Ver archivo
-- **API Endpoint:** https://jewelry.local.dev/wp-json/wp/v2
-
-## NOTAS
-
-- HOME y ABOUT tienen contenido real (ES + EN)
-- Las demás páginas tienen placeholders que necesitan contenido específico
-- El catálogo de WhatsApp contiene ~50+ productos pendientes de crear
-- Error FTP está 100% resuelto - Ver docs/FTP-ERROR-RESUELTO.md
-- Scripts de automatización disponibles en /scripts/update-content-final.sh
-- Sistema está listo para edición completa via WordPress Admin
+- **REST API:** https://jewelry.local.dev/wp-json/
+- **Dashboard API:** https://jewelry.local.dev/wp-json/jewd/v1/stats
+- **WooCommerce API:** https://jewelry.local.dev/wp-json/wc/v3/

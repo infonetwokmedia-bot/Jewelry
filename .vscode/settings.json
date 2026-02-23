@@ -330,7 +330,8 @@
   // ────────────────────────────────────────────────────────────
   // SNIPPETS PERSONALIZADOS
   // ────────────────────────────────────────────────────────────
-  "editor.snippetSuggestions": "top"
+  "editor.snippetSuggestions": "top",
+  "containers.commands.build": "docker compose build"
 
   // ────────────────────────────────────────────────────────────
   // EXTENSIONES RECOMENDADAS

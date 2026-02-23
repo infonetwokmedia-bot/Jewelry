@@ -32,17 +32,22 @@ Este es un sitio web **bilingue (Espanol/Ingles)** para **Jewelry Miami** en Mia
 
 ### WP-CLI
 
-WP-CLI NO esta en el contenedor wordpress. Usar wrapper:
+WP-CLI esta disponible como servicio en docker-compose:
 
 ```bash
-docker run --rm --volumes-from jewelry_wordpress \
-  --network jewelry_jewelry_network \
-  -e WORDPRESS_DB_HOST=mysql \
-  -e WORDPRESS_DB_NAME=jewelry_db \
-  -e WORDPRESS_DB_USER=jewelry_user \
-  -e WORDPRESS_DB_PASSWORD='jewelry_pass_2026!' \
-  wordpress:cli wp [COMANDO] --allow-root
+docker compose run --rm wpcli wp [COMANDO] --allow-root
 ```
+
+### Repositorios y Cuentas GitHub
+
+- **Produccion (origin):** `tujoyitamiami-cpu/tujoyita` — cuenta Pro + Copilot Pro+
+- **Legacy:** `infonetwokmedia-bot/Jewelry` — repo original (read-only mirror)
+- **Personal:** `ppkapiro/Jewelry` — fork personal para otros proyectos
+
+### Dominio de Produccion
+
+- **Produccion:** https://tujoyita.com (Hetzner VPS)
+- **Dev local:** https://jewelry.local.dev
 
 ## REGLA FUNDAMENTAL: CONTENIDO BILINGUE
 
@@ -122,11 +127,12 @@ Usar Conventional Commits: feat, fix, docs, style, refactor, test, chore
 
 ## Prioridades Actuales
 
-1. **Template:** Importar Starter Template "Jewellery Store 04" desde Astra
-2. **Traduccion:** Traducir contenido importado al espanol con TranslatePress
-3. **Productos:** Crear productos reales del catalogo
-4. **Contenido:** Personalizar About Us, Materials, Collections
-5. **SEO:** Instalar y configurar plugin SEO
+1. **Produccion:** Preparar deploy a Hetzner VPS con dominio tujoyita.com
+2. **Contenido:** Completar paginas pendientes (Materials, Contact, Blog)
+3. **Traduccion:** Traducir todo el contenido al ingles con TranslatePress
+4. **SEO:** Instalar y configurar Rank Math SEO
+5. **Performance:** Cache, CDN, optimizacion de imagenes
+6. **CI/CD:** Automatizar deploy y backups
 
 ## Archivos Importantes
 

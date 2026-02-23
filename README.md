@@ -1,19 +1,21 @@
-# Jewelry Website - Jewelry Miami
+# Tu Joyita Miami - tujoyita.com
 
-[![CI Status](https://github.com/infonetwokmedia-bot/Jewelry/actions/workflows/code-quality.yml/badge.svg)](https://github.com/infonetwokmedia-bot/Jewelry/actions/workflows/code-quality.yml)
+[![CI Status](https://github.com/tujoyitamiami-cpu/tujoyita/actions/workflows/code-quality.yml/badge.svg)](https://github.com/tujoyitamiami-cpu/tujoyita/actions/workflows/code-quality.yml)
 [![WordPress](https://img.shields.io/badge/WordPress-6.9.1-blue.svg)](https://wordpress.org/)
-[![WooCommerce](https://img.shields.io/badge/WooCommerce-10.5.0-purple.svg)](https://woocommerce.com/)
+[![WooCommerce](https://img.shields.io/badge/WooCommerce-10.5.1-purple.svg)](https://woocommerce.com/)
 [![License](https://img.shields.io/badge/License-Private-red.svg)](LICENSE)
 
 Sitio web bilingüe (Español/Inglés) para joyería en Miami, Florida.
 
 ## 🚀 Stack Tecnológico
 
-- **WordPress** 6.x
-- **WooCommerce** 10.5.0
-- **Tema:** Kadence 1.4.3
-- **Multiidioma:** Bogo 3.9.1
+- **WordPress** 6.9.1
+- **WooCommerce** 10.5.1
+- **Tema:** Astra 4.12.3
+- **Page Builder:** Elementor 3.35.4
+- **Multiidioma:** TranslatePress 3.1
 - **Infraestructura:** Docker + Traefik
+- **Producción:** Hetzner VPS + dominio tujoyita.com
 
 ## 📋 Requisitos
 
@@ -26,8 +28,8 @@ Sitio web bilingüe (Español/Inglés) para joyería en Miami, Florida.
 1. Clonar el repositorio:
 
 ```bash
-git clone https://github.com/infonetwokmedia-bot/Jewelry.git
-cd Jewelry
+git clone https://github.com/tujoyitamiami-cpu/tujoyita.git
+cd tujoyita
 ```
 
 2. Copiar y configurar variables de entorno:
@@ -56,7 +58,11 @@ El sitio soporta dos idiomas:
 - **Español (es_ES)** - Idioma principal
 - **English (en_US)** - Idioma secundario
 
-La gestión de traducciones se realiza con Bogo.
+La gestión de traducciones se realiza con **TranslatePress** (traducción visual desde el frontend).
+
+- NO se duplican posts/páginas/productos
+- Las traducciones se almacenan en tablas `wp_trp_*`
+- URLs en inglés llevan prefijo `/en/`
 
 ## � Descargar Archivos de Configuración IA
 
@@ -102,10 +108,12 @@ git sparse-checkout set .ai-tools
 │   ├── mysql/                  # Base de datos MySQL
 │   └── wordpress/              # Archivos de WordPress
 │       └── wp-content/
-│           ├── themes/
-│           │   └── kadence/
-│           │       └── functions-custom.php  # Personalizaciones
+│           ├── themes/astra/   # Tema Astra 4.12.3
 │           └── plugins/
+│               └── jewelry-dashboard/  # Plugin custom (trackeado)
+├── dashboard/                  # Dashboard SPA (Nginx)
+├── scripts/                    # Scripts de mantenimiento
+├── docs/                       # Documentación
 └── PROYECTO-ESTADO.md          # Estado actual del desarrollo
 ```
 
@@ -113,20 +121,19 @@ git sparse-checkout set .ai-tools
 
 ### Páginas Principales
 
-- 12 páginas en inglés
-- 12 páginas en español
-- Todas vinculadas con Bogo
+- 9 páginas (7 publish + 2 draft)
+- Traducidas con TranslatePress
 
 ### Productos
 
-- 5 productos base en cada idioma
-- Organizados en 4 categorías principales
+- 33 productos publicados en español
+- Organizados en múltiples categorías
 
 ### Menús
 
-- Menú principal EN (primary_navigation_en)
-- Menú principal ES (primary_navigation_es)
-- Cambio automático según idioma del usuario
+- Menú principal (Main Menu)
+- Menú footer
+- TranslatePress traduce automáticamente
 
 ## 📝 Desarrollo
 
@@ -179,22 +186,22 @@ docker compose logs -f wordpress
 
 ```bash
 # Acceder a WP-CLI
-docker exec jewelry_wordpress wp --allow-root [comando]
+docker compose run --rm wpcli wp [comando] --allow-root
 
 # Listar plugins
-docker exec jewelry_wordpress wp plugin list --allow-root
+docker compose run --rm wpcli wp plugin list --allow-root
 
 # Listar productos
-docker exec jewelry_wordpress wp post list --post_type=product --allow-root
+docker compose run --rm wpcli wp post list --post_type=product --allow-root
 
 # Regenerar permalinks
-docker exec jewelry_wordpress wp rewrite flush --allow-root
+docker compose run --rm wpcli wp rewrite flush --allow-root
 
 # Limpiar cache
-docker exec jewelry_wordpress wp cache flush --allow-root
+docker compose run --rm wpcli wp cache flush --allow-root
 
-# Verificar vinculación Bogo
-docker exec jewelry_wordpress wp post meta get <ID> _bogo_translations --allow-root
+# Verificar vinculación TranslatePress
+docker compose run --rm wpcli wp option get trp_settings --allow-root --format=json
 ```
 
 Ver [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) para workflow completo y convenciones.
@@ -213,7 +220,7 @@ Ver [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) para workflow completo y convenci
 
 ```bash
 # 1. Fork y clone
-git clone https://github.com/tu-usuario/jewelry.git
+git clone https://github.com/tujoyitamiami-cpu/tujoyita.git
 
 # 2. Crear branch
 git checkout -b feature/mi-feature
@@ -231,7 +238,7 @@ Al abrir un **Pull Request**, encontrarás un [**template automático**](.github
 
 ### Reportar Bugs o Sugerencias
 
-- **Bugs:** Abre un [GitHub Issue](https://github.com/infonetwokmedia-bot/Jewelry/issues/new) con detalles
+- **Bugs:** Abre un [GitHub Issue](https://github.com/tujoyitamiami-cpu/tujoyita/issues/new) con detalles
 - **Vulnerabilidades de seguridad:** Lee [SECURITY.md](SECURITY.md) primero (NO crear issue público)
 
 ## ⚙️ CI/CD y Automatización
@@ -255,5 +262,5 @@ Proyecto privado - Jewelry Miami © 2026
 
 ---
 
-**Mantenido por:** [Equipo de Desarrollo Jewelry](https://github.com/infonetwokmedia-bot)  
-**Última actualización:** 11 de febrero de 2026
+**Mantenido por:** [Tu Joyita Miami](https://github.com/tujoyitamiami-cpu)  
+**Última actualización:** 23 de febrero de 2026

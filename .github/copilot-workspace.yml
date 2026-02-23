@@ -4,8 +4,8 @@
 # Project type and metadata
 project:
   type: wordpress-woocommerce
-  name: Jewelry Miami
-  description: Bilingual (Spanish/English) jewelry e-commerce website
+  name: Tu Joyita Miami
+  description: Bilingual (Spanish/English) jewelry e-commerce — tujoyita.com
   languages:
     - php (primary)
     - javascript
@@ -21,7 +21,7 @@ frameworks:
   - woocommerce: "10.5.1"
   - astra-theme: "4.12.3"
   - elementor: "3.35.4"
-  - translatepress: "3.0.9"
+  - translatepress: "3.1"
 
 # Infrastructure
 infrastructure:
