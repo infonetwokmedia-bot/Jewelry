@@ -8,6 +8,12 @@ versionado según [Semantic Versioning](https://semver.org/lang/es/).
 ## [Unreleased]
 
 ### Added
+- Makefile con 24 targets organizados (dev, wp-cli, bd, prod, ci, util)
+- Workflow `deploy-production.yml` — deploy manual con confirmación, backup pre-deploy, health check post-deploy
+- Workflow `backup.yml` — backup diario automatizado (3 AM UTC), retención 30 días, tipos database/full
+- Workflow `health-check.yml` — monitoreo cada 6 horas (HTTPS, SSL, REST API, recursos VPS)
+- Job PHPCS en `code-quality.yml` con WordPress Coding Standards
+- Lint de MU-plugins en `code-quality.yml`
 - Documento PLAN-PRODUCCION.md con roadmap de 5 fases
 - MU-plugin `jewelry-image-optimization.php` trackeado en Git
 - VPS Hetzner CX23 (Helsinki) con Docker + Traefik v3.6.8

@@ -1,0 +1,207 @@
+name: Deploy to Production
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Escribe "deploy" para confirmar'
+        required: true
+        type: string
+      skip_backup:
+        description: "Saltar backup pre-deploy"
+        required: false
+        type: boolean
+        default: false
+
+concurrency:
+  group: production-deploy
+  cancel-in-progress: false
+
+env:
+  PROD_DIR: /srv/stacks/tujoyita
+  SITE_URL: https://tujoyita.com
+
+jobs:
+  validate:
+    name: Validate Deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Confirm deployment
+        if: ${{ github.event.inputs.confirm != 'deploy' }}
+        run: |
+          echo "❌ Deploy cancelado. Debes escribir 'deploy' para confirmar."
+          exit 1
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Verify branch
+        run: |
+          BRANCH="${GITHUB_REF#refs/heads/}"
+          if [ "$BRANCH" != "main" ]; then
+            echo "❌ Solo se puede desplegar desde main. Branch actual: $BRANCH"
+            exit 1
+          fi
+          echo "✅ Branch: main"
+
+  backup:
+    name: Pre-deploy Backup
+    needs: validate
+    if: ${{ github.event.inputs.skip_backup != 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Backup production database
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            cd ${{ env.PROD_DIR }}
+            mkdir -p backups
+            TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+            docker exec tujoyita_mysql mysqldump \
+              -u root -p$(grep MYSQL_ROOT_PASSWORD .env | cut -d= -f2) \
+              $(grep MYSQL_DATABASE .env | cut -d= -f2) \
+              --single-transaction --routines --triggers \
+              | gzip > backups/pre-deploy_${TIMESTAMP}.sql.gz
+            echo "✅ Backup: backups/pre-deploy_${TIMESTAMP}.sql.gz"
+            ls -lh backups/pre-deploy_${TIMESTAMP}.sql.gz
+
+  deploy:
+    name: Deploy
+    needs: [validate, backup]
+    if: always() && needs.validate.result == 'success' && (needs.backup.result == 'success' || needs.backup.result == 'skipped')
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to VPS
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            set -e
+            cd ${{ env.PROD_DIR }}
+
+            echo "📋 Estado previo:"
+            docker compose ps --format 'table {{.Name}}\t{{.Status}}'
+
+            echo ""
+            echo "⟳ Pulling latest images..."
+            docker compose pull wordpress
+
+            echo ""
+            echo "⟳ Restarting services..."
+            docker compose up -d --force-recreate wordpress
+
+            echo ""
+            echo "⏳ Esperando que WordPress arranque..."
+            sleep 10
+
+            # Verify WordPress is responding
+            HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:80 2>/dev/null || echo "000")
+            if [ "$HTTP_CODE" = "000" ]; then
+              # Try via Traefik
+              HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" -H "Host: tujoyita.com" http://localhost:80 2>/dev/null || echo "000")
+            fi
+
+            echo ""
+            echo "📋 Estado posterior:"
+            docker compose ps --format 'table {{.Name}}\t{{.Status}}'
+
+      - name: Sync custom code
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          source: "data/wordpress/wp-content/mu-plugins/"
+          target: "${{ env.PROD_DIR }}/"
+          strip_components: 0
+
+      - name: Clear cache
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            cd ${{ env.PROD_DIR }}
+            docker compose run --rm wpcli wp cache flush --allow-root 2>/dev/null || true
+            echo "✅ Cache cleared"
+
+  health-check:
+    name: Post-deploy Health Check
+    needs: deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Wait for propagation
+        run: sleep 15
+
+      - name: Check HTTPS
+        run: |
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 30 ${{ env.SITE_URL }})
+          echo "HTTPS Status: $HTTP_CODE"
+          if [ "$HTTP_CODE" != "200" ]; then
+            echo "❌ Site returned $HTTP_CODE"
+            exit 1
+          fi
+          echo "✅ Site is UP"
+
+      - name: Check www redirect
+        run: |
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 15 https://www.tujoyita.com)
+          echo "www redirect: $HTTP_CODE"
+          if [ "$HTTP_CODE" != "301" ] && [ "$HTTP_CODE" != "200" ]; then
+            echo "⚠️ www redirect returned $HTTP_CODE"
+          else
+            echo "✅ www redirect OK"
+          fi
+
+      - name: Check SSL certificate
+        run: |
+          EXPIRY=$(echo | openssl s_client -servername tujoyita.com -connect tujoyita.com:443 2>/dev/null | openssl x509 -noout -enddate 2>/dev/null | cut -d= -f2)
+          echo "SSL expires: $EXPIRY"
+          # Check if expiry is more than 7 days away
+          EXPIRY_EPOCH=$(date -d "$EXPIRY" +%s 2>/dev/null || echo "0")
+          NOW_EPOCH=$(date +%s)
+          DIFF=$(( (EXPIRY_EPOCH - NOW_EPOCH) / 86400 ))
+          if [ "$DIFF" -lt 7 ]; then
+            echo "⚠️ SSL certificate expires in $DIFF days!"
+          else
+            echo "✅ SSL certificate valid for $DIFF days"
+          fi
+
+      - name: Check WP REST API
+        run: |
+          RESPONSE=$(curl -s --max-time 15 "${{ env.SITE_URL }}/wp-json/" | head -c 200)
+          if echo "$RESPONSE" | grep -q "name"; then
+            echo "✅ WordPress REST API responding"
+          else
+            echo "⚠️ REST API may not be responding"
+          fi
+
+  notify:
+    name: Notify Result
+    needs: [deploy, health-check]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Summary
+        run: |
+          echo "## 🚀 Deploy Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Check | Result |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Deploy | ${{ needs.deploy.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Health Check | ${{ needs.health-check.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Branch:** ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Actor:** ${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Time:** $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY

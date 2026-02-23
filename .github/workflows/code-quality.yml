@@ -105,6 +105,57 @@ jobs:
 
           echo "✅ Scripts syntax check complete"
 
+      - name: PHP Syntax Check - MU-Plugins
+        run: |
+          echo "🔍 Checking PHP syntax in mu-plugins..."
+
+          if [ -d "data/wordpress/wp-content/mu-plugins" ]; then
+            find data/wordpress/wp-content/mu-plugins -name "*.php" -exec php -l {} \;
+            echo "✅ MU-plugins syntax OK"
+          else
+            echo "⚠️ No mu-plugins directory found"
+          fi
+
+  phpcs:
+    name: PHP CodeSniffer
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.1"
+          tools: phpcs
+          coverage: none
+
+      - name: Install WordPress Coding Standards
+        run: |
+          composer global require --dev wp-coding-standards/wpcs:"^3.0" --no-interaction
+          phpcs --config-set installed_paths $(composer global config home)/vendor/wp-coding-standards/wpcs
+
+      - name: Check custom code with PHPCS
+        run: |
+          echo "🔍 Checking WordPress coding standards..."
+
+          TARGETS=""
+          [ -d "data/wordpress/wp-content/mu-plugins" ] && TARGETS="$TARGETS data/wordpress/wp-content/mu-plugins/"
+          [ -d "data/wordpress/wp-content/plugins/jewelry-dashboard" ] && TARGETS="$TARGETS data/wordpress/wp-content/plugins/jewelry-dashboard/"
+          [ -d "data/wordpress/wp-content/plugins/jewelry-custom" ] && TARGETS="$TARGETS data/wordpress/wp-content/plugins/jewelry-custom/"
+          [ -d "data/wordpress/wp-content/themes/astra-child" ] && TARGETS="$TARGETS data/wordpress/wp-content/themes/astra-child/"
+
+          if [ -n "$TARGETS" ]; then
+            phpcs --standard=WordPress-Core --extensions=php \
+              --ignore=*/vendor/*,*/node_modules/* \
+              --warning-severity=0 \
+              $TARGETS || echo "⚠️ PHPCS found issues (non-blocking)"
+          else
+            echo "ℹ️ No custom PHP code to check"
+          fi
+        continue-on-error: true
+
   php-tests:
     name: PHP Unit Tests
     runs-on: ubuntu-latest
@@ -333,6 +384,7 @@ jobs:
       [
         security-audit,
         php-lint,
+        phpcs,
         php-tests,
         e2e-tests,
         markdown-lint,
@@ -348,14 +400,16 @@ jobs:
           echo ""
           echo "Security Audit: ${{ needs.security-audit.result }}"
           echo "PHP Lint: ${{ needs.php-lint.result }}"
-           echo "PHP Tests: ${{ needs.php-tests.result }}"
-           echo "E2E Tests: ${{ needs.e2e-tests.result }}"
+          echo "PHP Tests: ${{ needs.php-tests.result }}"
+          echo "PHPCS: ${{ needs.phpcs.result }}"
+          echo "E2E Tests: ${{ needs.e2e-tests.result }}"
           echo "Markdown Lint: ${{ needs.markdown-lint.result }}"
           echo "Repo Structure: ${{ needs.repo-structure.result }}"
           echo ""
 
           if [[ "${{ needs.security-audit.result }}" == "failure" ]] || \
              [[ "${{ needs.php-lint.result }}" == "failure" ]] || \
+             [[ "${{ needs.phpcs.result }}" == "failure" ]] || \
              [[ "${{ needs.php-tests.result }}" == "failure" ]] || \
              [[ "${{ needs.e2e-tests.result }}" == "failure" ]] || \
              [[ "${{ needs.markdown-lint.result }}" == "failure" ]] || \

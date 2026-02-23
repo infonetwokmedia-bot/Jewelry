@@ -1,0 +1,92 @@
+name: Health Check
+
+on:
+  schedule:
+    # Cada 6 horas
+    - cron: "0 */6 * * *"
+  workflow_dispatch:
+
+env:
+  SITE_URL: https://tujoyita.com
+
+jobs:
+  health:
+    name: Site Health Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check HTTPS response
+        id: https
+        run: |
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 30 ${{ env.SITE_URL }})
+          RESPONSE_TIME=$(curl -s -o /dev/null -w "%{time_total}" --max-time 30 ${{ env.SITE_URL }})
+          echo "code=$HTTP_CODE" >> "$GITHUB_OUTPUT"
+          echo "time=$RESPONSE_TIME" >> "$GITHUB_OUTPUT"
+          echo "HTTPS: $HTTP_CODE (${RESPONSE_TIME}s)"
+          if [ "$HTTP_CODE" != "200" ]; then
+            echo "::error::Site returned HTTP $HTTP_CODE"
+            exit 1
+          fi
+
+      - name: Check SSL certificate
+        id: ssl
+        run: |
+          EXPIRY=$(echo | openssl s_client -servername tujoyita.com -connect tujoyita.com:443 2>/dev/null | openssl x509 -noout -enddate 2>/dev/null | cut -d= -f2)
+          EXPIRY_EPOCH=$(date -d "$EXPIRY" +%s 2>/dev/null || echo "0")
+          NOW_EPOCH=$(date +%s)
+          DAYS_LEFT=$(( (EXPIRY_EPOCH - NOW_EPOCH) / 86400 ))
+          echo "days=$DAYS_LEFT" >> "$GITHUB_OUTPUT"
+          echo "SSL expires in $DAYS_LEFT days ($EXPIRY)"
+          if [ "$DAYS_LEFT" -lt 7 ]; then
+            echo "::warning::SSL certificate expires in $DAYS_LEFT days!"
+          fi
+
+      - name: Check WordPress REST API
+        id: api
+        run: |
+          RESPONSE=$(curl -s --max-time 15 "${{ env.SITE_URL }}/wp-json/" 2>/dev/null)
+          if echo "$RESPONSE" | grep -q '"name"'; then
+            echo "status=ok" >> "$GITHUB_OUTPUT"
+            SITE_NAME=$(echo "$RESPONSE" | grep -o '"name":"[^"]*"' | head -1 | cut -d'"' -f4)
+            echo "✅ REST API OK — $SITE_NAME"
+          else
+            echo "status=fail" >> "$GITHUB_OUTPUT"
+            echo "::warning::REST API not responding properly"
+          fi
+
+      - name: Check VPS resources
+        if: ${{ secrets.VPS_HOST != '' }}
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            echo "💾 Disco:"
+            df -h / | tail -1
+
+            echo ""
+            echo "🧠 Memoria:"
+            free -h | head -2
+
+            echo ""
+            echo "📦 Contenedores:"
+            cd /srv/stacks/tujoyita
+            docker compose ps --format 'table {{.Name}}\t{{.Status}}'
+
+            echo ""
+            echo "🔄 Uptime:"
+            uptime
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "## 🏥 Health Check" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Metric | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|--------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| HTTP Status | ${{ steps.https.outputs.code }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Response Time | ${{ steps.https.outputs.time }}s |" >> $GITHUB_STEP_SUMMARY
+          echo "| SSL Days Left | ${{ steps.ssl.outputs.days }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| REST API | ${{ steps.api.outputs.status }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Time:** $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY

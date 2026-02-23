@@ -1,0 +1,98 @@
+name: Scheduled Backup
+
+on:
+  schedule:
+    # Todos los días a las 3:00 AM UTC (11 PM EST)
+    - cron: "0 3 * * *"
+  workflow_dispatch:
+    inputs:
+      type:
+        description: "Tipo de backup"
+        required: true
+        type: choice
+        options:
+          - database
+          - full
+        default: database
+
+env:
+  PROD_DIR: /srv/stacks/tujoyita
+  RETENTION_DAYS: 30
+
+jobs:
+  backup:
+    name: Backup Production
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create database backup
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            set -e
+            cd ${{ env.PROD_DIR }}
+            mkdir -p backups
+
+            TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+            BACKUP_TYPE="${{ github.event.inputs.type || 'database' }}"
+
+            echo "📦 Backup type: $BACKUP_TYPE"
+            echo "📅 Timestamp: $TIMESTAMP"
+
+            # Database backup
+            echo "⟳ Dumping database..."
+            docker exec tujoyita_mysql mysqldump \
+              -u root -p$(grep MYSQL_ROOT_PASSWORD .env | cut -d= -f2) \
+              $(grep MYSQL_DATABASE .env | cut -d= -f2) \
+              --single-transaction --routines --triggers \
+              | gzip > backups/db_${TIMESTAMP}.sql.gz
+
+            DB_SIZE=$(ls -lh backups/db_${TIMESTAMP}.sql.gz | awk '{print $5}')
+            echo "✅ Database backup: $DB_SIZE"
+
+            # Full backup (wp-content)
+            if [ "$BACKUP_TYPE" = "full" ]; then
+              echo "⟳ Backing up wp-content..."
+              tar czf backups/wp-content_${TIMESTAMP}.tar.gz \
+                --exclude='wp-content/cache' \
+                --exclude='wp-content/upgrade' \
+                -C data/wordpress wp-content
+              WP_SIZE=$(ls -lh backups/wp-content_${TIMESTAMP}.tar.gz | awk '{print $5}')
+              echo "✅ wp-content backup: $WP_SIZE"
+            fi
+
+            # Show backup inventory
+            echo ""
+            echo "📋 Backups actuales:"
+            ls -lht backups/ | head -10
+
+      - name: Cleanup old backups
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            cd ${{ env.PROD_DIR }}
+
+            echo "🧹 Limpiando backups de más de ${{ env.RETENTION_DAYS }} días..."
+            DELETED=$(find backups -name "*.sql.gz" -mtime +${{ env.RETENTION_DAYS }} -delete -print | wc -l)
+            DELETED_WP=$(find backups -name "*.tar.gz" -mtime +${{ env.RETENTION_DAYS }} -delete -print | wc -l)
+
+            echo "  Eliminados: $DELETED DB backups, $DELETED_WP wp-content backups"
+
+            # Show disk usage
+            echo ""
+            echo "💾 Espacio en disco:"
+            df -h / | tail -1
+            echo "  Backups: $(du -sh backups/ | cut -f1)"
+
+      - name: Summary
+        run: |
+          echo "## 📦 Backup Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Type:** ${{ github.event.inputs.type || 'database' }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Time:** $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
+          echo "**Retention:** ${{ env.RETENTION_DAYS }} days" >> $GITHUB_STEP_SUMMARY
