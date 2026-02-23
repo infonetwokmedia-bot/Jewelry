@@ -1,5 +1,6 @@
 # ===== DATA: WordPress & MySQL (all runtime, ignore everything) =====
 data/
+data/mysql/
 
 # ===== EXCEPT: custom WP plugin tracked in git =====
 !data/wordpress/

@@ -98,7 +98,7 @@ Contenido...
 ## 🎨 Convenciones de Estilo
 
 - **Emojis:** Usar para secciones principales (📋 📝 🔧 ⚠️ ✅)
-- **Code blocks:** Especificar lenguaje (`bash, `php, etc.)
+- **Code blocks:** Especificar lenguaje (`bash`, `php`, etc.)
 - **Alertas:** Usar blockquotes con emoji para advertencias
 - **Links:** Relativos para docs internas, absolutos para externas
 

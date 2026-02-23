@@ -37,7 +37,8 @@ jobs:
           echo "🔍 Verifying .gitignore..."
 
           # Check critical patterns are in .gitignore
-          grep -q 'data/mysql/' .gitignore || { echo "❌ Missing: data/mysql/"; exit 1; }
+          # data/ or data/mysql/ both protect the database directory
+          (grep -q 'data/mysql' .gitignore || grep -q '^data/$' .gitignore) || { echo "❌ Missing: data/mysql/ or data/"; exit 1; }
           grep -q '\.env' .gitignore || { echo "❌ Missing: .env"; exit 1; }
           grep -q '\.wp-credentials' .gitignore || { echo "❌ Missing: .wp-credentials"; exit 1; }
 

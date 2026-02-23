@@ -101,11 +101,11 @@ Progreso actual y tareas pendientes.
 
 ## 🔑 CREDENCIALES API
 
-- **Usuario WordPress:** Ver archivo 
-- **Password de aplicación:** Ver archivo 
+- **Usuario WordPress:** Ver archivo
+- **Password de aplicación:** Ver archivo
 - **API Endpoint:** https://jewelry.local.dev/wp-json/wp/v2
 
-##  NOTAS
+## NOTAS
 
 - Todos los contenidos son placeholders temporales
 - Las páginas legales necesitan contenido completo

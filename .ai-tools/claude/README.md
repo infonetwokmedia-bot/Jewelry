@@ -208,14 +208,14 @@ Necesito:
 ## 💰 Costos
 
 ### Claude Free
-- **Límites:** 
+- **Límites:**
   - 5 proyectos
   - ~50 mensajes/día
   - Contexto limitado
 - **Ideal para:** Consultas ocasionales, generación de contenido
 
 ### Claude Pro ($20/mes)
-- **Límites:** 
+- **Límites:**
   - Proyectos ilimitados
   - ~1000 mensajes/día
   - Contexto extendido (200k tokens)
