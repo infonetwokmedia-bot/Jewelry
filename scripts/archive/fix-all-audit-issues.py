@@ -138,7 +138,7 @@ if not existing_price or existing_price.strip() == "":
 else:
     print(f"  ✓ Price set: ${existing_price.strip()}")
 
-# Fix image domain: cubaverso.com → local.dev
+# Fix image domain: tujoyita.com → local.dev
 # Get thumbnail ID
 thumb_id = sql(
     "SELECT meta_value FROM wp_postmeta WHERE post_id=81 AND meta_key='_thumbnail_id'"
@@ -146,11 +146,11 @@ thumb_id = sql(
 if thumb_id and thumb_id.strip():
     tid = thumb_id.strip()
     sql(
-        f"UPDATE wp_posts SET guid = REPLACE(guid, 'jewelry.cubaverso.com', 'jewelry.local.dev') WHERE ID={tid}"
+        f"UPDATE wp_posts SET guid = REPLACE(guid, 'tujoyita.com', 'jewelry.local.dev') WHERE ID={tid}"
     )
     # Also fix _wp_attached_file if needed
     sql(
-        f"UPDATE wp_postmeta SET meta_value = REPLACE(meta_value, 'jewelry.cubaverso.com', 'jewelry.local.dev') WHERE post_id={tid} AND meta_key='_wp_attachment_metadata'"
+        f"UPDATE wp_postmeta SET meta_value = REPLACE(meta_value, 'tujoyita.com', 'jewelry.local.dev') WHERE post_id={tid} AND meta_key='_wp_attachment_metadata'"
     )
     print(f"  ✓ Fixed image domain for attachment {tid}")
 

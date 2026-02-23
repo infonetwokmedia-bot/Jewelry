@@ -43,7 +43,7 @@ versionado según [Semantic Versioning](https://semver.org/lang/es/).
 
 ### Added
 
-- Acceso público al Dashboard via cubaverso.com/dashboard/ (#6)
+- Acceso público al Dashboard via dev.tujoyita.com/dashboard/ (#6)
 - Branch `develop` creada para workflow Git Flow
 
 ### Fixed

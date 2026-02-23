@@ -976,16 +976,15 @@
     const cfg = window.JEWD_CONFIG || {};
     const currentHost = window.location.hostname || "";
 
-    if (currentHost.endsWith("cubaverso.com")) {
-      return "https://jewelry.cubaverso.com";
+    if (currentHost.endsWith("dev.tujoyita.com")) {
+      return "https://dev.tujoyita.com";
     }
 
     try {
       if (cfg.siteUrl) {
         return new URL(cfg.siteUrl).origin;
       }
-    } catch (e) {
-    }
+    } catch (e) {}
 
     return window.location.origin;
   }
@@ -997,8 +996,13 @@
 
     try {
       const parsed = new URL(url, window.location.origin);
-      const localHosts = ["jewelry.local.dev", "dashboard.jewelry.local.dev", "localhost", "127.0.0.1"];
-      const isExternalPublic = (window.location.hostname || "").endsWith("cubaverso.com");
+      const localHosts = [
+        "jewelry.local.dev",
+        "dashboard.jewelry.local.dev",
+        "localhost",
+        "127.0.0.1",
+      ];
+      const isExternalPublic = (window.location.hostname || "").endsWith("dev.tujoyita.com");
 
       if (isExternalPublic && localHosts.includes(parsed.hostname)) {
         const storeOrigin = getStoreOrigin();

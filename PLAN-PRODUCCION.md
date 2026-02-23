@@ -1,7 +1,7 @@
 # Plan de Producción — Tu Joyita Miami
 
 **Creado:** 2026-02-23
-**Última actualización:** 2026-02-24
+**Última actualización:** 2026-02-23
 **Dominio:** <https://tujoyita.com>
 **Repo:** <https://github.com/tujoyitamiami-cpu/tujoyita>
 **VPS:** Hetzner CX23, Helsinki, IP 89.167.101.209
@@ -10,26 +10,32 @@
 
 ## Progreso General
 
-| Fase                       | Tareas | ✅     | ⚠️    | ❌     | %       |
-| -------------------------- | ------ | ------ | ----- | ------ | ------- |
-| F1 — Git y Multi-cuenta    | 5      | 4      | 0     | 1      | 80%     |
-| F2 — Limpieza y Coherencia | 6      | 6      | 0     | 0      | 100%    |
-| F3 — CI/CD                 | 6      | 5      | 0     | 1      | 83%     |
-| F4 — Hardening Producción  | 7      | 4      | 0     | 3      | 57%     |
-| F5 — Tests y QA            | 4      | 0      | 0     | 4      | 0%      |
-| **TOTAL**                  | **28** | **19** | **0** | **9**  | **68%** |
+| Fase                       | Tareas | ✅     | ⚠️    | ❌    | %       |
+| -------------------------- | ------ | ------ | ----- | ----- | ------- |
+| F1 — Git y Multi-cuenta    | 5      | 4      | 1     | 0     | 90%     |
+| F2 — Limpieza y Coherencia | 6      | 6      | 0     | 0     | 100%    |
+| F3 — CI/CD                 | 6      | 5      | 0     | 1     | 83%     |
+| F4 — Hardening Producción  | 7      | 5      | 2     | 0     | 71%     |
+| F5 — Tests y QA            | 4      | 0      | 0     | 4     | 0%      |
+| **TOTAL**                  | **28** | **20** | **3** | **5** | **75%** |
 
 ### Trabajo extra realizado (fuera del plan original)
 
 - ✅ VPS Hetzner CX23 creado (Ubuntu 24.04, Docker 29.2.1, Compose 5.0.2)
 - ✅ Traefik v3.6.8 desplegado con SSL automático
-- ✅ WordPress + MySQL corriendo en producción (instalación fresca)
+- ✅ WordPress instalado y configurado en producción (WP 6.9.1, PHP 8.3.30)
 - ✅ DNS configurado (tujoyita.com + www → VPS)
 - ✅ SSL Let's Encrypt emitido (tujoyita.com + <www.tujoyita.com>)
 - ✅ HTTP→HTTPS redirect + www→non-www redirect
 - ✅ Hetzner Firewall (SSH/HTTP/HTTPS/ICMP, ID: 10581542)
 - ✅ fail2ban activo en VPS
 - ✅ Repo migrado de infonetwokmedia-bot → tujoyitamiami-cpu/tujoyita
+- ✅ 7 plugins instalados y activos (WooCommerce, TranslatePress, CF7, Yoast, WP Super Cache, WP Mail SMTP, AIO Migration)
+- ✅ 12 páginas creadas en español (Inicio, Tienda, Sobre Nosotros, Contacto, Blog, Materiales, etc.)
+- ✅ WooCommerce configurado (USD, Miami FL, impuestos habilitados)
+- ✅ TranslatePress configurado (ES base + EN, tablas creadas)
+- ✅ Astra 4.12.3 activo, idioma es_ES con paquete de traducción
+- ✅ MU-plugin jewelry-security.php desplegado en producción
 
 ---
 
@@ -62,17 +68,15 @@
 - No delete en main ✅
 - Require PR review: funcional (bypass por admin via PAT)
 
-### 1.5 ❌ GitHub Environments + Secrets
+### 1.5 ⚠️ GitHub Environments + Secrets
 
-**Estado:** 0 environments, 0 secrets configurados.
+**Estado:** Secrets configurados, environments pendientes de crear via web UI.
 
-**Pendiente:**
-
-- [ ] Crear environment `production` (dominio: tujoyita.com)
-- [ ] Crear environment `staging` (dominio: jewelry.local.dev o jewelry.cubaverso.com)
-- [ ] Secret: `VPS_SSH_KEY` (clave privada para deploy)
-- [ ] Secret: `VPS_HOST` (89.167.101.209)
-- [ ] Secret: `VPS_USER` (root)
+- [x] Secret: `VPS_SSH_KEY` (clave privada para deploy) — configurado
+- [x] Secret: `VPS_HOST` (89.167.101.209) — configurado
+- [x] Secret: `VPS_USER` (root) — configurado
+- [ ] Crear environment `production` (dominio: tujoyita.com) — requiere GitHub web UI
+- [ ] Crear environment `staging` (dominio: jewelry.local.dev)
 - [ ] Opcional: `HETZNER_TOKEN` para gestión de infraestructura
 
 ---
@@ -188,20 +192,22 @@
 - HTTP → HTTPS redirect activo
 - www → non-www redirect activo
 
-### 4.4 ❌ Completar contenido pendiente
+### 4.4 ⚠️ Completar contenido pendiente
 
-**Pendiente:**
+**Estado:** Páginas creadas en español. Falta diseño con Elementor, contenido real y traducción al inglés.
 
-- [ ] Página Materiales
-- [ ] Política de Privacidad (publicar draft existente)
-- [ ] Términos y Condiciones
-- [ ] Política de Devoluciones (publicar draft existente)
+- [x] Todas las páginas base creadas y publicadas (12 páginas)
+- [x] WooCommerce: Tienda, Carrito, Finalizar Compra, Mi Cuenta asignadas
+- [x] Front page: Inicio | Blog page: Blog
+- [ ] Diseñar páginas con Elementor (Inicio, Sobre Nosotros, Contacto, Materiales)
+- [ ] Traducir todas las páginas al inglés via TranslatePress
 - [ ] 3-5 posts de blog iniciales
 - [ ] Imágenes de alta calidad para productos
+- [ ] Completar contenido de políticas (Privacidad, Términos, Devoluciones)
 
 ### 4.5 ⚠️ SEO
 
-**Estado:** Incluido en script post-install (Yoast SEO). Se configura después de instalar WP.
+**Estado:** Yoast SEO 27.0 instalado y activo en producción. Pendiente configuración.
 
 **Pendiente post-install:**
 
@@ -213,7 +219,7 @@
 
 ### 4.6 ⚠️ Performance
 
-**Estado:** WP Super Cache incluido en script post-install.
+**Estado:** WP Super Cache 3.0.3 instalado y activo en producción. Pendiente configuración.
 
 **Pendiente post-install:**
 
@@ -224,7 +230,7 @@
 
 ### 4.7 ⚠️ Email transaccional SMTP
 
-**Estado:** WP Mail SMTP incluido en script post-install.
+**Estado:** WP Mail SMTP 4.7.1 instalado y activo en producción. Pendiente configuración de proveedor.
 
 **Pendiente post-install:**
 
@@ -333,11 +339,16 @@ jewelry.local.dev → Docker (WP + MySQL + phpMyAdmin + WP-CLI + Dashboard)
 ### Producción (VPS Hetzner)
 
 ```
-tujoyita.com → Traefik v3.6.8 → WordPress + MySQL
-                ├── SSL: Let's Encrypt (auto-renew)
+tujoyita.com → Traefik v3.6.8 → WordPress 6.9.1 + MySQL 8.0
+                ├── SSL: Let's Encrypt (auto-renew, expires May 2026)
                 ├── HTTP → HTTPS redirect
-                ├── www → non-www redirect
-                └── Estado: WP installer (contenido no migrado)
+                ├── www → non-www redirect (308)
+                ├── Security headers: HSTS, X-Frame, CSP, Referrer
+                ├── MU-plugin: jewelry-security.php
+                ├── Plugins: WooCommerce, TranslatePress, Yoast, CF7, etc.
+                ├── Tema: Astra 4.12.3
+                ├── 12 páginas creadas en español
+                └── Estado: WP configurado, listo para contenido
 ```
 
 ### Contenedores en VPS
