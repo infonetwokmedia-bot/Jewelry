@@ -15,9 +15,9 @@
 | F1 — Git y Multi-cuenta    | 5      | 4      | 0     | 1      | 80%     |
 | F2 — Limpieza y Coherencia | 6      | 6      | 0     | 0      | 100%    |
 | F3 — CI/CD                 | 6      | 5      | 0     | 1      | 83%     |
-| F4 — Hardening Producción  | 7      | 1      | 0     | 6      | 14%     |
+| F4 — Hardening Producción  | 7      | 4      | 0     | 3      | 57%     |
 | F5 — Tests y QA            | 4      | 0      | 0     | 4      | 0%      |
-| **TOTAL**                  | **28** | **16** | **0** | **12** | **57%** |
+| **TOTAL**                  | **28** | **19** | **0** | **9**  | **68%** |
 
 ### Trabajo extra realizado (fuera del plan original)
 
@@ -167,28 +167,19 @@
 
 ## FASE 4 — Hardening para Producción
 
-### 4.1 ❌ Separar configs dev/staging/prod
+### 4.1 ✅ Separar configs dev/staging/prod
 
-**Estado:** Solo existe `.env` y `.env.example` para dev local.
+- `.env.production` template creado con variables de seguridad y performance
+- docker-compose de producción actualizado con constantes de WordPress
+- Diferencias documentadas entre dev (bind mounts) y prod (Docker volumes)
 
-**Pendiente:**
+### 4.2 ✅ Seguridad WP
 
-- [ ] Crear `.env.production` (template, sin secretos reales)
-- [ ] Crear `docker-compose.prod.yml` (override para producción)
-- [ ] Documentar diferencias entre environments
-
-### 4.2 ❌ Seguridad WP
-
-**Estado:** Sin security headers. UFW inactivo en VPS.
-
-**Pendiente:**
-
-- [ ] Activar UFW en VPS (SSH + HTTP + HTTPS)
-- [ ] WP_DEBUG=false en producción
-- [ ] Headers de seguridad: HSTS, X-Frame-Options, X-Content-Type-Options, CSP, Referrer-Policy
-- [ ] Rate limiting en wp-login.php y xmlrpc.php
-- [ ] Deshabilitar XML-RPC si no se usa
-- [ ] Deshabilitar file editing en WP admin (`DISALLOW_FILE_EDIT`)
+- Security headers via Traefik: HSTS (preload), X-Frame-Options (SAMEORIGIN), X-Content-Type-Options (nosniff), Referrer-Policy, Permissions-Policy
+- MU-plugin `jewelry-security.php`: XML-RPC deshabilitado, versión WP oculta, login rate limiting (bloqueo tras 15 intentos), user enumeration bloqueada, author archives deshabilitados
+- `DISALLOW_FILE_EDIT=true` en producción
+- `WP_POST_REVISIONS=5`, `EMPTY_TRASH_DAYS=15`, `WP_MEMORY_LIMIT=256M`
+- fail2ban activo en VPS + Hetzner Firewall
 
 ### 4.3 ✅ SSL real (Let's Encrypt)
 
@@ -208,34 +199,37 @@
 - [ ] 3-5 posts de blog iniciales
 - [ ] Imágenes de alta calidad para productos
 
-### 4.5 ❌ SEO
+### 4.5 ⚠️ SEO
 
-**Pendiente:**
+**Estado:** Incluido en script post-install (Yoast SEO). Se configura después de instalar WP.
 
-- [ ] Instalar Rank Math SEO
+**Pendiente post-install:**
+
 - [ ] Configurar sitemap XML
 - [ ] Meta descriptions para todas las páginas
 - [ ] Schema markup (Product, Organization, LocalBusiness)
 - [ ] Open Graph / Twitter Cards
 - [ ] Robots.txt optimizado
 
-### 4.6 ❌ Performance
+### 4.6 ⚠️ Performance
 
-**Pendiente:**
+**Estado:** WP Super Cache incluido en script post-install.
 
-- [ ] Cache plugin (WP Super Cache o LiteSpeed Cache)
-- [ ] Image lazy loading (nativo o plugin)
+**Pendiente post-install:**
+
+- [ ] Configurar WP Super Cache
 - [ ] CDN (Cloudflare o similar)
 - [ ] Minificación CSS/JS
-- [ ] Database optimization (limpiar revisiones, transients)
+- [ ] Database optimization
 
-### 4.7 ❌ Email transaccional SMTP
+### 4.7 ⚠️ Email transaccional SMTP
 
-**Pendiente:**
+**Estado:** WP Mail SMTP incluido en script post-install.
 
-- [ ] Instalar WP Mail SMTP o similar
-- [ ] Configurar proveedor (SendGrid, Mailgun, Amazon SES, o SMTP de Hostinger)
-- [ ] Testear emails de WooCommerce: confirmación de pedido, password reset, etc.
+**Pendiente post-install:**
+
+- [ ] Configurar proveedor SMTP (SendGrid, Mailgun, o Hostinger)
+- [ ] Testear emails de WooCommerce
 
 ---
 
