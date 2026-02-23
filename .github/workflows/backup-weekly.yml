@@ -1,0 +1,102 @@
+name: Weekly Database Backup Reminder
+
+on:
+  schedule:
+    # Every Sunday at 2:00 AM UTC
+    - cron: "0 2 * * 0"
+
+  # Allow manual trigger
+  workflow_dispatch:
+
+jobs:
+  backup-reminder:
+    name: Database Backup Reminder
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Create Issue for Backup
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const now = new Date();
+            const dateString = now.toISOString().split('T')[0];
+
+            const issueTitle = `🗄️ Weekly Database Backup - ${dateString}`;
+            const issueBody = `## Weekly Database Backup Reminder
+
+            It's time for the weekly database backup!
+
+            ### 📋 Checklist
+
+            - [ ] Ejecutar \`./scripts/backup-database.sh\`
+            - [ ] Verificar que el backup se creó correctamente
+            - [ ] Confirmar tamaño del backup (debe ser ~MB)
+            - [ ] Verificar backups antiguos eliminados (>30 días)
+            - [ ] (Opcional) Subir backup crítico a storage externo
+
+            ### 🔗 Comandos Útiles
+
+            \`\`\`bash
+            # Crear backup
+            ./scripts/backup-database.sh
+
+            # Ver backups recientes
+            ls -lh backups/*.sql.gz | tail -5
+
+            # Espacio usado por backups
+            du -sh backups/
+            \`\`\`
+
+            ### ⚠️ Importante
+
+            Los backups locales se eliminan automáticamente después de 30 días. Si necesitas retención más larga, considera:
+
+            - Subir backups importantes a cloud storage (AWS S3, Google Cloud, etc.)
+            - Usar herramientas de backup automatizado con retención configurable
+            - Documentar proceso de backup offsite en \`docs/DEPLOYMENT.md\`
+
+            ### ✅ Completar
+
+            Cuando termines el backup, cierra este issue y añade un comentario con:
+            - Tamaño del backup creado
+            - Timestamp del backup
+            - Cualquier observación relevante
+
+            ---
+
+            **Auto-generado por GitHub Actions** - [Workflow](${context.payload.repository.html_url}/actions/workflows/backup-weekly.yml)
+            `;
+
+            // Check if issue already exists for this week
+            const issues = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              labels: 'backup,maintenance'
+            });
+
+            const existingIssue = issues.data.find(issue =>
+              issue.title.includes(dateString)
+            );
+
+            if (existingIssue) {
+              console.log(`Issue already exists: ${existingIssue.html_url}`);
+            } else {
+              const newIssue = await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: issueTitle,
+                body: issueBody,
+                labels: ['backup', 'maintenance', 'automated']
+              });
+
+              console.log(`Created issue: ${newIssue.data.html_url}`);
+            }
+
+      - name: Notification
+        run: |
+          echo "📧 Backup reminder created as GitHub Issue"
+          echo "Check the Issues tab in the repository"

@@ -1,40 +1,46 @@
-# WordPress core files
-data/wordpress/wp-admin/
-data/wordpress/wp-includes/
-data/wordpress/license.txt
-data/wordpress/readme.html
-data/wordpress/wp-*.php
-data/wordpress/index.php
-data/wordpress/xmlrpc.php
-data/wordpress/wp-content/upgrade/
-data/wordpress/wp-content/uploads/
-data/wordpress/wp-content/cache/
+# ===== DATA: WordPress & MySQL (all runtime, ignore everything) =====
+data/
 
-# Database
-data/mysql/
+# ===== EXCEPT: custom WP plugin tracked in git =====
+!data/wordpress/
+!data/wordpress/wp-content/
+!data/wordpress/wp-content/plugins/
+!data/wordpress/wp-content/plugins/jewelry-dashboard/
+!data/wordpress/wp-content/plugins/jewelry-dashboard/**
 
-# Logs
-*.log
-data/wordpress/wp-content/debug.log
+# Ignore everything else inside data/wordpress/
+data/wordpress/*
+!data/wordpress/wp-content/
 
-# Environment files
+data/wordpress/wp-content/*
+!data/wordpress/wp-content/plugins/
+
+data/wordpress/wp-content/plugins/*
+!data/wordpress/wp-content/plugins/jewelry-dashboard/
+
+# ===== DASHBOARD SPA (tracked in git) =====
+# dashboard/ folder is tracked; only exclude secrets
+dashboard/.env.js
+
+# ===== ENVIRONMENT & CREDENTIALS =====
 .env
-
-# Credentials
 .wp-credentials
 
-# OS files
+# ===== LOGS =====
+*.log
+
+# ===== OS FILES =====
 .DS_Store
 Thumbs.db
 
-# IDE
+# ===== IDE =====
 .idea/
 .vscode/*.backup*
 *.sublime-project
 *.sublime-workspace
 **/*.tmp
 
-# Python caches
+# ===== PYTHON =====
 __pycache__/
 *.pyc
 .pytest_cache/
@@ -44,17 +50,10 @@ __pycache__/
 .coverage
 htmlcov/
 
-# Misc cache
+# ===== CACHE =====
 .cache/
 
-# Allow VSCode configuration files for project setup
-!.vscode/
-!.vscode/settings.json
-!.vscode/extensions.json
-!.vscode/tasks.json
-!.vscode/jewelry.code-snippets
-
-# Node/npm (if used in future)
+# ===== NODE/NPM =====
 node_modules/
 npm-debug.log*
 yarn-debug.log*
@@ -62,45 +61,21 @@ yarn-error.log*
 package-lock.json
 yarn.lock
 
-# Backup files
+# ===== BACKUP / TEMP FILES =====
 *.bak
 *.bak*
-*.backup*
-**/*backup*
 *.swp
 *.swo
 *~
-data/wordpress/wp-config-*.php
-!data/wordpress/wp-config-sample.php
+backups/
+docker-compose.yml.backup*
 
-# Keep structure
-!data/wordpress/wp-content/
-!data/wordpress/wp-content/themes/
-!data/wordpress/wp-content/plugins/
-!data/wordpress/wp-content/mu-plugins/
-
-# Keep custom theme files
-data/wordpress/wp-content/themes/kadence/functions-custom.php
-
-# Keep uploaded plugins (non-standard)
-data/wordpress/wp-content/plugins/bogo/
-
-# Documentation
-!*.md
-!PROYECTO-ESTADO.md
-
-# Complete directories to ignore
-/data/
+# ===== WP-CONTENT ROOT (default themes/plugins, NOT data/wordpress) =====
 /wp-content/
 
-# ===== CUSTOM PLUGINS (tracked in git) =====
-!data/
-!data/wordpress/
-!data/wordpress/wp-content/
-!data/wordpress/wp-content/plugins/
-!data/wordpress/wp-content/plugins/jewelry-dashboard/
-!data/wordpress/wp-content/plugins/jewelry-dashboard/jewelry-dashboard.php
-
-# ===== DASHBOARD SPA (tracked in git) =====
-!dashboard/
-dashboard/.env.js
+# ===== ALLOW VSCODE CONFIG =====
+!.vscode/
+!.vscode/settings.json
+!.vscode/extensions.json
+!.vscode/tasks.json
+!.vscode/jewelry.code-snippets

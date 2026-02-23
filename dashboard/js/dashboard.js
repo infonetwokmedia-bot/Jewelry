@@ -315,7 +315,8 @@
       }
 
       // Image.
-      const imgSrc = p.images && p.images.length ? p.images[0].src : "";
+      const imgSrcRaw = p.images && p.images.length ? p.images[0].src : "";
+      const imgSrc = normalizeMediaUrl(imgSrcRaw);
       const imgHtml = imgSrc
         ? `<img class="jewd-thumb" src="${esc(imgSrc)}" data-full="${esc(imgSrc)}" onerror="this.outerHTML='<span class=jewd-nopic>N/A</span>'">`
         : '<span class="jewd-nopic">N/A</span>';
@@ -565,8 +566,9 @@
 
     // Image.
     if (p.images && p.images.length) {
+      const detailImg = normalizeMediaUrl(p.images[0].src);
       html += `<div class="jewd-detail-field wide"><div class="jewd-detail-label">Imagen</div>
-                <div><img src="${esc(p.images[0].src)}" style="max-width:200px;border-radius:8px;cursor:pointer;border:1px solid var(--jewd-border)" onclick="document.getElementById('imgModalSrc').src=this.src;document.getElementById('imgModal').classList.add('active')"></div></div>`;
+                <div><img src="${esc(detailImg)}" style="max-width:200px;border-radius:8px;cursor:pointer;border:1px solid var(--jewd-border)" onclick="document.getElementById('imgModalSrc').src=this.src;document.getElementById('imgModal').classList.add('active')"></div></div>`;
     }
 
     // Attributes.
@@ -968,5 +970,44 @@
 
   function dateStr() {
     return new Date().toISOString().split("T")[0];
+  }
+
+  function getStoreOrigin() {
+    const cfg = window.JEWD_CONFIG || {};
+    const currentHost = window.location.hostname || "";
+
+    if (currentHost.endsWith("cubaverso.com")) {
+      return "https://jewelry.cubaverso.com";
+    }
+
+    try {
+      if (cfg.siteUrl) {
+        return new URL(cfg.siteUrl).origin;
+      }
+    } catch (e) {
+    }
+
+    return window.location.origin;
+  }
+
+  function normalizeMediaUrl(url) {
+    if (!url) {
+      return "";
+    }
+
+    try {
+      const parsed = new URL(url, window.location.origin);
+      const localHosts = ["jewelry.local.dev", "dashboard.jewelry.local.dev", "localhost", "127.0.0.1"];
+      const isExternalPublic = (window.location.hostname || "").endsWith("cubaverso.com");
+
+      if (isExternalPublic && localHosts.includes(parsed.hostname)) {
+        const storeOrigin = getStoreOrigin();
+        return `${storeOrigin}${parsed.pathname}${parsed.search}${parsed.hash}`;
+      }
+
+      return parsed.toString();
+    } catch (e) {
+      return url;
+    }
   }
 })();

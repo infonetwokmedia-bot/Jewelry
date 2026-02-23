@@ -8,7 +8,31 @@
 const JewdAPI = (function () {
   "use strict";
 
-  const cfg = () => window.JEWD_CONFIG || {};
+  const cfg = () => {
+    const c = { ...(window.JEWD_CONFIG || {}) };
+    c.wcBaseUrl = resolveBasePath(c.wcBaseUrl || "/api/wc/v3");
+    c.wpBaseUrl = resolveBasePath(c.wpBaseUrl || "/api");
+    return c;
+  };
+
+  function resolveBasePath(basePath) {
+    if (!basePath || typeof basePath !== "string") {
+      return "/api";
+    }
+
+    if (/^https?:\/\//i.test(basePath)) {
+      return basePath;
+    }
+
+    const path = window.location.pathname || "/";
+    const isDashboardPath = path === "/dashboard" || path.startsWith("/dashboard/");
+
+    if (isDashboardPath && basePath.startsWith("/api")) {
+      return `/dashboard${basePath}`;
+    }
+
+    return basePath;
+  }
 
   /**
    * Build auth query params for WC REST API.
