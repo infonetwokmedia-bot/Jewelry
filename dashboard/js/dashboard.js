@@ -752,7 +752,9 @@
     const vs = state.variations[p.id] || [];
 
     $("#modalTitle").textContent = p.name;
-    $("#modalEditLink").href = normalizePermalink(`${cfg.adminUrl}/post.php?post=${p.id}&action=edit`);
+    $("#modalEditLink").href = normalizePermalink(
+      `${cfg.adminUrl}/post.php?post=${p.id}&action=edit`,
+    );
     $("#modalViewLink").href = normalizePermalink(p.permalink || "#");
 
     let html = '<div class="jewd-detail-grid">';
@@ -858,6 +860,7 @@
   /* ===== EDIT MODAL ===== */
   let editingProduct = null;
   let editTags = []; // [{id, name}]
+  let editInitialSnapshot = null; // Dirty-form tracking
 
   function showEditModal(p) {
     if (!p) return;
@@ -1102,6 +1105,23 @@
 
     // ---- Bind new variation events ----
     initNewVariationHandlers(p);
+
+    // ---- Capture initial snapshot for dirty-form detection ----
+    editInitialSnapshot = getEditFormSnapshot();
+  }
+
+  /** Capture current edit form state as a serializable string for dirty-checking. */
+  function getEditFormSnapshot() {
+    const form = $("#editForm");
+    if (!form) return "";
+    const inputs = Array.from(form.querySelectorAll("input, select, textarea"));
+    const values = inputs.map(
+      (el) => `${el.id || el.name}=${el.type === "checkbox" ? el.checked : el.value}`,
+    );
+    // Include image IDs and tag IDs.
+    values.push("imgs=" + editImages.map((i) => i.id).join(","));
+    values.push("tags=" + editTags.map((t) => t.id).join(","));
+    return values.join("|");
   }
 
   /* ===== EDIT TABS ===== */
@@ -1379,11 +1399,23 @@
 
     // Click remove buttons.
     zone.querySelectorAll(".jewd-img-remove-btn").forEach((btn) => {
-      btn.addEventListener("click", (e) => {
+      btn.addEventListener("click", async (e) => {
         e.preventDefault();
         const imgId = parseInt(btn.dataset.imgId);
+        const card = btn.closest(".jewd-img-edit-card");
+        const thumbSrc = card?.querySelector("img")?.src || "";
+        const imgPreview = thumbSrc
+          ? `<div style="text-align:center;margin-bottom:10px"><img src="${thumbSrc}" style="max-width:120px;max-height:120px;border-radius:8px;border:1px solid var(--jewd-border)"></div>`
+          : "";
+        const ok = await showConfirm({
+          title: "🗑 Quitar imagen",
+          html: `${imgPreview}<span>¿Quitar esta imagen del producto?</span>`,
+          confirmText: "Quitar",
+          danger: true,
+        });
+        if (!ok) return;
         editImages = editImages.filter((img) => img.id !== imgId);
-        btn.closest(".jewd-img-edit-card").remove();
+        card.remove();
         updateImageBadges();
       });
     });
@@ -1457,8 +1489,15 @@
             <button type="button" class="jewd-img-remove-btn" data-img-id="${tempId}" title="Quitar imagen">✕</button>
           </div>`;
 
-        card.querySelector(".jewd-img-remove-btn").addEventListener("click", (ev) => {
+        card.querySelector(".jewd-img-remove-btn").addEventListener("click", async (ev) => {
           ev.preventDefault();
+          const ok = await showConfirm({
+            title: "🗑 Quitar imagen",
+            html: `<div style="text-align:center;margin-bottom:10px"><img src="${ev.target.closest(".jewd-img-edit-card").querySelector("img")?.src || ""}" style="max-width:120px;max-height:120px;border-radius:8px;border:1px solid var(--jewd-border)"></div><span>¿Quitar esta imagen del producto?</span>`,
+            confirmText: "Quitar",
+            danger: true,
+          });
+          if (!ok) return;
           editImages = editImages.filter((img) => img.id !== tempId);
           card.remove();
           updateImageBadges();
@@ -1768,7 +1807,7 @@
         toast("Sin cambios");
       }
 
-      closeEditModal();
+      closeEditModal(true);
     } catch (e) {
       toast("❌ Error: " + e.message);
       console.error("Save failed:", e);
@@ -1778,10 +1817,36 @@
     }
   }
 
-  function closeEditModal() {
+  async function closeEditModal(force) {
+    if (!force && editingProduct && editInitialSnapshot !== null) {
+      const currentSnapshot = getEditFormSnapshot();
+      if (currentSnapshot !== editInitialSnapshot) {
+        const ok = await showConfirm({
+          title: "⚠️ Cambios sin guardar",
+          html: "<span>Tienes cambios sin guardar. ¿Descartar los cambios?</span>",
+          confirmText: "Descartar",
+          danger: true,
+        });
+        if (!ok) return;
+      }
+    }
     $("#editModal").classList.remove("active");
     editingProduct = null;
+    editInitialSnapshot = null;
   }
+
+  /** Warn before leaving the page if edit modal or wizard has unsaved data. */
+  window.addEventListener("beforeunload", (e) => {
+    const editDirty =
+      editingProduct &&
+      editInitialSnapshot !== null &&
+      getEditFormSnapshot() !== editInitialSnapshot;
+    const wizardOpen = document.querySelector(".jewd-modal.active #wizardClose");
+    if (editDirty || wizardOpen) {
+      e.preventDefault();
+      e.returnValue = "";
+    }
+  });
 
   /* ===== NEW PRODUCT WIZARD (F3-UI-01) ===== */
   function openNewProductWizard() {
@@ -1985,9 +2050,22 @@
     });
 
     // Close.
-    overlay.querySelector("#wizardClose").addEventListener("click", () => overlay.remove());
+    async function wizardClose() {
+      const hasData = wizardData.name || wizardData.sku || wizardData.regular_price || wizardData.imageFiles.length;
+      if (hasData) {
+        const ok = await showConfirm({
+          title: "⚠️ Cerrar asistente",
+          html: "<span>Tienes datos ingresados. ¿Descartar y cerrar?</span>",
+          confirmText: "Descartar",
+          danger: true,
+        });
+        if (!ok) return;
+      }
+      overlay.remove();
+    }
+    overlay.querySelector("#wizardClose").addEventListener("click", wizardClose);
     overlay.addEventListener("click", (e) => {
-      if (e.target === overlay) overlay.remove();
+      if (e.target === overlay) wizardClose();
     });
   }
 
@@ -2101,14 +2179,62 @@
     }
   }
 
+  /** Build HTML summary of selected products for bulk action dialogs. */
+  function bulkSelectionSummary() {
+    const ids = Array.from(selectedProducts);
+    const names = ids.map((id) => {
+      const p = state.products.find((x) => x.id === id);
+      return p ? p.name : `#${id}`;
+    });
+    const MAX = 5;
+    let list = names
+      .slice(0, MAX)
+      .map((n) => `<li>${esc(n)}</li>`)
+      .join("");
+    if (names.length > MAX) list += `<li><em>...y ${names.length - MAX} más</em></li>`;
+    return `<ul style="margin:8px 0;padding-left:18px;font-size:.85rem;max-height:150px;overflow-y:auto">${list}</ul>`;
+  }
+
   async function bulkChangeStatus() {
-    const status = prompt("Nuevo estado:\n• publish\n• draft\n• private\n• trash");
+    const count = selectedProducts.size;
+    const status = await showConfirm({
+      title: `📦 Cambiar estado — ${count} producto${count !== 1 ? "s" : ""}`,
+      html: `Selecciona el nuevo estado para:${bulkSelectionSummary()}`,
+      select: {
+        options: [
+          { value: "publish", label: "✅ Publicado" },
+          { value: "draft", label: "📝 Borrador" },
+          { value: "private", label: "🔒 Privado" },
+          { value: "trash", label: "🗑 Papelera" },
+        ],
+      },
+      confirmText: "Aplicar",
+      danger: false,
+    });
     if (!status || !["publish", "draft", "private", "trash"].includes(status)) return;
+    if (status === "trash") {
+      const sure = await showConfirm({
+        title: "⚠️ Confirmar mover a papelera",
+        message: `Esto moverá ${count} producto${count !== 1 ? "s" : ""} a la papelera.`,
+        confirmText: "Sí, mover a papelera",
+        danger: true,
+      });
+      if (!sure) return;
+    }
     await executeBulkAction("Estado → " + status, (id) => JewdAPI.updateProductStatus(id, status));
   }
 
   async function bulkChangePrice() {
-    const input = prompt("Cambiar precio:\n• Número fijo: 99.99\n• Porcentaje: +10% o -15%");
+    const count = selectedProducts.size;
+    const input = await showConfirm({
+      title: `💰 Cambiar precio — ${count} producto${count !== 1 ? "s" : ""}`,
+      html: `Ingresa el nuevo precio para:${bulkSelectionSummary()}
+        <p style="font-size:.8rem;color:var(--jewd-text2);margin-top:8px">
+          Número fijo: <code>99.99</code> · Porcentaje: <code>+10%</code> o <code>-15%</code>
+        </p>`,
+      input: { placeholder: "99.99 o +10%", type: "text" },
+      confirmText: "Aplicar precio",
+    });
     if (!input) return;
 
     const isPercent = /^[+-]\d+(\.\d+)?%$/.test(input.trim());
@@ -2128,7 +2254,13 @@
   }
 
   async function bulkChangeStock() {
-    const input = prompt("Nuevo stock (número):\nEj: 10");
+    const count = selectedProducts.size;
+    const input = await showConfirm({
+      title: `📊 Cambiar stock — ${count} producto${count !== 1 ? "s" : ""}`,
+      html: `Ingresa la nueva cantidad de stock para:${bulkSelectionSummary()}`,
+      input: { placeholder: "Cantidad (ej: 10)", type: "number", value: "" },
+      confirmText: "Aplicar stock",
+    });
     const qty = parseInt(input);
     if (isNaN(qty)) return;
     await executeBulkAction("Stock → " + qty, (id) =>
@@ -2137,7 +2269,14 @@
   }
 
   async function bulkDeleteProducts() {
-    if (!confirm(`¿Mover ${selectedProducts.size} productos a la papelera?`)) return;
+    const count = selectedProducts.size;
+    const confirmed = await showConfirm({
+      title: `🗑 Mover a papelera — ${count} producto${count !== 1 ? "s" : ""}`,
+      html: `<strong>Esta acción moverá a la papelera:</strong>${bulkSelectionSummary()}`,
+      confirmText: "Sí, mover a papelera",
+      danger: true,
+    });
+    if (!confirmed) return;
     await executeBulkAction("Papelera", (id) => JewdAPI.updateProductStatus(id, "trash"));
   }
 
@@ -2171,7 +2310,12 @@
 
   /* ===== DUPLICATE PRODUCT ===== */
   async function duplicateProduct(p) {
-    if (!confirm(`¿Duplicar "${p.name}"?\nSe creará una copia en borrador.`)) return;
+    const ok = await showConfirm({
+      title: "📋 Duplicar producto",
+      html: `<span>¿Duplicar <strong>${esc(p.name)}</strong>?<br>Se creará una copia en borrador.</span>`,
+      confirmText: "Duplicar",
+    });
+    if (!ok) return;
 
     toast("📋 Duplicando producto...");
     try {
@@ -2242,7 +2386,12 @@
 
   async function restoreProduct(p) {
     if (!p) return;
-    if (!confirm(`¿Restaurar "${p.name}"?\nVolverá a estado borrador.`)) return;
+    const ok = await showConfirm({
+      title: "♻️ Restaurar producto",
+      html: `<span>¿Restaurar <strong>${esc(p.name)}</strong>?<br>Volverá a estado borrador.</span>`,
+      confirmText: "Restaurar",
+    });
+    if (!ok) return;
 
     try {
       toast("♻️ Restaurando...");
@@ -2258,8 +2407,13 @@
 
   async function permanentDeleteProduct(p) {
     if (!p) return;
-    if (!confirm(`⚠️ ELIMINAR PERMANENTEMENTE "${p.name}"?\n\nEsta acción NO se puede deshacer.`))
-      return;
+    const ok = await showConfirm({
+      title: "⚠️ Eliminar permanentemente",
+      html: `<span>¿Eliminar permanentemente <strong>${esc(p.name)}</strong>?<br><strong style="color:var(--jewd-danger)">Esta acción NO se puede deshacer.</strong></span>`,
+      confirmText: "Eliminar",
+      danger: true,
+    });
+    if (!ok) return;
 
     try {
       toast("💀 Eliminando...");
@@ -2627,6 +2781,12 @@
       btn.addEventListener("click", async () => {
         const newStatus = btn.dataset.newStatus;
         const oid = parseInt(btn.dataset.orderId);
+        const ok = await showConfirm({
+          title: "📝 Cambiar estado",
+          html: `<span>¿Cambiar pedido <strong>#${oid}</strong> a <strong>${orderStatusLabel(newStatus)}</strong>?</span>`,
+          confirmText: "Cambiar",
+        });
+        if (!ok) return;
         try {
           toast("⏳ Cambiando estado...");
           await JewdAPI.updateOrder(oid, { status: newStatus });
@@ -2692,15 +2852,23 @@
 
   async function changeOrderStatus(order) {
     const statuses = ["pending", "processing", "on-hold", "completed", "cancelled"];
-    const labels = statuses.map((s) => `${s === order.status ? "► " : ""}${s}`);
-    const choice = prompt(
-      `Cambiar estado del pedido #${order.id}:\nActual: ${order.status}\n\nOpciones:\n${labels.join("\n")}\n\nEscribe el nuevo estado:`,
-    );
-    if (!choice || !statuses.includes(choice.trim())) return;
+    const newStatus = await showConfirm({
+      title: "📝 Cambiar estado",
+      html: `<span>Pedido <strong>#${order.id}</strong> — Estado actual: <strong>${orderStatusLabel(order.status)}</strong></span>`,
+      select: {
+        options: statuses.map((s) => ({
+          value: s,
+          label: orderStatusLabel(s),
+          selected: s === order.status,
+        })),
+      },
+      confirmText: "Cambiar",
+    });
+    if (!newStatus || newStatus === order.status) return;
     try {
       toast("⏳ Cambiando estado...");
-      await JewdAPI.updateOrder(order.id, { status: choice.trim() });
-      toast(`✅ Pedido #${order.id} → ${orderStatusLabel(choice.trim())}`);
+      await JewdAPI.updateOrder(order.id, { status: newStatus });
+      toast(`✅ Pedido #${order.id} → ${orderStatusLabel(newStatus)}`);
       loadOrders();
     } catch (e) {
       toast("❌ Error: " + e.message);
@@ -3247,9 +3415,17 @@
 
   /* ===== GENERIC CONFIRMATION MODAL (F5-UX-02) ===== */
   /**
-   * Show a generic confirmation dialog.
-   * @param {Object} opts - { title, message, confirmText, cancelText, danger }
-   * @returns {Promise<boolean>}
+   * Show a styled confirmation dialog (replaces native confirm/prompt).
+   * @param {Object} opts
+   *   title        – dialog heading
+   *   message      – plain-text message (escaped)
+   *   html         – raw HTML body (takes precedence over message)
+   *   confirmText  – confirm button label (default "Confirmar")
+   *   cancelText   – cancel button label (default "Cancelar")
+   *   danger       – if true, confirm button is red
+   *   input        – if provided, shows a text input { placeholder, type, value }
+   *   select       – if provided, shows a select dropdown { options: [{value,label,selected}] }
+   * @returns {Promise<boolean|string|null>}  true/false for confirm, string for input/select, null for cancel
    */
   function showConfirm(opts = {}) {
     return new Promise((resolve) => {
@@ -3258,10 +3434,32 @@
       overlay.setAttribute("role", "dialog");
       overlay.setAttribute("aria-modal", "true");
       overlay.setAttribute("aria-label", opts.title || "Confirmación");
+
+      let bodyHtml = "";
+      if (opts.html) {
+        bodyHtml = opts.html;
+      } else if (opts.message) {
+        bodyHtml = `<span>${esc(opts.message)}</span>`;
+      }
+
+      let inputHtml = "";
+      if (opts.input) {
+        inputHtml = `<input class="jewd-confirm-input jewd-edit-input" type="${opts.input.type || "text"}" placeholder="${esc(opts.input.placeholder || "")}" value="${esc(opts.input.value || "")}" style="width:100%;margin-top:12px">`;
+      }
+      if (opts.select) {
+        const optionsHtml = opts.select.options
+          .map(
+            (o) =>
+              `<option value="${esc(o.value)}"${o.selected ? " selected" : ""}>${esc(o.label)}</option>`,
+          )
+          .join("");
+        inputHtml = `<select class="jewd-confirm-input jewd-edit-input" style="width:100%;margin-top:12px">${optionsHtml}</select>`;
+      }
+
       overlay.innerHTML = `
         <div class="jewd-confirm-dialog">
           <div class="jewd-confirm-title">${esc(opts.title || "¿Estás seguro?")}</div>
-          <div class="jewd-confirm-message">${esc(opts.message || "")}</div>
+          <div class="jewd-confirm-message">${bodyHtml}${inputHtml}</div>
           <div class="jewd-confirm-actions">
             <button class="jewd-btn jewd-btn-outline" data-confirm="cancel">${esc(opts.cancelText || "Cancelar")}</button>
             <button class="jewd-btn ${opts.danger ? "jewd-btn-danger" : "jewd-btn-gold"}" data-confirm="ok">${esc(opts.confirmText || "Confirmar")}</button>
@@ -3269,16 +3467,34 @@
         </div>
       `;
 
-      function cleanup(result) {
+      function getResult(confirmed) {
+        if (!confirmed) return opts.input || opts.select ? null : false;
+        if (opts.input || opts.select) {
+          const el = overlay.querySelector(".jewd-confirm-input");
+          return el ? el.value.trim() : null;
+        }
+        return true;
+      }
+
+      function cleanup(confirmed) {
         overlay.remove();
-        resolve(result);
+        resolve(getResult(confirmed));
       }
 
       // Focus trap.
-      const focusable = () => overlay.querySelectorAll('button, [tabindex]:not([tabindex="-1"])');
+      const focusable = () =>
+        overlay.querySelectorAll('button, input, select, [tabindex]:not([tabindex="-1"])');
       overlay.addEventListener("keydown", (e) => {
         if (e.key === "Escape") {
           cleanup(false);
+          return;
+        }
+        if (
+          e.key === "Enter" &&
+          (opts.input || opts.select) &&
+          document.activeElement?.classList.contains("jewd-confirm-input")
+        ) {
+          cleanup(true);
           return;
         }
         if (e.key === "Tab") {
@@ -3303,9 +3519,15 @@
       });
 
       document.body.appendChild(overlay);
-      // Focus the confirm button.
-      const confirmBtn = overlay.querySelector('[data-confirm="ok"]');
-      if (confirmBtn) confirmBtn.focus();
+      // Focus input if present, otherwise confirm button.
+      const inputEl = overlay.querySelector(".jewd-confirm-input");
+      if (inputEl) {
+        inputEl.focus();
+        if (inputEl.select) inputEl.select();
+      } else {
+        const confirmBtn = overlay.querySelector('[data-confirm="ok"]');
+        if (confirmBtn) confirmBtn.focus();
+      }
     });
   }
 
