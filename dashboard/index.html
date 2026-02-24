@@ -3,46 +3,60 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Jewelry Dashboard — Catálogo WooCommerce</title>
+    <title>Jewelry Dashboard — WooCommerce Manager</title>
     <link
       rel="icon"
       href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💎</text></svg>"
     />
-    <link rel="stylesheet" href="css/dashboard.css?v=2.0.2" />
+    <link rel="stylesheet" href="css/dashboard.css?v=3.0.0" />
   </head>
   <body>
     <div id="jewd-app" class="jewd-wrap">
       <!-- TOPBAR -->
       <div class="jewd-topbar">
-        <h1 class="jewd-title">
-          <span class="jewd-icon">💎</span>
-          Jewelry Dashboard
-          <span class="jewd-version" id="versionTag">v2.0.0</span>
-        </h1>
-        <div class="jewd-actions">
+        <div class="jewd-topbar-left">
           <button
-            class="jewd-btn jewd-btn-gold jewd-btn-sm"
+            class="jewd-sidebar-toggle"
+            id="btnSidebarToggle"
+            title="Menú"
+            aria-label="Toggle menu"
+          >
+            ☰
+          </button>
+          <h1 class="jewd-title">
+            <span class="jewd-icon">💎</span>
+            Jewelry Dashboard
+            <span class="jewd-version" id="versionTag">v3.0.0</span>
+          </h1>
+        </div>
+        <div class="jewd-actions" id="topbarActions">
+          <button
+            class="jewd-btn jewd-btn-gold jewd-btn-sm jewd-section-action"
+            data-section="products"
             id="btnNewProduct"
             title="Crear nuevo producto"
           >
-            ➕ Nuevo Producto
+            ➕ Nuevo
           </button>
           <button
-            class="jewd-btn jewd-btn-outline jewd-btn-sm"
+            class="jewd-btn jewd-btn-outline jewd-btn-sm jewd-section-action"
+            data-section="products"
             id="btnExpandAll"
             title="Expandir/Colapsar todo"
           >
-            ⊞ Expandir Todo
+            ⊞ Expandir
           </button>
           <button
-            class="jewd-btn jewd-btn-outline jewd-btn-sm"
+            class="jewd-btn jewd-btn-outline jewd-btn-sm jewd-section-action"
+            data-section="products"
             id="btnExportJSON"
             title="Exportar JSON"
           >
             ⬇ JSON
           </button>
           <button
-            class="jewd-btn jewd-btn-outline jewd-btn-sm"
+            class="jewd-btn jewd-btn-outline jewd-btn-sm jewd-section-action"
+            data-section="products"
             id="btnExportCSV"
             title="Exportar CSV"
           >
@@ -51,112 +65,289 @@
           <button
             class="jewd-btn jewd-btn-outline jewd-btn-sm"
             id="btnRefresh"
-            title="Refrescar datos"
+            title="Refrescar sección actual"
           >
-            🔄 Refrescar
+            🔄
           </button>
           <a
             class="jewd-btn jewd-btn-outline jewd-btn-sm"
             id="btnWPAdmin"
             href="#"
             target="_blank"
-            title="Ir a WP Admin"
+            title="WP Admin"
+            >⚙</a
           >
-            ⚙ WP Admin
-          </a>
           <button class="jewd-btn-theme" id="btnTheme" title="Cambiar tema">
             🌙
           </button>
         </div>
       </div>
 
-      <!-- CONNECTION STATUS -->
-      <div class="jewd-connection" id="connectionStatus">
-        <span class="jewd-conn-dot"></span>
-        <span id="connText">Conectando a WooCommerce...</span>
-      </div>
+      <!-- LAYOUT: Sidebar + Main -->
+      <div class="jewd-layout">
+        <!-- SIDEBAR -->
+        <aside class="jewd-sidebar" id="sidebar">
+          <nav class="jewd-nav">
+            <a
+              class="jewd-nav-item active"
+              href="#/products"
+              data-section="products"
+            >
+              <span class="jewd-nav-icon">📦</span>
+              <span class="jewd-nav-label">Productos</span>
+            </a>
+            <a class="jewd-nav-item" href="#/orders" data-section="orders">
+              <span class="jewd-nav-icon">🛒</span>
+              <span class="jewd-nav-label">Pedidos</span>
+              <span class="jewd-nav-badge" id="ordersBadge"></span>
+            </a>
+            <a class="jewd-nav-item" href="#/reports" data-section="reports">
+              <span class="jewd-nav-icon">📊</span>
+              <span class="jewd-nav-label">Reportes</span>
+            </a>
+            <a class="jewd-nav-item" href="#/settings" data-section="settings">
+              <span class="jewd-nav-icon">⚙️</span>
+              <span class="jewd-nav-label">Ajustes</span>
+            </a>
+          </nav>
+        </aside>
 
-      <!-- STATS -->
-      <div class="jewd-stats" id="statsContainer">
-        <div class="jewd-stat jewd-loading-pulse">
-          <div class="jewd-stat-label">Cargando...</div>
-          <div class="jewd-stat-value">—</div>
-        </div>
-      </div>
+        <!-- MAIN CONTENT -->
+        <main class="jewd-main">
+          <!-- ======= SECTION: PRODUCTS ======= -->
+          <section class="jewd-section active" id="sectionProducts">
+            <div class="jewd-connection" id="connectionStatus">
+              <span class="jewd-conn-dot"></span>
+              <span id="connText">Conectando a WooCommerce...</span>
+            </div>
+            <div class="jewd-stats" id="statsContainer">
+              <div class="jewd-stat jewd-loading-pulse">
+                <div class="jewd-stat-label">Cargando...</div>
+                <div class="jewd-stat-value">—</div>
+              </div>
+            </div>
+            <div class="jewd-filters">
+              <input
+                type="text"
+                id="filterSearch"
+                class="jewd-input"
+                placeholder="🔍 Buscar nombre, SKU, categoría..."
+              />
+              <select id="filterCategory" class="jewd-select">
+                <option value="">Todas categorías</option>
+              </select>
+              <select id="filterType" class="jewd-select">
+                <option value="">Todos tipos</option>
+                <option value="variable">Variable</option>
+                <option value="simple">Simple</option>
+              </select>
+              <select id="filterStock" class="jewd-select">
+                <option value="">Todo stock</option>
+                <option value="instock">En stock</option>
+                <option value="outofstock">Sin stock</option>
+              </select>
+              <select id="filterStatus" class="jewd-select">
+                <option value="">Todos estados</option>
+                <option value="publish">Publicado</option>
+                <option value="draft">Borrador</option>
+                <option value="private">Privado</option>
+                <option value="trash">Papelera</option>
+              </select>
+              <span class="jewd-filter-count" id="filterCount"></span>
+            </div>
+            <div class="jewd-bulk-bar" id="bulkBar">
+              <span class="jewd-bulk-count" id="bulkCount"
+                >0 seleccionados</span
+              >
+              <button id="bulkChangeStatus" title="Cambiar estado">
+                📝 Estado
+              </button>
+              <button id="bulkChangePrice" title="Cambiar precio">
+                💰 Precio
+              </button>
+              <button id="bulkChangeStock" title="Cambiar stock">
+                📦 Stock
+              </button>
+              <button id="bulkDelete" title="Mover a papelera">
+                🗑 Eliminar
+              </button>
+              <button id="bulkCancel" title="Cancelar selección">✕</button>
+            </div>
+            <div class="jewd-table-wrap">
+              <table class="jewd-table">
+                <thead>
+                  <tr>
+                    <th class="jewd-checkbox-col">
+                      <input
+                        type="checkbox"
+                        id="selectAll"
+                        class="jewd-row-check"
+                        title="Seleccionar todo"
+                      />
+                    </th>
+                    <th style="width: 30px"></th>
+                    <th style="width: 44px">Img</th>
+                    <th>SKU</th>
+                    <th>Nombre</th>
+                    <th>Tipo</th>
+                    <th>Categoría</th>
+                    <th class="jewd-right">Precio</th>
+                    <th class="jewd-right">Oferta</th>
+                    <th class="jewd-right">Stock</th>
+                    <th class="jewd-right">Peso</th>
+                    <th style="width: 140px" class="jewd-center">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody id="productsTable">
+                  <tr>
+                    <td colspan="12" class="jewd-loading-row">
+                      <div class="jewd-spinner"></div>
+                      Cargando catálogo...
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="jewd-pagination" id="pagination"></div>
+          </section>
 
-      <!-- FILTERS -->
-      <div class="jewd-filters">
-        <input
-          type="text"
-          id="filterSearch"
-          class="jewd-input"
-          placeholder="🔍 Buscar nombre, SKU, categoría..."
-        />
-        <select id="filterCategory" class="jewd-select">
-          <option value="">Todas categorías</option>
-        </select>
-        <select id="filterType" class="jewd-select">
-          <option value="">Todos tipos</option>
-          <option value="variable">Variable</option>
-          <option value="simple">Simple</option>
-        </select>
-        <select id="filterStock" class="jewd-select">
-          <option value="">Todo stock</option>
-          <option value="instock">En stock</option>
-          <option value="outofstock">Sin stock</option>
-        </select>
-        <select id="filterStatus" class="jewd-select">
-          <option value="">Todos estados</option>
-          <option value="publish">Publicado</option>
-          <option value="draft">Borrador</option>
-          <option value="private">Privado</option>
-          <option value="trash">Papelera</option>
-        </select>
-        <span class="jewd-filter-count" id="filterCount"></span>
-      </div>
+          <!-- ======= SECTION: ORDERS ======= -->
+          <section class="jewd-section" id="sectionOrders">
+            <div class="jewd-section-header">
+              <h2 class="jewd-section-title">🛒 Pedidos</h2>
+            </div>
+            <div class="jewd-filters">
+              <input
+                type="text"
+                id="orderSearch"
+                class="jewd-input"
+                placeholder="🔍 Buscar pedido, cliente..."
+              />
+              <select id="orderStatusFilter" class="jewd-select">
+                <option value="">Todos estados</option>
+                <option value="pending">Pendiente</option>
+                <option value="processing">Procesando</option>
+                <option value="on-hold">En espera</option>
+                <option value="completed">Completado</option>
+                <option value="cancelled">Cancelado</option>
+                <option value="refunded">Reembolsado</option>
+                <option value="failed">Fallido</option>
+              </select>
+              <span class="jewd-filter-count" id="orderFilterCount"></span>
+            </div>
+            <div class="jewd-table-wrap">
+              <table class="jewd-table">
+                <thead>
+                  <tr>
+                    <th>#Orden</th>
+                    <th>Cliente</th>
+                    <th>Items</th>
+                    <th class="jewd-right">Total</th>
+                    <th>Estado</th>
+                    <th>Fecha</th>
+                    <th class="jewd-center" style="width: 100px">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody id="ordersTable">
+                  <tr>
+                    <td colspan="7" class="jewd-loading-row">
+                      <div class="jewd-spinner"></div>
+                      Cargando pedidos...
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="jewd-pagination" id="ordersPagination"></div>
+          </section>
 
-      <!-- BULK ACTIONS BAR -->
-      <div class="jewd-bulk-bar" id="bulkBar">
-        <span class="jewd-bulk-count" id="bulkCount">0 seleccionados</span>
-        <button id="bulkChangeStatus" title="Cambiar estado">📝 Estado</button>
-        <button id="bulkChangePrice" title="Cambiar precio">💰 Precio</button>
-        <button id="bulkChangeStock" title="Cambiar stock">📦 Stock</button>
-        <button id="bulkDelete" title="Mover a papelera">🗑 Eliminar</button>
-        <button id="bulkCancel" title="Cancelar selección">✕</button>
-      </div>
+          <!-- ======= SECTION: REPORTS ======= -->
+          <section class="jewd-section" id="sectionReports">
+            <div class="jewd-section-header">
+              <h2 class="jewd-section-title">📊 Reportes</h2>
+              <div class="jewd-report-period">
+                <button
+                  class="jewd-btn jewd-btn-sm jewd-btn-outline active"
+                  data-period="7"
+                  id="reportPeriod7"
+                >
+                  7 días
+                </button>
+                <button
+                  class="jewd-btn jewd-btn-sm jewd-btn-outline"
+                  data-period="30"
+                  id="reportPeriod30"
+                >
+                  30 días
+                </button>
+              </div>
+            </div>
+            <div class="jewd-report-grid">
+              <div class="jewd-report-card jewd-report-chart-card">
+                <h3>Ventas por Día</h3>
+                <canvas id="salesChart" width="600" height="260"></canvas>
+              </div>
+              <div class="jewd-report-card">
+                <h3>Resumen de Ventas</h3>
+                <div id="reportSummary" class="jewd-report-summary">
+                  <div
+                    class="jewd-loading-pulse"
+                    style="padding: 20px; text-align: center"
+                  >
+                    Cargando...
+                  </div>
+                </div>
+              </div>
+              <div class="jewd-report-card">
+                <h3>Top 5 Productos</h3>
+                <div id="topSellers" class="jewd-top-sellers">
+                  <div
+                    class="jewd-loading-pulse"
+                    style="padding: 20px; text-align: center"
+                  >
+                    Cargando...
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
 
-      <!-- TABLE -->
-      <div class="jewd-table-wrap">
-        <table class="jewd-table">
-          <thead>
-            <tr>
-              <th class="jewd-checkbox-col"><input type="checkbox" id="selectAll" class="jewd-row-check" title="Seleccionar todo"></th>
-              <th style="width: 30px"></th>
-              <th style="width: 44px">Img</th>
-              <th>SKU</th>
-              <th>Nombre</th>
-              <th>Tipo</th>
-              <th>Categoría</th>
-              <th class="jewd-right">Precio</th>
-              <th class="jewd-right">Oferta</th>
-              <th class="jewd-right">Stock</th>
-              <th class="jewd-right">Peso</th>
-              <th style="width: 140px" class="jewd-center">Acciones</th>
-            </tr>
-          </thead>
-          <tbody id="productsTable">
-            <tr>
-              <td colspan="12" class="jewd-loading-row">
-                <div class="jewd-spinner"></div>
-                Cargando catálogo desde WooCommerce...
-              </td>
-            </tr>
-          </tbody>
-        </table>
+          <!-- ======= SECTION: SETTINGS ======= -->
+          <section class="jewd-section" id="sectionSettings">
+            <div class="jewd-section-header">
+              <h2 class="jewd-section-title">⚙️ Ajustes</h2>
+            </div>
+            <div class="jewd-settings-grid">
+              <div class="jewd-settings-card">
+                <h3>🏪 Configuración de Tienda</h3>
+                <div id="settingsStore" class="jewd-settings-body">
+                  <div
+                    class="jewd-loading-pulse"
+                    style="padding: 20px; text-align: center"
+                  >
+                    Cargando configuración...
+                  </div>
+                </div>
+              </div>
+              <div class="jewd-settings-card">
+                <h3>🔑 API del Dashboard</h3>
+                <div id="settingsAPI" class="jewd-settings-body"></div>
+              </div>
+              <div class="jewd-settings-card">
+                <h3>ℹ️ Sistema</h3>
+                <div id="settingsSystem" class="jewd-settings-body">
+                  <div
+                    class="jewd-loading-pulse"
+                    style="padding: 20px; text-align: center"
+                  >
+                    Cargando...
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+        </main>
       </div>
-
-      <!-- PAGINATION -->
-      <div class="jewd-pagination" id="pagination"></div>
 
       <!-- DETAIL MODAL -->
       <div class="jewd-modal" id="detailModal">
@@ -172,17 +363,15 @@
               class="jewd-btn jewd-btn-outline"
               id="modalEditLink"
               target="_blank"
+              >✏️ Editar en WooCommerce</a
             >
-              ✏️ Editar en WooCommerce
-            </a>
             <a
               href="#"
               class="jewd-btn jewd-btn-outline"
               id="modalViewLink"
               target="_blank"
+              >👁 Ver en Tienda</a
             >
-              👁 Ver en Tienda
-            </a>
             <button class="jewd-btn jewd-btn-gold" id="modalCloseBtn">
               Cerrar
             </button>
@@ -211,6 +400,24 @@
         </div>
       </div>
 
+      <!-- ORDER DETAIL MODAL -->
+      <div class="jewd-modal" id="orderDetailModal">
+        <div class="jewd-modal-dialog jewd-modal-lg">
+          <div class="jewd-modal-header">
+            <h2 id="orderDetailTitle">Detalle del Pedido</h2>
+            <button class="jewd-modal-close" id="orderDetailClose">
+              &times;
+            </button>
+          </div>
+          <div class="jewd-modal-body" id="orderDetailBody"></div>
+          <div class="jewd-modal-footer">
+            <button class="jewd-btn jewd-btn-outline" id="orderDetailCloseBtn">
+              Cerrar
+            </button>
+          </div>
+        </div>
+      </div>
+
       <!-- IMAGE PREVIEW MODAL -->
       <div class="jewd-img-modal" id="imgModal">
         <img id="imgModalSrc" src="" alt="Preview" />
@@ -220,10 +427,8 @@
       <div class="jewd-toast" id="toast"></div>
     </div>
 
-    <!-- Config (gitignored — contains API keys) -->
     <script src=".env.js"></script>
-    <!-- Application -->
-    <script src="js/api.js?v=2.0.2"></script>
-    <script src="js/dashboard.js?v=2.0.2"></script>
+    <script src="js/api.js?v=3.0.0"></script>
+    <script src="js/dashboard.js?v=3.0.0"></script>
   </body>
 </html>

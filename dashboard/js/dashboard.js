@@ -3,7 +3,7 @@
  * Standalone SPA — zero jQuery, zero WordPress dependency.
  * Uses WooCommerce REST API via JewdAPI layer.
  *
- * @version 2.0.0
+ * @version 3.0.0
  */
 (function () {
   "use strict";
@@ -23,6 +23,20 @@
     allExpanded: false,
     categories: [],
     connected: false,
+    // Routing
+    activeSection: "products",
+    sectionLoaded: { products: false, orders: false, reports: false, settings: false },
+    // Orders
+    orders: [],
+    ordersPage: 1,
+    ordersPerPage: 20,
+    ordersTotalPages: 1,
+    ordersTotal: 0,
+    ordersLoading: false,
+    // Reports
+    reportPeriod: 7,
+    reportData: null,
+    topSellers: [],
   };
 
   /* ===== DOM REFS ===== */
@@ -34,16 +48,18 @@
     const cfg = window.JEWD_CONFIG || {};
     state.perPage = cfg.perPage || 50;
 
-    $("#versionTag").textContent = "v" + (cfg.version || "2.0.0");
+    $("#versionTag").textContent = "v" + (cfg.version || "3.0.0");
     $("#btnWPAdmin").href = cfg.adminUrl || "#";
 
     initTheme();
+    initRouter();
     bindEvents();
     initBulkActions();
     await testConnection();
     loadCategories();
     loadStats();
     loadProducts();
+    state.sectionLoaded.products = true;
   });
 
   /* ===== CONNECTION TEST ===== */
@@ -84,19 +100,96 @@
     $("#btnTheme").textContent = isLight ? "☀️" : "🌙";
   }
 
+  /* ===== SPA ROUTER (F4-UI-01) ===== */
+  function initRouter() {
+    // Sidebar toggle (mobile hamburger).
+    const toggleBtn = $("#btnSidebarToggle");
+    if (toggleBtn) {
+      toggleBtn.addEventListener("click", () => {
+        const sidebar = $("#sidebar");
+        sidebar.classList.toggle("open");
+      });
+    }
+
+    // Close sidebar when clicking outside on mobile.
+    document.addEventListener("click", (e) => {
+      const sidebar = $("#sidebar");
+      if (sidebar.classList.contains("open") && !e.target.closest(".jewd-sidebar") && !e.target.closest(".jewd-sidebar-toggle")) {
+        sidebar.classList.remove("open");
+      }
+    });
+
+    // Listen for hash changes.
+    window.addEventListener("hashchange", handleRoute);
+
+    // Set initial route from hash or default.
+    const hash = window.location.hash;
+    if (hash && hash.startsWith("#/")) {
+      handleRoute();
+    } else {
+      window.location.hash = "#/products";
+    }
+  }
+
+  function handleRoute() {
+    const hash = window.location.hash || "#/products";
+    const section = hash.replace("#/", "") || "products";
+    const validSections = ["products", "orders", "reports", "settings"];
+    const target = validSections.includes(section) ? section : "products";
+
+    navigateTo(target);
+  }
+
+  function navigateTo(section) {
+    state.activeSection = section;
+
+    // Update sidebar active state.
+    $$(".jewd-nav-item").forEach((item) => {
+      item.classList.toggle("active", item.dataset.section === section);
+    });
+
+    // Show/hide sections.
+    $$(".jewd-section").forEach((sec) => {
+      sec.classList.toggle("active", sec.id === "section" + capitalize(section));
+    });
+
+    // Show/hide section-specific topbar actions.
+    $$(".jewd-section-action").forEach((btn) => {
+      btn.style.display = btn.dataset.section === section ? "" : "none";
+    });
+
+    // Close mobile sidebar.
+    $("#sidebar").classList.remove("open");
+
+    // Lazy-load section data on first visit.
+    if (!state.sectionLoaded[section]) {
+      state.sectionLoaded[section] = true;
+      if (section === "orders") loadOrders();
+      if (section === "reports") loadReports();
+      if (section === "settings") loadSettingsPage();
+    }
+  }
+
+  function capitalize(s) {
+    return s.charAt(0).toUpperCase() + s.slice(1);
+  }
+
   /* ===== EVENTS ===== */
   function bindEvents() {
     $("#btnTheme").addEventListener("click", toggleTheme);
     $("#btnRefresh").addEventListener("click", () => {
-      loadStats();
-      loadProducts();
+      const s = state.activeSection;
+      if (s === "products") { loadStats(); loadProducts(); }
+      else if (s === "orders") { loadOrders(); }
+      else if (s === "reports") { loadReports(); }
+      else if (s === "settings") { loadSettingsPage(); }
       toast("Datos actualizados");
     });
     $("#btnExpandAll").addEventListener("click", toggleExpandAll);
     $("#btnExportJSON").addEventListener("click", exportJSON);
     $("#btnExportCSV").addEventListener("click", exportCSV);
 
-    // Filters with debounce.
+    // Product filters with debounce.
     let debounceTimer;
     $("#filterSearch").addEventListener("input", () => {
       clearTimeout(debounceTimer);
@@ -142,11 +235,42 @@
       }
     });
 
+    // Order detail modal.
+    const orderDetailClose = $("#orderDetailClose");
+    if (orderDetailClose) orderDetailClose.addEventListener("click", closeOrderDetailModal);
+    const orderDetailCloseBtn = $("#orderDetailCloseBtn");
+    if (orderDetailCloseBtn) orderDetailCloseBtn.addEventListener("click", closeOrderDetailModal);
+    const orderDetailModal = $("#orderDetailModal");
+    if (orderDetailModal) orderDetailModal.addEventListener("click", (e) => {
+      if (e.target === orderDetailModal) closeOrderDetailModal();
+    });
+
+    // Order filters.
+    let orderDebounce;
+    const orderSearchEl = $("#orderSearch");
+    if (orderSearchEl) {
+      orderSearchEl.addEventListener("input", () => {
+        clearTimeout(orderDebounce);
+        orderDebounce = setTimeout(() => { state.ordersPage = 1; loadOrders(); }, 400);
+      });
+    }
+    const orderStatusEl = $("#orderStatusFilter");
+    if (orderStatusEl) {
+      orderStatusEl.addEventListener("change", () => { state.ordersPage = 1; loadOrders(); });
+    }
+
+    // Report period buttons.
+    const rp7 = $("#reportPeriod7");
+    const rp30 = $("#reportPeriod30");
+    if (rp7) rp7.addEventListener("click", () => { state.reportPeriod = 7; rp7.classList.add("active"); rp30.classList.remove("active"); loadReports(); });
+    if (rp30) rp30.addEventListener("click", () => { state.reportPeriod = 30; rp30.classList.add("active"); rp7.classList.remove("active"); loadReports(); });
+
     // Keyboard.
     document.addEventListener("keydown", (e) => {
       if (e.key === "Escape") {
         closeModal();
         closeEditModal();
+        closeOrderDetailModal();
         $("#imgModal").classList.remove("active");
       }
       // Lightbox arrow navigation.
@@ -2198,6 +2322,552 @@
   /** Backwards-compat wrapper for single image (table thumbnail clicks). */
   function showImage(src) {
     showLightbox([src], 0);
+  }
+
+  /* ===== ORDERS MODULE (F4-UI-02/03) ===== */
+  async function loadOrders() {
+    if (state.ordersLoading) return;
+    state.ordersLoading = true;
+
+    const tb = $("#ordersTable");
+    if (tb) tb.innerHTML = '<tr><td colspan="7" class="jewd-loading-row"><div class="jewd-spinner"></div> Cargando pedidos...</td></tr>';
+
+    try {
+      const searchVal = $("#orderSearch") ? $("#orderSearch").value : "";
+      const statusVal = $("#orderStatusFilter") ? $("#orderStatusFilter").value : "";
+
+      const res = await JewdAPI.getOrders({
+        search: searchVal || undefined,
+        status: statusVal || undefined,
+        page: state.ordersPage,
+        perPage: state.ordersPerPage,
+      });
+
+      state.orders = res.data;
+      state.ordersTotal = res.total || res.data.length;
+      state.ordersTotalPages = res.totalPages || 1;
+
+      renderOrders();
+      renderOrdersPagination();
+      updateOrderFilterCount();
+    } catch (e) {
+      if (tb) tb.innerHTML = `<tr><td colspan="7" class="jewd-loading-row">Error: ${esc(e.message)}</td></tr>`;
+    } finally {
+      state.ordersLoading = false;
+    }
+  }
+
+  function renderOrders() {
+    const tb = $("#ordersTable");
+    if (!tb) return;
+
+    if (!state.orders.length) {
+      tb.innerHTML = '<tr><td colspan="7" class="jewd-empty">🔍<br>No se encontraron pedidos</td></tr>';
+      return;
+    }
+
+    let html = "";
+    state.orders.forEach((o) => {
+      const name = o.billing ? `${o.billing.first_name || ""} ${o.billing.last_name || ""}`.trim() : "—";
+      const email = o.billing ? o.billing.email || "" : "";
+      const items = (o.line_items || []).length;
+      const date = o.date_created ? o.date_created.split("T")[0] : "—";
+      const statusLabel = orderStatusLabel(o.status);
+
+      html += "<tr>";
+      html += `<td><strong>#${o.id}</strong></td>`;
+      html += `<td>${esc(name)}${email ? '<br><span class="jewd-text-sm">' + esc(email) + '</span>' : ''}</td>`;
+      html += `<td class="jewd-center">${items}</td>`;
+      html += `<td class="jewd-right"><strong>$${fmtN(o.total)}</strong></td>`;
+      html += `<td><span class="jewd-order-status jewd-order-${esc(o.status)}">${statusLabel}</span></td>`;
+      html += `<td>${esc(date)}</td>`;
+      html += '<td class="jewd-center">';
+      html += `<button class="jewd-action-btn" data-action="order-detail" data-order-id="${o.id}" title="Ver detalle">👁</button>`;
+      html += `<button class="jewd-action-btn" data-action="order-status" data-order-id="${o.id}" title="Cambiar estado">📝</button>`;
+      html += "</td></tr>";
+    });
+
+    tb.innerHTML = html;
+
+    // Bind order action buttons.
+    tb.querySelectorAll('[data-action="order-detail"]').forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const order = state.orders.find((o) => o.id === parseInt(btn.dataset.orderId));
+        if (order) showOrderDetail(order);
+      });
+    });
+
+    tb.querySelectorAll('[data-action="order-status"]').forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const order = state.orders.find((o) => o.id === parseInt(btn.dataset.orderId));
+        if (order) changeOrderStatus(order);
+      });
+    });
+  }
+
+  function renderOrdersPagination() {
+    const pg = $("#ordersPagination");
+    if (!pg) return;
+    if (state.ordersTotalPages <= 1) {
+      pg.innerHTML = `<span>Mostrando ${state.orders.length} de ${state.ordersTotal} pedidos</span>`;
+      return;
+    }
+    let html = `<span>Página ${state.ordersPage} de ${state.ordersTotalPages} (${state.ordersTotal} pedidos)</span> `;
+    html += `<button ${state.ordersPage <= 1 ? "disabled" : ""} data-page="${state.ordersPage - 1}">« Anterior</button>`;
+    const start = Math.max(1, state.ordersPage - 2);
+    const end = Math.min(state.ordersTotalPages, state.ordersPage + 2);
+    for (let i = start; i <= end; i++) {
+      html += `<button data-page="${i}"${i === state.ordersPage ? ' class="active"' : ""}>${i}</button>`;
+    }
+    html += `<button ${state.ordersPage >= state.ordersTotalPages ? "disabled" : ""} data-page="${state.ordersPage + 1}">Siguiente »</button>`;
+    pg.innerHTML = html;
+    pg.querySelectorAll("button").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const p = parseInt(btn.dataset.page);
+        if (p && p !== state.ordersPage) { state.ordersPage = p; loadOrders(); }
+      });
+    });
+  }
+
+  function updateOrderFilterCount() {
+    const el = $("#orderFilterCount");
+    if (el) el.textContent = `${state.ordersTotal} pedido${state.ordersTotal !== 1 ? "s" : ""}`;
+  }
+
+  function orderStatusLabel(status) {
+    const labels = {
+      pending: "Pendiente", processing: "Procesando", "on-hold": "En espera",
+      completed: "Completado", cancelled: "Cancelado", refunded: "Reembolsado",
+      failed: "Fallido", trash: "Papelera"
+    };
+    return labels[status] || status;
+  }
+
+  /** Show order detail modal (F4-UI-03). */
+  async function showOrderDetail(order) {
+    const modal = $("#orderDetailModal");
+    if (!modal) return;
+    $("#orderDetailTitle").textContent = `Pedido #${order.id}`;
+
+    const b = order.billing || {};
+    const s = order.shipping || {};
+    const items = order.line_items || [];
+    const date = order.date_created ? order.date_created.split("T")[0] : "—";
+
+    let html = '<div class="jewd-order-detail-grid">';
+
+    // Order info
+    html += '<div class="jewd-order-info-card">';
+    html += `<h4>📋 Información</h4>`;
+    html += `<div class="jewd-detail-row"><strong>Estado:</strong> <span class="jewd-order-status jewd-order-${esc(order.status)}">${orderStatusLabel(order.status)}</span></div>`;
+    html += `<div class="jewd-detail-row"><strong>Fecha:</strong> ${esc(date)}</div>`;
+    html += `<div class="jewd-detail-row"><strong>Método de pago:</strong> ${esc(order.payment_method_title || "—")}</div>`;
+    html += `<div class="jewd-detail-row"><strong>Moneda:</strong> ${esc(order.currency || "USD")}</div>`;
+    html += '</div>';
+
+    // Customer info
+    html += '<div class="jewd-order-info-card">';
+    html += `<h4>👤 Cliente</h4>`;
+    html += `<div class="jewd-detail-row"><strong>Nombre:</strong> ${esc(b.first_name || "")} ${esc(b.last_name || "")}</div>`;
+    html += `<div class="jewd-detail-row"><strong>Email:</strong> ${esc(b.email || "—")}</div>`;
+    html += `<div class="jewd-detail-row"><strong>Teléfono:</strong> ${esc(b.phone || "—")}</div>`;
+    if (b.address_1) {
+      html += `<div class="jewd-detail-row"><strong>Dirección:</strong> ${esc(b.address_1)}${b.city ? ', ' + esc(b.city) : ''}${b.state ? ' ' + esc(b.state) : ''} ${esc(b.postcode || '')}</div>`;
+    }
+    html += '</div>';
+
+    // Shipping info
+    if (s.address_1) {
+      html += '<div class="jewd-order-info-card">';
+      html += `<h4>📦 Envío</h4>`;
+      html += `<div class="jewd-detail-row">${esc(s.first_name || "")} ${esc(s.last_name || "")}</div>`;
+      html += `<div class="jewd-detail-row">${esc(s.address_1)}${s.city ? ', ' + esc(s.city) : ''}${s.state ? ' ' + esc(s.state) : ''} ${esc(s.postcode || '')}</div>`;
+      html += '</div>';
+    }
+
+    html += '</div>'; // end grid
+
+    // Line items
+    html += '<div class="jewd-order-items">';
+    html += '<h4>🛍️ Artículos</h4>';
+    html += '<table class="jewd-table" style="font-size:.85rem">';
+    html += '<thead><tr><th>Producto</th><th class="jewd-center">Cant.</th><th class="jewd-right">Precio</th><th class="jewd-right">Total</th></tr></thead><tbody>';
+    items.forEach((item) => {
+      html += '<tr>';
+      html += `<td>${esc(item.name)}${item.sku ? '<br><span class="jewd-text-sm">SKU: ' + esc(item.sku) + '</span>' : ''}</td>`;
+      html += `<td class="jewd-center">${item.quantity}</td>`;
+      html += `<td class="jewd-right">$${fmtN(item.price)}</td>`;
+      html += `<td class="jewd-right"><strong>$${fmtN(item.total)}</strong></td>`;
+      html += '</tr>';
+    });
+    html += '</tbody></table>';
+    html += '</div>';
+
+    // Totals
+    html += '<div class="jewd-order-totals">';
+    html += `<div class="jewd-detail-row"><span>Subtotal:</span> <strong>$${fmtN(order.total - (parseFloat(order.shipping_total) || 0) - (parseFloat(order.total_tax) || 0))}</strong></div>`;
+    if (parseFloat(order.shipping_total)) html += `<div class="jewd-detail-row"><span>Envío:</span> <strong>$${fmtN(order.shipping_total)}</strong></div>`;
+    if (parseFloat(order.total_tax)) html += `<div class="jewd-detail-row"><span>Impuestos:</span> <strong>$${fmtN(order.total_tax)}</strong></div>`;
+    if (parseFloat(order.discount_total)) html += `<div class="jewd-detail-row"><span>Descuento:</span> <strong>-$${fmtN(order.discount_total)}</strong></div>`;
+    html += `<div class="jewd-detail-row jewd-order-grand-total"><span>Total:</span> <strong>$${fmtN(order.total)}</strong></div>`;
+    html += '</div>';
+
+    // Status change buttons
+    html += '<div class="jewd-order-actions">';
+    html += '<h4>📝 Cambiar Estado</h4>';
+    html += '<div class="jewd-order-status-btns">';
+    const statuses = ["pending", "processing", "on-hold", "completed", "cancelled"];
+    statuses.forEach((s) => {
+      const isCurrent = s === order.status;
+      html += `<button class="jewd-btn jewd-btn-sm ${isCurrent ? 'jewd-btn-gold' : 'jewd-btn-outline'}" data-new-status="${s}" data-order-id="${order.id}" ${isCurrent ? 'disabled' : ''}>${orderStatusLabel(s)}</button>`;
+    });
+    html += '</div></div>';
+
+    // Notes
+    html += '<div class="jewd-order-notes" id="orderNotesSection">';
+    html += '<h4>📝 Notas</h4>';
+    html += '<div id="orderNotesList" class="jewd-order-notes-list"><div class="jewd-loading-pulse">Cargando notas...</div></div>';
+    html += '<div class="jewd-order-note-form">';
+    html += '<textarea class="jewd-edit-input jewd-edit-textarea" id="orderNoteInput" rows="2" placeholder="Agregar nota..."></textarea>';
+    html += `<button class="jewd-btn jewd-btn-sm jewd-btn-outline" id="btnAddOrderNote" data-order-id="${order.id}">Agregar Nota</button>`;
+    html += '</div></div>';
+
+    $("#orderDetailBody").innerHTML = html;
+    modal.classList.add("active");
+
+    // Bind status change buttons.
+    modal.querySelectorAll("[data-new-status]").forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        const newStatus = btn.dataset.newStatus;
+        const oid = parseInt(btn.dataset.orderId);
+        try {
+          toast("⏳ Cambiando estado...");
+          await JewdAPI.updateOrder(oid, { status: newStatus });
+          toast(`✅ Pedido #${oid} → ${orderStatusLabel(newStatus)}`);
+          closeOrderDetailModal();
+          loadOrders();
+        } catch (e) {
+          toast("❌ Error: " + e.message);
+        }
+      });
+    });
+
+    // Bind add note button.
+    const noteBtn = $("#btnAddOrderNote");
+    if (noteBtn) {
+      noteBtn.addEventListener("click", async () => {
+        const noteInput = $("#orderNoteInput");
+        const note = noteInput ? noteInput.value.trim() : "";
+        if (!note) return;
+        try {
+          await JewdAPI.createOrderNote(order.id, note);
+          noteInput.value = "";
+          toast("✅ Nota agregada");
+          loadOrderNotes(order.id);
+        } catch (e) {
+          toast("❌ Error: " + e.message);
+        }
+      });
+    }
+
+    // Load notes async.
+    loadOrderNotes(order.id);
+  }
+
+  async function loadOrderNotes(orderId) {
+    const container = $("#orderNotesList");
+    if (!container) return;
+    try {
+      const res = await JewdAPI.getOrderNotes(orderId);
+      const notes = res.data || [];
+      if (!notes.length) {
+        container.innerHTML = '<p class="jewd-text-muted">Sin notas</p>';
+        return;
+      }
+      let html = "";
+      notes.forEach((n) => {
+        const date = n.date_created ? n.date_created.split("T")[0] : "";
+        html += `<div class="jewd-order-note ${n.customer_note ? 'jewd-note-customer' : ''}">`;
+        html += `<div class="jewd-note-text">${esc(n.note)}</div>`;
+        html += `<div class="jewd-note-meta">${date}${n.customer_note ? ' · Cliente' : ' · Sistema'}</div>`;
+        html += '</div>';
+      });
+      container.innerHTML = html;
+    } catch (e) {
+      container.innerHTML = '<p class="jewd-text-muted">Error cargando notas</p>';
+    }
+  }
+
+  function closeOrderDetailModal() {
+    const modal = $("#orderDetailModal");
+    if (modal) modal.classList.remove("active");
+  }
+
+  async function changeOrderStatus(order) {
+    const statuses = ["pending", "processing", "on-hold", "completed", "cancelled"];
+    const labels = statuses.map((s) => `${s === order.status ? "► " : ""}${s}`);
+    const choice = prompt(`Cambiar estado del pedido #${order.id}:\nActual: ${order.status}\n\nOpciones:\n${labels.join("\n")}\n\nEscribe el nuevo estado:`);
+    if (!choice || !statuses.includes(choice.trim())) return;
+    try {
+      toast("⏳ Cambiando estado...");
+      await JewdAPI.updateOrder(order.id, { status: choice.trim() });
+      toast(`✅ Pedido #${order.id} → ${orderStatusLabel(choice.trim())}`);
+      loadOrders();
+    } catch (e) {
+      toast("❌ Error: " + e.message);
+    }
+  }
+
+  /* ===== REPORTS MODULE (F4-UI-04) ===== */
+  async function loadReports() {
+    const days = state.reportPeriod;
+    const now = new Date();
+    const dateMax = now.toISOString().split("T")[0];
+    const dateMinObj = new Date(now);
+    dateMinObj.setDate(dateMinObj.getDate() - days);
+    const dateMin = dateMinObj.toISOString().split("T")[0];
+
+    // Load sales and top sellers in parallel.
+    try {
+      const [salesRes, topRes] = await Promise.all([
+        JewdAPI.getReportSales({ dateMin, dateMax }).catch(() => ({ data: [] })),
+        JewdAPI.getTopSellers({ period: days <= 7 ? "week" : "month" }).catch(() => ({ data: [] })),
+      ]);
+
+      state.reportData = salesRes.data;
+      state.topSellers = topRes.data || [];
+
+      renderReportSummary(salesRes.data);
+      renderSalesChart(salesRes.data, dateMin, dateMax, days);
+      renderTopSellers(topRes.data || []);
+    } catch (e) {
+      console.error("Reports load error:", e);
+      toast("❌ Error cargando reportes");
+    }
+  }
+
+  function renderReportSummary(data) {
+    const el = $("#reportSummary");
+    if (!el) return;
+
+    // WC reports/sales returns an array with one element containing totals.
+    const report = Array.isArray(data) && data.length ? data[0] : {};
+    const totals = report.totals || {};
+
+    // Aggregate from totals object (keyed by date).
+    let totalSales = 0, totalOrders = 0, totalItems = 0;
+    Object.values(totals).forEach((d) => {
+      totalSales += parseFloat(d.sales || 0);
+      totalOrders += parseInt(d.orders || 0);
+      totalItems += parseInt(d.items || 0);
+    });
+
+    // Fallback to report-level data.
+    if (!totalSales && report.total_sales) totalSales = parseFloat(report.total_sales);
+    if (!totalOrders && report.total_orders) totalOrders = parseInt(report.total_orders);
+    if (!totalItems && report.total_items) totalItems = parseInt(report.total_items);
+
+    let html = '';
+    html += `<div class="jewd-report-stat"><div class="jewd-report-stat-value">$${fmtN(totalSales)}</div><div class="jewd-report-stat-label">Ventas totales</div></div>`;
+    html += `<div class="jewd-report-stat"><div class="jewd-report-stat-value">${totalOrders}</div><div class="jewd-report-stat-label">Pedidos</div></div>`;
+    html += `<div class="jewd-report-stat"><div class="jewd-report-stat-value">${totalItems}</div><div class="jewd-report-stat-label">Artículos vendidos</div></div>`;
+    html += `<div class="jewd-report-stat"><div class="jewd-report-stat-value">$${totalOrders ? fmtN(totalSales / totalOrders) : '0'}</div><div class="jewd-report-stat-label">Promedio por pedido</div></div>`;
+    el.innerHTML = html;
+  }
+
+  function renderSalesChart(data, dateMin, dateMax, days) {
+    const canvas = $("#salesChart");
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    const dpr = window.devicePixelRatio || 1;
+
+    // Set canvas resolution.
+    canvas.width = canvas.offsetWidth * dpr;
+    canvas.height = canvas.offsetHeight * dpr;
+    ctx.scale(dpr, dpr);
+    const W = canvas.offsetWidth;
+    const H = canvas.offsetHeight;
+    ctx.clearRect(0, 0, W, H);
+
+    // Extract daily sales from totals.
+    const report = Array.isArray(data) && data.length ? data[0] : {};
+    const totals = report.totals || {};
+
+    // Build data points for each day.
+    const points = [];
+    const d = new Date(dateMin);
+    const endDate = new Date(dateMax);
+    while (d <= endDate) {
+      const key = d.toISOString().split("T")[0];
+      const val = totals[key] ? parseFloat(totals[key].sales || 0) : 0;
+      points.push({ date: key, sales: val });
+      d.setDate(d.getDate() + 1);
+    }
+
+    if (!points.length) {
+      ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue("--jewd-text2").trim() || "#999";
+      ctx.font = "14px sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText("Sin datos de ventas", W / 2, H / 2);
+      return;
+    }
+
+    const maxSales = Math.max(...points.map((p) => p.sales), 1);
+    const padLeft = 60, padRight = 20, padTop = 20, padBottom = 40;
+    const chartW = W - padLeft - padRight;
+    const chartH = H - padTop - padBottom;
+    const barW = Math.max(4, (chartW / points.length) * 0.7);
+    const gap = chartW / points.length;
+
+    // Colors from CSS vars.
+    const root = getComputedStyle(document.documentElement);
+    const goldColor = root.getPropertyValue("--jewd-gold").trim() || "#d4a843";
+    const textColor = root.getPropertyValue("--jewd-text2").trim() || "#999";
+    const borderColor = root.getPropertyValue("--jewd-border").trim() || "#333";
+
+    // Grid lines.
+    ctx.strokeStyle = borderColor;
+    ctx.lineWidth = 0.5;
+    for (let i = 0; i <= 4; i++) {
+      const y = padTop + (chartH / 4) * i;
+      ctx.beginPath();
+      ctx.moveTo(padLeft, y);
+      ctx.lineTo(W - padRight, y);
+      ctx.stroke();
+      // Y-axis labels.
+      ctx.fillStyle = textColor;
+      ctx.font = "11px sans-serif";
+      ctx.textAlign = "right";
+      const val = maxSales - (maxSales / 4) * i;
+      ctx.fillText("$" + fmtN(val), padLeft - 8, y + 4);
+    }
+
+    // Bars.
+    points.forEach((p, i) => {
+      const x = padLeft + i * gap + (gap - barW) / 2;
+      const barHeight = (p.sales / maxSales) * chartH;
+      const y = padTop + chartH - barHeight;
+
+      // Gradient bar.
+      const grad = ctx.createLinearGradient(x, y, x, padTop + chartH);
+      grad.addColorStop(0, goldColor);
+      grad.addColorStop(1, goldColor + "44");
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.roundRect(x, y, barW, barHeight, [3, 3, 0, 0]);
+      ctx.fill();
+
+      // X-axis labels (show every Nth).
+      const showLabel = points.length <= 10 || i % Math.ceil(points.length / 10) === 0;
+      if (showLabel) {
+        ctx.fillStyle = textColor;
+        ctx.font = "10px sans-serif";
+        ctx.textAlign = "center";
+        const label = p.date.slice(5); // MM-DD
+        ctx.fillText(label, x + barW / 2, H - 8);
+      }
+    });
+  }
+
+  function renderTopSellers(data) {
+    const el = $("#topSellers");
+    if (!el) return;
+
+    if (!data.length) {
+      el.innerHTML = '<p class="jewd-text-muted" style="padding:12px">Sin datos de ventas</p>';
+      return;
+    }
+
+    let html = '<div class="jewd-top-list">';
+    data.slice(0, 5).forEach((item, i) => {
+      html += `<div class="jewd-top-item">`;
+      html += `<span class="jewd-top-rank">${i + 1}</span>`;
+      html += `<div class="jewd-top-info"><div class="jewd-top-name">${esc(item.name || 'Producto #' + item.product_id)}</div><div class="jewd-top-meta">${item.quantity || 0} vendidos</div></div>`;
+      html += '</div>';
+    });
+    html += '</div>';
+    el.innerHTML = html;
+  }
+
+  /* ===== SETTINGS MODULE (F4-UI-05) ===== */
+  async function loadSettingsPage() {
+    // Load store settings, display API config, show system info.
+    loadStoreSettings();
+    renderAPISettings();
+    loadSystemInfo();
+  }
+
+  async function loadStoreSettings() {
+    const el = $("#settingsStore");
+    if (!el) return;
+    try {
+      const res = await JewdAPI.getSettings("general");
+      const settings = res.data || [];
+      let html = '<div class="jewd-settings-list">';
+      const importantSettings = [
+        "woocommerce_store_address", "woocommerce_store_city", "woocommerce_default_country",
+        "woocommerce_currency", "woocommerce_price_thousand_sep", "woocommerce_price_decimal_sep",
+        "woocommerce_price_num_decimals"
+      ];
+      settings.forEach((s) => {
+        if (!importantSettings.includes(s.id) && !s.id.includes("currency") && !s.id.includes("store")) return;
+        const val = s.value || "—";
+        html += `<div class="jewd-settings-row">`;
+        html += `<span class="jewd-settings-label">${esc(s.label || s.id)}</span>`;
+        html += `<span class="jewd-settings-value">${esc(String(val))}</span>`;
+        html += '</div>';
+      });
+      html += '</div>';
+      el.innerHTML = html || '<p class="jewd-text-muted">No hay configuraciones disponibles</p>';
+    } catch (e) {
+      el.innerHTML = `<p class="jewd-text-muted">Error: ${esc(e.message)}</p>`;
+    }
+  }
+
+  function renderAPISettings() {
+    const el = $("#settingsAPI");
+    if (!el) return;
+    const cfg = window.JEWD_CONFIG || {};
+    const maskedKey = cfg.consumerKey ? cfg.consumerKey.slice(0, 8) + "..." + cfg.consumerKey.slice(-4) : "—";
+    const maskedSecret = cfg.consumerSecret ? cfg.consumerSecret.slice(0, 8) + "..." + cfg.consumerSecret.slice(-4) : "—";
+
+    let html = '<div class="jewd-settings-list">';
+    html += `<div class="jewd-settings-row"><span class="jewd-settings-label">WC Base URL</span><span class="jewd-settings-value jewd-text-mono">${esc(cfg.wcBaseUrl || "—")}</span></div>`;
+    html += `<div class="jewd-settings-row"><span class="jewd-settings-label">Consumer Key</span><span class="jewd-settings-value jewd-text-mono">${esc(maskedKey)}</span></div>`;
+    html += `<div class="jewd-settings-row"><span class="jewd-settings-label">Consumer Secret</span><span class="jewd-settings-value jewd-text-mono">${esc(maskedSecret)}</span></div>`;
+    html += `<div class="jewd-settings-row"><span class="jewd-settings-label">Per Page</span><span class="jewd-settings-value">${cfg.perPage || 50}</span></div>`;
+    html += `<div class="jewd-settings-row"><span class="jewd-settings-label">Admin URL</span><span class="jewd-settings-value jewd-text-mono">${esc(cfg.adminUrl || "—")}</span></div>`;
+    html += '</div>';
+    html += '<p class="jewd-edit-hint" style="margin-top:12px">Las API keys se configuran en el archivo <code>.env.js</code></p>';
+    el.innerHTML = html;
+  }
+
+  async function loadSystemInfo() {
+    const el = $("#settingsSystem");
+    if (!el) return;
+    try {
+      const res = await JewdAPI.getSystemStatus();
+      const d = res.data || {};
+      const env = d.environment || {};
+      const wp = d.settings || {};
+      let html = '<div class="jewd-settings-list">';
+      html += settingsRow("WordPress", env.wp_version || "—");
+      html += settingsRow("WooCommerce", env.version || "—");
+      html += settingsRow("PHP", env.php_version || "—");
+      html += settingsRow("MySQL", env.mysql_version || "—");
+      html += settingsRow("Memoria PHP", env.php_max_memory || "—");
+      html += settingsRow("Moneda", wp.currency || "—");
+      html += settingsRow("Tema activo", (d.active_plugins || []).length + " plugins activos");
+      html += settingsRow("Dashboard", "v3.0.0");
+      html += '</div>';
+      el.innerHTML = html;
+    } catch (e) {
+      el.innerHTML = `<p class="jewd-text-muted">Error: ${esc(e.message)}</p>`;
+    }
+  }
+
+  function settingsRow(label, value) {
+    return `<div class="jewd-settings-row"><span class="jewd-settings-label">${esc(label)}</span><span class="jewd-settings-value">${esc(String(value))}</span></div>`;
   }
 
   /* ===== EXPORT ===== */

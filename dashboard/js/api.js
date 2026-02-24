@@ -288,6 +288,120 @@ const JewdAPI = (function () {
     return { data: await res.json() };
   }
 
+  /* ===== ORDERS (Phase 4) ===== */
+
+  /**
+   * GET orders from WC REST API with filters.
+   */
+  async function getOrders({ search, status, page, perPage } = {}) {
+    const c = cfg();
+    const params = new URLSearchParams();
+    params.set("consumer_key", c.consumerKey);
+    params.set("consumer_secret", c.consumerSecret);
+    params.set("per_page", perPage || 20);
+    params.set("page", page || 1);
+    params.set("orderby", "date");
+    params.set("order", "desc");
+    if (status) params.set("status", status);
+    if (search) params.set("search", search);
+    const url = `${c.wcBaseUrl}/orders?${params.toString()}`;
+    return request(url);
+  }
+
+  /**
+   * GET a single order.
+   */
+  async function getOrder(id) {
+    const c = cfg();
+    const url = `${c.wcBaseUrl}/orders/${id}?${authParams()}`;
+    return request(url);
+  }
+
+  /**
+   * UPDATE an order (PUT).
+   */
+  async function updateOrder(id, data) {
+    const c = cfg();
+    const url = `${c.wcBaseUrl}/orders/${id}?${authParams()}`;
+    return request(url, { method: "PUT", body: JSON.stringify(data) });
+  }
+
+  /**
+   * GET order notes.
+   */
+  async function getOrderNotes(orderId) {
+    const c = cfg();
+    const url = `${c.wcBaseUrl}/orders/${orderId}/notes?${authParams()}`;
+    return request(url);
+  }
+
+  /**
+   * CREATE order note.
+   */
+  async function createOrderNote(orderId, note) {
+    const c = cfg();
+    const url = `${c.wcBaseUrl}/orders/${orderId}/notes?${authParams()}`;
+    return request(url, { method: "POST", body: JSON.stringify({ note }) });
+  }
+
+  /* ===== REPORTS (Phase 4) ===== */
+
+  /**
+   * GET sales report.
+   */
+  async function getReportSales({ dateMin, dateMax } = {}) {
+    const c = cfg();
+    const params = new URLSearchParams();
+    params.set("consumer_key", c.consumerKey);
+    params.set("consumer_secret", c.consumerSecret);
+    if (dateMin) params.set("date_min", dateMin);
+    if (dateMax) params.set("date_max", dateMax);
+    const url = `${c.wcBaseUrl}/reports/sales?${params.toString()}`;
+    return request(url);
+  }
+
+  /**
+   * GET top selling products.
+   */
+  async function getTopSellers({ period } = {}) {
+    const c = cfg();
+    const params = new URLSearchParams();
+    params.set("consumer_key", c.consumerKey);
+    params.set("consumer_secret", c.consumerSecret);
+    params.set("period", period || "month");
+    const url = `${c.wcBaseUrl}/reports/top_sellers?${params.toString()}`;
+    return request(url);
+  }
+
+  /* ===== SETTINGS (Phase 4) ===== */
+
+  /**
+   * GET WC settings for a group.
+   */
+  async function getSettings(group) {
+    const c = cfg();
+    const url = `${c.wcBaseUrl}/settings/${group}?${authParams()}`;
+    return request(url);
+  }
+
+  /**
+   * UPDATE a WC setting.
+   */
+  async function updateSetting(group, id, value) {
+    const c = cfg();
+    const url = `${c.wcBaseUrl}/settings/${group}/${id}?${authParams()}`;
+    return request(url, { method: "PUT", body: JSON.stringify({ value }) });
+  }
+
+  /**
+   * GET WC system status.
+   */
+  async function getSystemStatus() {
+    const c = cfg();
+    const url = `${c.wcBaseUrl}/system_status?${authParams()}`;
+    return request(url);
+  }
+
   // Public API
   return {
     getProducts,
@@ -307,5 +421,15 @@ const JewdAPI = (function () {
     batchProducts,
     uploadImage,
     deleteImage,
+    getOrders,
+    getOrder,
+    updateOrder,
+    getOrderNotes,
+    createOrderNote,
+    getReportSales,
+    getTopSellers,
+    getSettings,
+    updateSetting,
+    getSystemStatus,
   };
 })();
