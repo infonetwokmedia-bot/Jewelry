@@ -21,6 +21,13 @@
         </h1>
         <div class="jewd-actions">
           <button
+            class="jewd-btn jewd-btn-gold jewd-btn-sm"
+            id="btnNewProduct"
+            title="Crear nuevo producto"
+          >
+            ➕ Nuevo Producto
+          </button>
+          <button
             class="jewd-btn jewd-btn-outline jewd-btn-sm"
             id="btnExpandAll"
             title="Expandir/Colapsar todo"
@@ -98,7 +105,24 @@
           <option value="instock">En stock</option>
           <option value="outofstock">Sin stock</option>
         </select>
+        <select id="filterStatus" class="jewd-select">
+          <option value="">Todos estados</option>
+          <option value="publish">Publicado</option>
+          <option value="draft">Borrador</option>
+          <option value="private">Privado</option>
+          <option value="trash">Papelera</option>
+        </select>
         <span class="jewd-filter-count" id="filterCount"></span>
+      </div>
+
+      <!-- BULK ACTIONS BAR -->
+      <div class="jewd-bulk-bar" id="bulkBar">
+        <span class="jewd-bulk-count" id="bulkCount">0 seleccionados</span>
+        <button id="bulkChangeStatus" title="Cambiar estado">📝 Estado</button>
+        <button id="bulkChangePrice" title="Cambiar precio">💰 Precio</button>
+        <button id="bulkChangeStock" title="Cambiar stock">📦 Stock</button>
+        <button id="bulkDelete" title="Mover a papelera">🗑 Eliminar</button>
+        <button id="bulkCancel" title="Cancelar selección">✕</button>
       </div>
 
       <!-- TABLE -->
@@ -106,6 +130,7 @@
         <table class="jewd-table">
           <thead>
             <tr>
+              <th class="jewd-checkbox-col"><input type="checkbox" id="selectAll" class="jewd-row-check" title="Seleccionar todo"></th>
               <th style="width: 30px"></th>
               <th style="width: 44px">Img</th>
               <th>SKU</th>
@@ -116,12 +141,12 @@
               <th class="jewd-right">Oferta</th>
               <th class="jewd-right">Stock</th>
               <th class="jewd-right">Peso</th>
-              <th style="width: 100px" class="jewd-center">Acciones</th>
+              <th style="width: 140px" class="jewd-center">Acciones</th>
             </tr>
           </thead>
           <tbody id="productsTable">
             <tr>
-              <td colspan="11" class="jewd-loading-row">
+              <td colspan="12" class="jewd-loading-row">
                 <div class="jewd-spinner"></div>
                 Cargando catálogo desde WooCommerce...
               </td>

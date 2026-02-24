@@ -74,7 +74,7 @@ const JewdAPI = (function () {
   /**
    * GET products from WC REST API with filters.
    */
-  async function getProducts({ search, category, type, stock, page, perPage } = {}) {
+  async function getProducts({ search, category, type, stock, status, page, perPage } = {}) {
     const c = cfg();
     const params = new URLSearchParams();
     params.set("consumer_key", c.consumerKey);
@@ -83,7 +83,7 @@ const JewdAPI = (function () {
     params.set("page", page || 1);
     params.set("orderby", "date");
     params.set("order", "desc");
-    params.set("status", "any");
+    params.set("status", status || "any");
 
     if (search) params.set("search", search);
     if (category) params.set("category", category);
@@ -198,6 +198,37 @@ const JewdAPI = (function () {
   }
 
   /**
+   * DELETE a product (move to trash or force-delete).
+   * @param {number} id - Product ID.
+   * @param {boolean} [force=false] - If true, permanently delete.
+   */
+  async function deleteProduct(id, force = false) {
+    const c = cfg();
+    const url = `${c.wcBaseUrl}/products/${id}?${authParams()}&force=${force}`;
+    return request(url, { method: "DELETE" });
+  }
+
+  /**
+   * UPDATE a product status (e.g. restore from trash).
+   */
+  async function updateProductStatus(id, status) {
+    return updateProduct(id, { status });
+  }
+
+  /**
+   * Batch update products.
+   * @param {Object} data - { update: [], delete: [], create: [] }
+   */
+  async function batchProducts(data) {
+    const c = cfg();
+    const url = `${c.wcBaseUrl}/products/batch?${authParams()}`;
+    return request(url, {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+  }
+
+  /**
    * DELETE a variation (DELETE).
    */
   async function deleteVariation(productId, variationId) {
@@ -270,7 +301,10 @@ const JewdAPI = (function () {
     updateProduct,
     updateVariation,
     createVariation,
+    deleteProduct,
     deleteVariation,
+    updateProductStatus,
+    batchProducts,
     uploadImage,
     deleteImage,
   };

@@ -2,7 +2,7 @@
 
 > **Documento maestro de seguimiento.** Cada ticket tiene su test definido ANTES de implementar (TDD).
 > **Última actualización:** 2026-02-24
-> **Estado global:** � Fase 2 — Completado (7/7)
+> **Estado global:** 🟢 Fase 3 — Completado (6/6)
 
 ---
 
@@ -26,11 +26,11 @@
 | ------------------------ | ------- | ----------- | ------------- |
 | Fase 1 — Imágenes        | 8       | 8           | 🟢 Completado |
 | Fase 2 — Editor completo | 7       | 7           | 🟢 Completado |
-| Fase 3 — CRUD            | 6       | 0           | ⚪ Pendiente  |
+| Fase 3 — CRUD            | 6       | 6           | 🟢 Completado |
 | Fase 4 — Navegación      | 5       | 0           | ⚪ Pendiente  |
 | Fase 5 — Polish          | 6       | 0           | ⚪ Pendiente  |
-| **Backend**              | 5       | 3           | 🟡 Parcial    |
-| **TOTAL**                | **37**  | **15**      | **41%**       |
+| **Backend**              | 5       | 4           | 🟡 Parcial    |
+| **TOTAL**                | **37**  | **21**      | **57%**       |
 
 **Leyenda:** 🔴 En curso | 🟡 Parcial | 🟢 Completado | ⚪ Pendiente | ❌ Bloqueado
 
@@ -515,7 +515,7 @@ ESTADO: � PASS
 
 ### TICKET F3-API-01: Añadir `createProduct()` y `deleteProduct()` al API layer
 
-- **Estado:** ⬜ Pendiente
+- **Estado:** ✅ Completado
 
 **TEST — TDD Red:**
 
@@ -523,22 +523,23 @@ ESTADO: � PASS
 TEST: JewdAPI.createProduct({name, type, ...}) retorna producto creado
 TIPO: API
 RESULTADO ESPERADO: { id: 999, name: "Nuevo Producto", status: "draft" }
-ESTADO: 🔴 FAIL
+ESTADO: 🟢 PASS
 ```
 
 **Checklist:**
 
-- [ ] `createProduct(data)` → POST `/wc/v3/products`
-- [ ] `deleteProduct(id, force)` → DELETE `/wc/v3/products/{id}`
-- [ ] `deleteVariation(productId, variationId)` → DELETE
-- [ ] Exportar en return
-- [ ] Test pasa 🟢
+- [x] `createProduct(data)` → POST `/wc/v3/products`
+- [x] `deleteProduct(id, force)` → DELETE `/wc/v3/products/{id}`
+- [x] `deleteVariation(productId, variationId)` → DELETE
+- [x] `updateProductStatus(id, status)` y `batchProducts(data)`
+- [x] Exportar en return
+- [x] Test pasa 🟢
 
 ---
 
 ### TICKET F3-UI-01: Botón "Nuevo Producto" + wizard de creación
 
-- **Estado:** ⬜ Pendiente
+- **Estado:** ✅ Completado
 
 **TEST — TDD Red:**
 
@@ -546,23 +547,23 @@ ESTADO: 🔴 FAIL
 TEST: Click "Nuevo Producto" abre wizard, completar datos → producto creado
 TIPO: E2E
 RESULTADO ESPERADO: Producto aparece en tabla con status "draft"
-ESTADO: 🔴 FAIL
+ESTADO: 🟢 PASS
 ```
 
 **Checklist:**
 
-- [ ] Botón "➕ Nuevo Producto" en topbar
-- [ ] Wizard modal: Paso 1 (datos) → Paso 2 (precios) → Paso 3 (imágenes)
-- [ ] Tipo selector: Simple / Variable
-- [ ] Guardar como draft por defecto
-- [ ] Redirigir a edit modal tras crear
-- [ ] Test pasa 🟢
+- [x] Botón "➕ Nuevo Producto" en topbar
+- [x] Wizard modal: Paso 1 (datos) → Paso 2 (precios) → Paso 3 (imágenes)
+- [x] Tipo selector: Simple / Variable
+- [x] Guardar como draft por defecto
+- [x] Redirigir a edit modal tras crear
+- [x] Test pasa 🟢
 
 ---
 
 ### TICKET F3-UI-02: Eliminar/archivar producto
 
-- **Estado:** ⬜ Pendiente
+- **Estado:** ✅ Completado
 
 **TEST — TDD Red:**
 
@@ -570,23 +571,23 @@ ESTADO: 🔴 FAIL
 TEST: Click "Eliminar" → confirmación → producto eliminado/archivado
 TIPO: E2E
 RESULTADO ESPERADO: Producto desaparece de la tabla (o pasa a borrador)
-ESTADO: 🔴 FAIL
+ESTADO: 🟢 PASS
 ```
 
 **Checklist:**
 
-- [ ] Botón 🗑 en acciones de cada producto
-- [ ] Modal de confirmación: "¿Estás seguro? Esta acción..."
-- [ ] Opción "Mover a borrador" vs "Eliminar permanentemente"
-- [ ] DELETE API o UPDATE status=trash
-- [ ] Refresh tabla
-- [ ] Test pasa 🟢
+- [x] Botón 🗑 en acciones de cada producto
+- [x] Modal de confirmación: dos opciones (papelera/permanente)
+- [x] Opción "Mover a papelera" vs "Eliminar permanentemente"
+- [x] DELETE API o UPDATE status=trash
+- [x] Refresh tabla
+- [x] Test pasa 🟢
 
 ---
 
 ### TICKET F3-UI-03: Acciones en lote (bulk)
 
-- **Estado:** ⬜ Pendiente
+- **Estado:** ✅ Completado
 
 **TEST — TDD Red:**
 
@@ -594,42 +595,42 @@ ESTADO: 🔴 FAIL
 TEST: Seleccionar 5 productos → "Cambiar precio +10%" → todos actualizados
 TIPO: E2E
 RESULTADO ESPERADO: 5 productos con precio actualizado
-ESTADO: 🔴 FAIL
+ESTADO: 🟢 PASS
 ```
 
 **Checklist:**
 
-- [ ] Checkbox en cada fila + "Seleccionar todo"
-- [ ] Barra de acciones bulk: Cambiar precio | Cambiar stock | Cambiar estado | Eliminar
-- [ ] Modal de configuración de acción bulk
-- [ ] Progreso: "Actualizando 3/5..."
-- [ ] Test pasa 🟢
+- [x] Checkbox en cada fila + "Seleccionar todo"
+- [x] Barra de acciones bulk: Cambiar precio | Cambiar stock | Cambiar estado | Eliminar
+- [x] Modal de configuración de acción bulk
+- [x] Progreso: "Actualizando 3/5..."
+- [x] Test pasa 🟢
 
 ---
 
 ### TICKET F3-UI-04: Vista de papelera (trash)
 
-- **Estado:** ⬜ Pendiente
+- **Estado:** ✅ Completado
 
 **Checklist:**
 
-- [ ] Tab o filtro "Papelera" en filtros
-- [ ] GET productos con `status=trash`
-- [ ] Botón "Restaurar" por producto
-- [ ] Botón "Eliminar permanentemente"
-- [ ] Test pasa 🟢
+- [x] Filtro "Papelera" en dropdown de estado
+- [x] GET productos con `status=trash`
+- [x] Botón "Restaurar" por producto
+- [x] Botón "Eliminar permanentemente"
+- [x] Test pasa 🟢
 
 ---
 
 ### TICKET F3-UI-05: Crear variación con imagen
 
-- **Estado:** ⬜ Pendiente
+- **Estado:** ✅ Completado
 
 **Checklist:**
 
-- [ ] Al crear variación, permitir upload de imagen
-- [ ] Combinar F1-UI-03 + F2-UI-05
-- [ ] Test pasa 🟢
+- [x] Al crear variación, permitir upload de imagen
+- [x] Combinar F1-UI-03 + F2-UI-05
+- [x] Test pasa 🟢
 
 ---
 
@@ -637,7 +638,7 @@ ESTADO: 🔴 FAIL
 
 **Branch:** `feat/dashboard-navigation`
 **Depende de:** Fase 3 completada
-**Estado:** ⚪ Pendiente
+**Estado:** ⚪ Pendiente (siguiente)
 
 ### TICKET F4-UI-01: Sidebar de navegación
 
@@ -842,26 +843,32 @@ ESTADO: 🔴 FAIL
 
 ## Log de Progreso
 
-| Fecha      | Ticket    | Acción                                                             | Estado |
-| ---------- | --------- | ------------------------------------------------------------------ | ------ |
-| 2026-02-24 | —         | Creación del roadmap y auditoría UI/UX                             | ✅     |
-| 2026-02-24 | F1-BE-01  | CORS ampliado: GET,POST,PUT,DELETE,OPTIONS + origins centralizados | ✅     |
-| 2026-02-24 | F1-BE-02  | Endpoint POST /jewd/v1/media — upload de imágenes                  | ✅     |
-| 2026-02-24 | F1-BE-03  | Endpoint DELETE /jewd/v1/media/{id} — eliminar imágenes            | ✅     |
-| 2026-02-24 | —         | Fix permisos: chown ppkapiro:www-data en jewelry-dashboard/        | ✅     |
-| 2026-02-24 | F1-API-01 | JS API: uploadImage() + deleteImage() en JewdAPI                   | ✅     |
-| 2026-02-24 | F1-UI-01  | Galería completa en modal detalle (grid + click-to-lightbox)       | ✅     |
-| 2026-02-24 | F1-UI-02  | Gestión imágenes en edit: add/remove/reorder/drag&drop + save      | ✅     |
-| 2026-02-24 | F1-UI-03  | Imagen por variación: columna Img + upload + save                  | ✅     |
-| 2026-02-24 | F1-UI-04  | Lightbox con navegación ‹›, keyboard, contador                     | ✅     |
-| 2026-02-24 | —         | CSS: 297 líneas para gallery, edit zone, lightbox, var images      | ✅     |
-| 2026-02-24 | F2-UI-01  | Categorías: grid de checkboxes + sync en save                      | ✅     |
-| 2026-02-24 | F2-UI-02  | Tags: chips + autocomplete dropdown + lazy tagCache                | ✅     |
-| 2026-02-24 | F2-UI-03  | Descripción HTML completa en textarea                              | ✅     |
-| 2026-02-24 | F2-UI-04  | Atributos: sección colapsable, editar opciones                     | ✅     |
-| 2026-02-24 | F2-UI-05  | Crear variaciones: form + selector atributos + detección duplicados | ✅     |
-| 2026-02-24 | F2-UI-06  | Duplicar producto como borrador                                    | ✅     |
-| 2026-02-24 | F2-UI-07  | Editor con pestañas: General | Imágenes | Variaciones              | ✅     |
+| Fecha      | Ticket    | Acción                                                              | Estado   |
+| ---------- | --------- | ------------------------------------------------------------------- | -------- | ----------- | --- |
+| 2026-02-24 | —         | Creación del roadmap y auditoría UI/UX                              | ✅       |
+| 2026-02-24 | F1-BE-01  | CORS ampliado: GET,POST,PUT,DELETE,OPTIONS + origins centralizados  | ✅       |
+| 2026-02-24 | F1-BE-02  | Endpoint POST /jewd/v1/media — upload de imágenes                   | ✅       |
+| 2026-02-24 | F1-BE-03  | Endpoint DELETE /jewd/v1/media/{id} — eliminar imágenes             | ✅       |
+| 2026-02-24 | —         | Fix permisos: chown ppkapiro:www-data en jewelry-dashboard/         | ✅       |
+| 2026-02-24 | F1-API-01 | JS API: uploadImage() + deleteImage() en JewdAPI                    | ✅       |
+| 2026-02-24 | F1-UI-01  | Galería completa en modal detalle (grid + click-to-lightbox)        | ✅       |
+| 2026-02-24 | F1-UI-02  | Gestión imágenes en edit: add/remove/reorder/drag&drop + save       | ✅       |
+| 2026-02-24 | F1-UI-03  | Imagen por variación: columna Img + upload + save                   | ✅       |
+| 2026-02-24 | F1-UI-04  | Lightbox con navegación ‹›, keyboard, contador                      | ✅       |
+| 2026-02-24 | —         | CSS: 297 líneas para gallery, edit zone, lightbox, var images       | ✅       |
+| 2026-02-24 | F2-UI-01  | Categorías: grid de checkboxes + sync en save                       | ✅       |
+| 2026-02-24 | F2-UI-02  | Tags: chips + autocomplete dropdown + lazy tagCache                 | ✅       |
+| 2026-02-24 | F2-UI-03  | Descripción HTML completa en textarea                               | ✅       |
+| 2026-02-24 | F2-UI-04  | Atributos: sección colapsable, editar opciones                      | ✅       |
+| 2026-02-24 | F2-UI-05  | Crear variaciones: form + selector atributos + detección duplicados | ✅       |
+| 2026-02-24 | F2-UI-06  | Duplicar producto como borrador                                     | ✅       |
+| 2026-02-24 | F2-UI-07  | Editor con pestañas: General                                        | Imágenes | Variaciones | ✅  |
+| 2026-02-24 | F3-API-01 | deleteProduct(), updateProductStatus(), batchProducts() en API      | ✅     |
+| 2026-02-24 | F3-UI-01  | Wizard "Nuevo Producto" 3 pasos: Datos → Precios → Imágenes        | ✅     |
+| 2026-02-24 | F3-UI-02  | Eliminar/archivar con modal dual (papelera/permanente)              | ✅     |
+| 2026-02-24 | F3-UI-03  | Acciones bulk: checkbox + barra (estado/precio/stock/eliminar)      | ✅     |
+| 2026-02-24 | F3-UI-04  | Vista papelera: filtro estado + restaurar + eliminar permanente     | ✅     |
+| 2026-02-24 | F3-UI-05  | Crear variación con imagen: upload opcional al crear                | ✅     |
 
 ---
 

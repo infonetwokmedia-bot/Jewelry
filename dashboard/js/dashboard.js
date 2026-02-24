@@ -39,6 +39,7 @@
 
     initTheme();
     bindEvents();
+    initBulkActions();
     await testConnection();
     loadCategories();
     loadStats();
@@ -105,12 +106,19 @@
       }, 400);
     });
 
-    for (const sel of ["#filterCategory", "#filterType", "#filterStock"]) {
-      $(sel).addEventListener("change", () => {
-        state.page = 1;
-        loadProducts();
-      });
+    for (const sel of ["#filterCategory", "#filterType", "#filterStock", "#filterStatus"]) {
+      const el = $(sel);
+      if (el) {
+        el.addEventListener("change", () => {
+          state.page = 1;
+          loadProducts();
+        });
+      }
     }
+
+    // New product button.
+    const btnNew = $("#btnNewProduct");
+    if (btnNew) btnNew.addEventListener("click", openNewProductWizard);
 
     // Modal close.
     $("#modalClose").addEventListener("click", closeModal);
@@ -255,14 +263,16 @@
 
     const tb = $("#productsTable");
     tb.innerHTML =
-      '<tr><td colspan="11" class="jewd-loading-row"><div class="jewd-spinner"></div> Cargando...</td></tr>';
+      '<tr><td colspan="12" class="jewd-loading-row"><div class="jewd-spinner"></div> Cargando...</td></tr>';
 
     try {
+      const statusFilter = $("#filterStatus") ? $("#filterStatus").value : "";
       const res = await JewdAPI.getProducts({
         search: $("#filterSearch").value,
         category: $("#filterCategory").value,
         type: $("#filterType").value,
         stock: $("#filterStock").value,
+        status: statusFilter || undefined,
         page: state.page,
         perPage: state.perPage,
       });
@@ -290,7 +300,7 @@
       renderPagination();
       updateFilterCount();
     } catch (e) {
-      tb.innerHTML = `<tr><td colspan="11" class="jewd-loading-row">Error: ${esc(e.message)}</td></tr>`;
+      tb.innerHTML = `<tr><td colspan="12" class="jewd-loading-row">Error: ${esc(e.message)}</td></tr>`;
     } finally {
       state.loading = false;
     }
@@ -303,7 +313,7 @@
     const cfg = window.JEWD_CONFIG || {};
 
     if (!products.length) {
-      html = '<tr><td colspan="11" class="jewd-empty">🔍<br>No se encontraron productos</td></tr>';
+      html = '<tr><td colspan="12" class="jewd-empty">🔍<br>No se encontraron productos</td></tr>';
       $("#productsTable").innerHTML = html;
       return;
     }
@@ -389,6 +399,7 @@
 
       // Build row.
       html += '<tr class="jewd-prow">';
+      html += `<td class="jewd-checkbox-col"><input type="checkbox" class="jewd-row-check" data-id="${p.id}" data-idx="${idx}"></td>`;
       html += `<td>${hasV ? `<button class="jewd-expand-btn${isOpen ? " open" : ""}" data-id="${p.id}" title="${vs.length} variaciones">▶</button>` : ""}</td>`;
       html += `<td>${imgHtml}</td>`;
       html += `<td class="jewd-sku">${esc(p.sku || "")}</td>`;
@@ -406,10 +417,16 @@
       html += `<td class="jewd-right">${stockHtml}</td>`;
       html += `<td class="jewd-right">${esc(p.weight || "—")}</td>`;
       html += '<td class="jewd-center">';
-      html += `<button class="jewd-action-btn" data-action="detail" data-idx="${idx}" title="Ver detalle">👁</button>`;
-      html += `<button class="jewd-action-btn" data-action="edit" data-idx="${idx}" title="Editar producto">✏️</button>`;
-      html += `<button class="jewd-action-btn" data-action="duplicate" data-idx="${idx}" title="Duplicar producto">📋</button>`;
-      html += `<a class="jewd-action-btn" href="${esc(p.permalink || "#")}" title="Ver en tienda" target="_blank">🔗</a>`;
+      if (p.status === "trash") {
+        html += `<button class="jewd-action-btn jewd-action-restore" data-action="restore" data-idx="${idx}" title="Restaurar">♻️</button>`;
+        html += `<button class="jewd-action-btn jewd-action-danger" data-action="permadelete" data-idx="${idx}" title="Eliminar permanentemente">💀</button>`;
+      } else {
+        html += `<button class="jewd-action-btn" data-action="detail" data-idx="${idx}" title="Ver detalle">👁</button>`;
+        html += `<button class="jewd-action-btn" data-action="edit" data-idx="${idx}" title="Editar producto">✏️</button>`;
+        html += `<button class="jewd-action-btn" data-action="duplicate" data-idx="${idx}" title="Duplicar producto">📋</button>`;
+        html += `<button class="jewd-action-btn jewd-action-danger" data-action="delete" data-idx="${idx}" title="Eliminar producto">🗑</button>`;
+        html += `<a class="jewd-action-btn" href="${esc(p.permalink || "#")}" title="Ver en tienda" target="_blank">🔗</a>`;
+      }
       html += "</td>";
       html += "</tr>";
 
@@ -447,7 +464,7 @@
           }
 
           html += '<tr class="jewd-vrow">';
-          html += "<td></td><td></td>";
+          html += "<td></td><td></td><td></td>";
           html += `<td class="jewd-sku jewd-var-indent">↳ ${esc(v.sku || "")}</td>`;
           html += `<td><span class="jewd-var-attr">${esc(vAttr)}</span></td>`;
           html += '<td><span class="jewd-badge jewd-badge-v">var</span></td>';
@@ -493,6 +510,27 @@
     tb.querySelectorAll('[data-action="duplicate"]').forEach((btn) => {
       btn.addEventListener("click", () =>
         duplicateProduct(state.products[parseInt(btn.dataset.idx)]),
+      );
+    });
+
+    // Bind delete buttons.
+    tb.querySelectorAll('[data-action="delete"]').forEach((btn) => {
+      btn.addEventListener("click", () =>
+        deleteProductAction(state.products[parseInt(btn.dataset.idx)]),
+      );
+    });
+
+    // Bind restore buttons (trash view).
+    tb.querySelectorAll('[data-action="restore"]').forEach((btn) => {
+      btn.addEventListener("click", () =>
+        restoreProduct(state.products[parseInt(btn.dataset.idx)]),
+      );
+    });
+
+    // Bind permanent delete buttons (trash view).
+    tb.querySelectorAll('[data-action="permadelete"]').forEach((btn) => {
+      btn.addEventListener("click", () =>
+        permanentDeleteProduct(state.products[parseInt(btn.dataset.idx)]),
       );
     });
   }
@@ -867,6 +905,14 @@
           });
           html += "</select></div>";
         });
+        // Image upload field for the new variation.
+        html += '<div class="jewd-new-var-field">';
+        html += '<label class="jewd-edit-label">Imagen (opcional)</label>';
+        html += '<div class="jewd-new-var-img-wrap" id="newVarImgWrap">';
+        html += '<input type="file" accept="image/*" id="newVarImgInput" style="display:none">';
+        html += '<button type="button" class="jewd-btn jewd-btn-outline jewd-btn-sm" id="newVarImgBtn">📷 Seleccionar</button>';
+        html += '<span id="newVarImgName" style="font-size:.78rem;color:var(--jewd-text2);margin-left:8px"></span>';
+        html += '</div></div>';
         html += "</div>";
         html += '<div class="jewd-new-var-actions">';
         html +=
@@ -929,6 +975,19 @@
     }
     selects.forEach((s) => s.addEventListener("change", checkSelects));
 
+    // Image file input for new variation.
+    let newVarImageFile = null;
+    const imgBtn = $("#newVarImgBtn");
+    const imgInput = $("#newVarImgInput");
+    const imgName = $("#newVarImgName");
+    if (imgBtn && imgInput) {
+      imgBtn.addEventListener("click", () => imgInput.click());
+      imgInput.addEventListener("change", () => {
+        newVarImageFile = imgInput.files[0] || null;
+        if (imgName) imgName.textContent = newVarImageFile ? newVarImageFile.name : "";
+      });
+    }
+
     btn.addEventListener("click", async () => {
       // Build attributes array from selects.
       const attributes = [];
@@ -966,6 +1025,14 @@
           regular_price: "",
           status: "publish",
         };
+
+        // Upload image if provided (F3-UI-05).
+        if (newVarImageFile) {
+          toast("📷 Subiendo imagen de variación...");
+          const imgResult = await JewdAPI.uploadImage(newVarImageFile);
+          varData.image = { id: imgResult.data.id };
+        }
+
         const result = await JewdAPI.createVariation(product.id, varData);
         toast("✅ Variación creada (ID: " + result.data.id + ")");
 
@@ -1557,6 +1624,361 @@
     editingProduct = null;
   }
 
+  /* ===== NEW PRODUCT WIZARD (F3-UI-01) ===== */
+  function openNewProductWizard() {
+    let wizardStep = 0;
+    const wizardData = {
+      type: 'simple',
+      name: '',
+      sku: '',
+      short_description: '',
+      regular_price: '',
+      sale_price: '',
+      manage_stock: true,
+      stock_quantity: '',
+      weight: '',
+      categories: [],
+      images: [],
+      imageFiles: [],
+    };
+
+    const overlay = document.createElement('div');
+    overlay.className = 'jewd-modal active';
+    overlay.innerHTML = `
+      <div class="jewd-modal-dialog jewd-modal-lg">
+        <div class="jewd-modal-header">
+          <h2>➕ Nuevo Producto</h2>
+          <button class="jewd-modal-close" id="wizardClose">&times;</button>
+        </div>
+        <div class="jewd-modal-body" style="padding:20px">
+          <div class="jewd-wizard-steps">
+            <div class="jewd-wizard-step active" data-step="0">① Datos</div>
+            <div class="jewd-wizard-step" data-step="1">② Precios</div>
+            <div class="jewd-wizard-step" data-step="2">③ Imágenes</div>
+          </div>
+
+          <!-- Step 0: Basic Data -->
+          <div class="jewd-wizard-panel active" id="wizStep0">
+            <div class="jewd-wizard-type-grid">
+              <div class="jewd-wizard-type-card selected" data-type="simple">
+                <div class="icon">📦</div>
+                <div class="label">Simple</div>
+                <div class="desc">Producto sin variaciones</div>
+              </div>
+              <div class="jewd-wizard-type-card" data-type="variable">
+                <div class="icon">🔀</div>
+                <div class="label">Variable</div>
+                <div class="desc">Con tallas, colores, etc.</div>
+              </div>
+            </div>
+            <div class="jewd-edit-field jewd-edit-wide"><label class="jewd-edit-label">Nombre *</label><input class="jewd-edit-input" id="wizName" placeholder="Nombre del producto"></div>
+            <div class="jewd-edit-field jewd-edit-wide"><label class="jewd-edit-label">SKU</label><input class="jewd-edit-input" id="wizSku" placeholder="Código único (opcional)"></div>
+            <div class="jewd-edit-field jewd-edit-wide"><label class="jewd-edit-label">Descripción corta</label><textarea class="jewd-edit-input jewd-edit-textarea" id="wizDesc" rows="3" placeholder="Breve descripción..."></textarea></div>
+            <div class="jewd-edit-section" style="margin-top:12px">
+              <div class="jewd-edit-section-title">Categorías</div>
+              <div class="jewd-cat-grid" id="wizCatGrid">
+                ${state.categories.map(c => `<label class="jewd-cat-checkbox"><input type="checkbox" value="${c.id}"> ${esc(c.name)}</label>`).join('')}
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 1: Pricing -->
+          <div class="jewd-wizard-panel" id="wizStep1">
+            <div class="jewd-edit-field jewd-edit-wide"><label class="jewd-edit-label">Precio regular *</label><input class="jewd-edit-input" id="wizPrice" type="number" step="0.01" placeholder="0.00"></div>
+            <div class="jewd-edit-field jewd-edit-wide"><label class="jewd-edit-label">Precio oferta</label><input class="jewd-edit-input" id="wizSalePrice" type="number" step="0.01" placeholder="0.00 (opcional)"></div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+              <div class="jewd-edit-field"><label class="jewd-edit-label">Stock</label><input class="jewd-edit-input" id="wizStock" type="number" placeholder="Cantidad"></div>
+              <div class="jewd-edit-field"><label class="jewd-edit-label">Peso (oz)</label><input class="jewd-edit-input" id="wizWeight" placeholder="0.00"></div>
+            </div>
+          </div>
+
+          <!-- Step 2: Images -->
+          <div class="jewd-wizard-panel" id="wizStep2">
+            <div class="jewd-edit-section-title">Imágenes del producto</div>
+            <p style="color:var(--jewd-text2);font-size:.82rem;margin:0 0 12px">
+              Arrastra imágenes aquí o haz clic para seleccionar.
+            </p>
+            <div id="wizImageDropzone" class="jewd-img-dropzone" style="border:2px dashed var(--jewd-border);border-radius:8px;padding:30px;text-align:center;cursor:pointer;min-height:100px">
+              <span style="font-size:2rem">📷</span><br>
+              <span style="color:var(--jewd-text2)">Click o arrastra imágenes</span>
+              <input type="file" id="wizImageInput" accept="image/*" multiple style="display:none">
+            </div>
+            <div id="wizImagePreview" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:12px"></div>
+          </div>
+        </div>
+        <div class="jewd-wizard-footer">
+          <button class="jewd-btn jewd-btn-outline" id="wizPrev" style="visibility:hidden">← Anterior</button>
+          <button class="jewd-btn jewd-btn-gold" id="wizNext">Siguiente →</button>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(overlay);
+
+    // Type selection.
+    overlay.querySelectorAll('.jewd-wizard-type-card').forEach(card => {
+      card.addEventListener('click', () => {
+        overlay.querySelectorAll('.jewd-wizard-type-card').forEach(c => c.classList.remove('selected'));
+        card.classList.add('selected');
+        wizardData.type = card.dataset.type;
+      });
+    });
+
+    // Image dropzone.
+    const dropzone = overlay.querySelector('#wizImageDropzone');
+    const fileInput = overlay.querySelector('#wizImageInput');
+    dropzone.addEventListener('click', () => fileInput.click());
+    dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.style.borderColor = 'var(--jewd-accent)'; });
+    dropzone.addEventListener('dragleave', () => { dropzone.style.borderColor = 'var(--jewd-border)'; });
+    dropzone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropzone.style.borderColor = 'var(--jewd-border)';
+      addWizardImages(Array.from(e.dataTransfer.files));
+    });
+    fileInput.addEventListener('change', () => {
+      addWizardImages(Array.from(fileInput.files));
+      fileInput.value = '';
+    });
+
+    function addWizardImages(files) {
+      files.filter(f => f.type.startsWith('image/')).forEach(f => {
+        wizardData.imageFiles.push(f);
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const wrap = document.createElement('div');
+          wrap.style.cssText = 'position:relative;width:70px;height:70px;border-radius:6px;overflow:hidden';
+          wrap.innerHTML = `<img src="${e.target.result}" style="width:100%;height:100%;object-fit:cover">
+            <button style="position:absolute;top:2px;right:2px;background:rgba(0,0,0,.6);color:#fff;border:none;border-radius:50%;width:18px;height:18px;cursor:pointer;font-size:10px;line-height:18px;text-align:center" data-rmidx="${wizardData.imageFiles.length - 1}">×</button>`;
+          wrap.querySelector('button').addEventListener('click', (ev) => {
+            const idx = parseInt(ev.target.dataset.rmidx);
+            wizardData.imageFiles[idx] = null;
+            wrap.remove();
+          });
+          overlay.querySelector('#wizImagePreview').appendChild(wrap);
+        };
+        reader.readAsDataURL(f);
+      });
+    }
+
+    // Navigation.
+    function goToStep(step) {
+      wizardStep = step;
+      overlay.querySelectorAll('.jewd-wizard-panel').forEach((p, i) => {
+        p.classList.toggle('active', i === step);
+      });
+      overlay.querySelectorAll('.jewd-wizard-step').forEach((s, i) => {
+        s.classList.remove('active', 'done');
+        if (i === step) s.classList.add('active');
+        else if (i < step) s.classList.add('done');
+      });
+      overlay.querySelector('#wizPrev').style.visibility = step === 0 ? 'hidden' : 'visible';
+      overlay.querySelector('#wizNext').textContent = step === 2 ? '💾 Crear Producto' : 'Siguiente →';
+    }
+
+    overlay.querySelector('#wizPrev').addEventListener('click', () => {
+      if (wizardStep > 0) goToStep(wizardStep - 1);
+    });
+
+    overlay.querySelector('#wizNext').addEventListener('click', async () => {
+      if (wizardStep < 2) {
+        // Validate step 0.
+        if (wizardStep === 0) {
+          const name = overlay.querySelector('#wizName').value.trim();
+          if (!name) { toast('⚠️ El nombre es obligatorio'); return; }
+          wizardData.name = name;
+          wizardData.sku = overlay.querySelector('#wizSku').value.trim();
+          wizardData.short_description = overlay.querySelector('#wizDesc').value.trim();
+          wizardData.categories = Array.from(overlay.querySelectorAll('#wizCatGrid input:checked')).map(cb => ({ id: parseInt(cb.value) }));
+        }
+        // Validate step 1.
+        if (wizardStep === 1) {
+          const price = overlay.querySelector('#wizPrice').value.trim();
+          if (wizardData.type === 'simple' && !price) { toast('⚠️ El precio es obligatorio para productos simples'); return; }
+          wizardData.regular_price = price;
+          wizardData.sale_price = overlay.querySelector('#wizSalePrice').value.trim();
+          wizardData.stock_quantity = overlay.querySelector('#wizStock').value.trim();
+          wizardData.weight = overlay.querySelector('#wizWeight').value.trim();
+        }
+        goToStep(wizardStep + 1);
+      } else {
+        // Create product.
+        await createNewProduct(wizardData, overlay);
+      }
+    });
+
+    // Close.
+    overlay.querySelector('#wizardClose').addEventListener('click', () => overlay.remove());
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
+  }
+
+  async function createNewProduct(data, overlay) {
+    const btn = overlay.querySelector('#wizNext');
+    btn.disabled = true;
+    btn.textContent = '⏳ Creando...';
+
+    try {
+      // Upload images first.
+      const uploadedImages = [];
+      const validFiles = data.imageFiles.filter(f => f !== null);
+      for (let i = 0; i < validFiles.length; i++) {
+        toast(`📷 Subiendo imagen ${i + 1}/${validFiles.length}...`);
+        const result = await JewdAPI.uploadImage(validFiles[i]);
+        uploadedImages.push({ id: result.data.id });
+      }
+
+      const productData = {
+        name: data.name,
+        type: data.type,
+        status: 'draft',
+        short_description: data.short_description,
+        regular_price: data.regular_price || undefined,
+        sale_price: data.sale_price || undefined,
+        manage_stock: data.manage_stock,
+        stock_quantity: data.stock_quantity ? parseInt(data.stock_quantity) : null,
+        weight: data.weight || undefined,
+        categories: data.categories,
+        images: uploadedImages,
+      };
+
+      if (data.sku) productData.sku = data.sku;
+
+      // Remove undefined values.
+      Object.keys(productData).forEach(k => { if (productData[k] === undefined) delete productData[k]; });
+
+      toast('💾 Creando producto...');
+      const result = await JewdAPI.createProduct(productData);
+      overlay.remove();
+      toast(`✅ Producto creado: "${result.data.name}" (ID: ${result.data.id})`);
+
+      // Refresh and open edit modal for the new product.
+      await loadProducts();
+      loadStats();
+
+      // Open the newly created product in edit modal.
+      const newProduct = state.products.find(p => p.id === result.data.id);
+      if (newProduct) showEditModal(newProduct);
+
+    } catch (err) {
+      console.error('Create product failed:', err);
+      toast('❌ Error al crear: ' + err.message);
+      btn.disabled = false;
+      btn.textContent = '💾 Crear Producto';
+    }
+  }
+
+  /* ===== BULK ACTIONS (F3-UI-03) ===== */
+  let selectedProducts = new Set();
+
+  function initBulkActions() {
+    const selectAll = $('#selectAll');
+    if (selectAll) {
+      selectAll.addEventListener('change', () => {
+        const checked = selectAll.checked;
+        $$('.jewd-row-check[data-id]').forEach(cb => {
+          cb.checked = checked;
+          const id = parseInt(cb.dataset.id);
+          if (checked) selectedProducts.add(id);
+          else selectedProducts.delete(id);
+        });
+        updateBulkBar();
+      });
+    }
+
+    // Delegate checkbox changes in table.
+    $('#productsTable').addEventListener('change', (e) => {
+      if (e.target.classList.contains('jewd-row-check')) {
+        const id = parseInt(e.target.dataset.id);
+        if (e.target.checked) selectedProducts.add(id);
+        else selectedProducts.delete(id);
+        updateBulkBar();
+      }
+    });
+
+    // Bulk action buttons.
+    const bind = (id, fn) => { const el = $(id); if (el) el.addEventListener('click', fn); };
+    bind('#bulkChangeStatus', bulkChangeStatus);
+    bind('#bulkChangePrice', bulkChangePrice);
+    bind('#bulkChangeStock', bulkChangeStock);
+    bind('#bulkDelete', bulkDeleteProducts);
+    bind('#bulkCancel', () => { selectedProducts.clear(); $$('.jewd-row-check').forEach(cb => cb.checked = false); updateBulkBar(); });
+  }
+
+  function updateBulkBar() {
+    const bar = $('#bulkBar');
+    const count = selectedProducts.size;
+    if (bar) {
+      bar.classList.toggle('active', count > 0);
+      const countEl = $('#bulkCount');
+      if (countEl) countEl.textContent = `${count} seleccionado${count !== 1 ? 's' : ''}`;
+    }
+  }
+
+  async function bulkChangeStatus() {
+    const status = prompt('Nuevo estado:\n• publish\n• draft\n• private\n• trash');
+    if (!status || !['publish', 'draft', 'private', 'trash'].includes(status)) return;
+    await executeBulkAction('Estado → ' + status, (id) => JewdAPI.updateProductStatus(id, status));
+  }
+
+  async function bulkChangePrice() {
+    const input = prompt('Cambiar precio:\n• Número fijo: 99.99\n• Porcentaje: +10% o -15%');
+    if (!input) return;
+
+    const isPercent = /^[+-]\d+(\.\d+)?%$/.test(input.trim());
+
+    await executeBulkAction('Precio', async (id) => {
+      if (isPercent) {
+        const pct = parseFloat(input) / 100;
+        const product = state.products.find(p => p.id === id);
+        if (!product) return;
+        const currentPrice = parseFloat(product.regular_price) || parseFloat(product.price) || 0;
+        const newPrice = (currentPrice * (1 + pct)).toFixed(2);
+        return JewdAPI.updateProduct(id, { regular_price: newPrice });
+      } else {
+        return JewdAPI.updateProduct(id, { regular_price: input.trim() });
+      }
+    });
+  }
+
+  async function bulkChangeStock() {
+    const input = prompt('Nuevo stock (número):\nEj: 10');
+    const qty = parseInt(input);
+    if (isNaN(qty)) return;
+    await executeBulkAction('Stock → ' + qty, (id) => JewdAPI.updateProduct(id, { manage_stock: true, stock_quantity: qty }));
+  }
+
+  async function bulkDeleteProducts() {
+    if (!confirm(`¿Mover ${selectedProducts.size} productos a la papelera?`)) return;
+    await executeBulkAction('Papelera', (id) => JewdAPI.updateProductStatus(id, 'trash'));
+  }
+
+  async function executeBulkAction(label, actionFn) {
+    const ids = Array.from(selectedProducts);
+    const total = ids.length;
+    let done = 0;
+    let errors = 0;
+
+    toast(`⏳ ${label}: 0/${total}...`);
+
+    for (const id of ids) {
+      try {
+        await actionFn(id);
+        done++;
+      } catch (e) {
+        errors++;
+        console.error(`Bulk ${label} failed for ${id}:`, e);
+      }
+      toast(`⏳ ${label}: ${done + errors}/${total}...`);
+    }
+
+    selectedProducts.clear();
+    $$('.jewd-row-check').forEach(cb => cb.checked = false);
+    updateBulkBar();
+
+    toast(`✅ ${label}: ${done} OK${errors ? `, ${errors} errores` : ''}`);
+    await loadProducts();
+    loadStats();
+  }
+
   /* ===== DUPLICATE PRODUCT ===== */
   async function duplicateProduct(p) {
     if (!confirm(`¿Duplicar "${p.name}"?\nSe creará una copia en borrador.`)) return;
@@ -1602,6 +2024,116 @@
       console.error("Duplicate failed:", err);
       toast("❌ Error al duplicar: " + err.message);
     }
+  }
+
+  /* ===== DELETE / TRASH / RESTORE ===== */
+  async function deleteProductAction(p) {
+    if (!p) return;
+    const action = await showDeleteConfirm(p);
+    if (!action) return;
+
+    try {
+      if (action === "trash") {
+        toast("🗑 Moviendo a papelera...");
+        await JewdAPI.updateProductStatus(p.id, "trash");
+        toast(`✅ "${p.name}" movido a papelera`);
+      } else if (action === "permanent") {
+        toast("💀 Eliminando permanentemente...");
+        await JewdAPI.deleteProduct(p.id, true);
+        toast(`✅ "${p.name}" eliminado permanentemente`);
+      }
+      await loadProducts();
+      loadStats();
+    } catch (err) {
+      console.error("Delete failed:", err);
+      toast("❌ Error al eliminar: " + err.message);
+    }
+  }
+
+  async function restoreProduct(p) {
+    if (!p) return;
+    if (!confirm(`¿Restaurar "${p.name}"?\nVolverá a estado borrador.`)) return;
+
+    try {
+      toast("♻️ Restaurando...");
+      await JewdAPI.updateProductStatus(p.id, "draft");
+      toast(`✅ "${p.name}" restaurado como borrador`);
+      await loadProducts();
+      loadStats();
+    } catch (err) {
+      console.error("Restore failed:", err);
+      toast("❌ Error al restaurar: " + err.message);
+    }
+  }
+
+  async function permanentDeleteProduct(p) {
+    if (!p) return;
+    if (!confirm(`⚠️ ELIMINAR PERMANENTEMENTE "${p.name}"?\n\nEsta acción NO se puede deshacer.`))
+      return;
+
+    try {
+      toast("💀 Eliminando...");
+      await JewdAPI.deleteProduct(p.id, true);
+      toast(`✅ "${p.name}" eliminado permanentemente`);
+      await loadProducts();
+      loadStats();
+    } catch (err) {
+      console.error("Permanent delete failed:", err);
+      toast("❌ Error: " + err.message);
+    }
+  }
+
+  /**
+   * Show delete confirmation modal with two options.
+   * Returns: 'trash' | 'permanent' | null
+   */
+  function showDeleteConfirm(p) {
+    return new Promise((resolve) => {
+      const overlay = document.createElement("div");
+      overlay.className = "jewd-modal active";
+      overlay.style.zIndex = "10001";
+      overlay.innerHTML = `
+        <div class="jewd-modal-dialog jewd-modal-sm">
+          <div class="jewd-modal-header">
+            <h2>🗑 Eliminar Producto</h2>
+            <button class="jewd-modal-close" data-action="close">&times;</button>
+          </div>
+          <div class="jewd-modal-body" style="padding:20px">
+            <p style="margin:0 0 16px;font-size:.95rem">
+              ¿Qué deseas hacer con <strong>${esc(p.name)}</strong>?
+            </p>
+            <div style="display:flex;flex-direction:column;gap:10px">
+              <button class="jewd-btn jewd-btn-outline" data-action="trash" style="text-align:left;padding:12px 16px">
+                🗑 <strong>Mover a papelera</strong>
+                <br><span style="font-size:.78rem;color:var(--jewd-text2)">Se puede restaurar después</span>
+              </button>
+              <button class="jewd-btn jewd-btn-danger" data-action="permanent" style="text-align:left;padding:12px 16px">
+                💀 <strong>Eliminar permanentemente</strong>
+                <br><span style="font-size:.78rem;opacity:.8">No se puede deshacer</span>
+              </button>
+            </div>
+          </div>
+          <div class="jewd-modal-footer">
+            <button class="jewd-btn jewd-btn-outline" data-action="close">Cancelar</button>
+          </div>
+        </div>
+      `;
+
+      function cleanup(action) {
+        overlay.remove();
+        resolve(action);
+      }
+
+      overlay.addEventListener("click", (e) => {
+        const action = e.target.closest("[data-action]")?.dataset?.action;
+        if (action === "close") cleanup(null);
+        else if (action === "trash") cleanup("trash");
+        else if (action === "permanent") cleanup("permanent");
+        else if (e.target === overlay) cleanup(null);
+      });
+
+      document.body.appendChild(overlay);
+    });
   }
 
   /* ===== IMAGE LIGHTBOX WITH NAVIGATION ===== */
