@@ -626,6 +626,11 @@ body {
   flex-wrap: wrap;
 }
 
+/* Tables inside modals: reset sticky header so it doesn't overlap rows */
+.jewd-modal-dialog .jewd-table th {
+  position: static;
+}
+
 /* Detail grid */
 .jewd-detail-grid {
   display: grid;
