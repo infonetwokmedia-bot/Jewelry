@@ -2045,6 +2045,78 @@ body {
   word-break: break-all;
 }
 
+/* ===== ORIGINS MANAGEMENT (BE-04) ===== */
+.jewd-origins-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.jewd-origin-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 10px;
+  background: var(--jewd-surface2);
+  border-radius: 6px;
+  font-size: 0.82rem;
+}
+.jewd-origin-row code {
+  font-family: "SF Mono", "Fira Code", Consolas, monospace;
+  font-size: 0.8rem;
+  color: var(--jewd-text);
+  word-break: break-all;
+}
+.jewd-origin-default {
+  opacity: 0.65;
+}
+.jewd-badge-default {
+  display: inline-block;
+  font-size: 0.65rem;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: var(--jewd-border);
+  color: var(--jewd-text2);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.jewd-btn-danger-sm {
+  background: none;
+  border: 1px solid #e74c3c;
+  color: #e74c3c;
+  border-radius: 4px;
+  cursor: pointer;
+  padding: 2px 8px;
+  font-size: 0.75rem;
+  transition: background 0.2s;
+}
+.jewd-btn-danger-sm:hover {
+  background: #e74c3c;
+  color: #fff;
+}
+.jewd-btn-sm {
+  font-size: 0.8rem;
+  padding: 6px 14px;
+}
+.jewd-btn-primary {
+  background: var(--jewd-gold);
+  color: #1a1a2e;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background 0.2s, transform 0.1s;
+}
+.jewd-btn-primary:hover {
+  background: var(--jewd-gold-hover);
+  transform: translateY(-1px);
+}
+.jewd-btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
 /* ===== RESPONSIVE: Sidebar ===== */
 @media (max-width: 768px) {
   .jewd-sidebar-toggle {

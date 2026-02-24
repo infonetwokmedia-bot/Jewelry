@@ -402,6 +402,30 @@ const JewdAPI = (function () {
     return request(url);
   }
 
+  /* ===== CORS ORIGINS (BE-04) ===== */
+
+  /**
+   * GET allowed CORS origins.
+   */
+  async function getOrigins() {
+    const c = cfg();
+    const url = `${c.wpBaseUrl}/jewd/v1/origins?${authParams()}`;
+    return request(url);
+  }
+
+  /**
+   * UPDATE allowed CORS origins.
+   * @param {string[]} origins Array of origin URLs.
+   */
+  async function updateOrigins(origins) {
+    const c = cfg();
+    const url = `${c.wpBaseUrl}/jewd/v1/origins?${authParams()}`;
+    return request(url, {
+      method: "PUT",
+      body: JSON.stringify({ origins }),
+    });
+  }
+
   // Public API
   return {
     getProducts,
@@ -431,5 +455,7 @@ const JewdAPI = (function () {
     getSettings,
     updateSetting,
     getSystemStatus,
+    getOrigins,
+    updateOrigins,
   };
 })();

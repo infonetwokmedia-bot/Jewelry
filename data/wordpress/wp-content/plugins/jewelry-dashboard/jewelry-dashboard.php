@@ -29,11 +29,11 @@ add_action('before_woocommerce_init', function () {
 });
 
 /**
- * Allowed origins for CORS — centralized list.
+ * Default (hardcoded) origins — fallback when no custom origins configured.
  *
  * @return array
  */
-function jewd_allowed_origins()
+function jewd_default_origins()
 {
     return array(
         'https://dashboard.jewelry.local.dev',
@@ -41,6 +41,27 @@ function jewd_allowed_origins()
         'https://dashboard.dev.tujoyita.com',
         'https://dev.tujoyita.com',
     );
+}
+
+/**
+ * Allowed origins for CORS — dynamic list (BE-04).
+ *
+ * Reads from WP option `jewd_allowed_origins` (array).
+ * Falls back to hardcoded defaults if option is empty.
+ *
+ * @return array
+ */
+function jewd_allowed_origins()
+{
+    $custom = get_option('jewd_allowed_origins', array());
+
+    if (! empty($custom) && is_array($custom)) {
+        // Merge custom + defaults, remove empties, deduplicate.
+        $merged = array_unique(array_filter(array_merge($custom, jewd_default_origins())));
+        return array_values($merged);
+    }
+
+    return jewd_default_origins();
 }
 
 /**
@@ -419,4 +440,277 @@ function jewd_delete_media(WP_REST_Request $request)
         'deleted' => true,
         'id'      => $id,
     ), 200);
+}
+
+/* =========================================================================
+ * CORS ORIGINS MANAGEMENT — BE-04
+ * ========================================================================= */
+
+/**
+ * Register REST routes for CORS origins management.
+ *
+ * GET    /wp-json/jewd/v1/origins   — list allowed origins
+ * PUT    /wp-json/jewd/v1/origins   — update allowed origins
+ */
+add_action('rest_api_init', function () {
+
+    register_rest_route('jewd/v1', '/origins', array(
+        array(
+            'methods'             => 'GET',
+            'callback'            => 'jewd_get_origins',
+            'permission_callback' => 'jewd_media_permission_check',
+        ),
+        array(
+            'methods'             => 'PUT',
+            'callback'            => 'jewd_update_origins',
+            'permission_callback' => 'jewd_media_permission_check',
+        ),
+    ));
+});
+
+/**
+ * Return current list of allowed origins + defaults.
+ *
+ * @return WP_REST_Response
+ */
+function jewd_get_origins()
+{
+    $custom   = get_option('jewd_allowed_origins', array());
+    $defaults = jewd_default_origins();
+
+    return new WP_REST_Response(array(
+        'origins'  => jewd_allowed_origins(),
+        'custom'   => is_array($custom) ? $custom : array(),
+        'defaults' => $defaults,
+    ), 200);
+}
+
+/**
+ * Update the custom allowed origins.
+ * Accepts JSON body: { "origins": ["https://example.com", ...] }
+ *
+ * @param WP_REST_Request $request The request object.
+ * @return WP_REST_Response
+ */
+function jewd_update_origins(WP_REST_Request $request)
+{
+    $body = $request->get_json_params();
+
+    if (! isset($body['origins']) || ! is_array($body['origins'])) {
+        return new WP_REST_Response(
+            array('error' => 'Invalid payload. Expected { "origins": [...] }'),
+            400
+        );
+    }
+
+    // Sanitize and validate each origin.
+    $origins = array();
+    foreach ($body['origins'] as $origin) {
+        $origin = esc_url_raw(trim($origin));
+        // Must be a valid https:// URL (or http for local dev).
+        if (! empty($origin) && preg_match('#^https?://#', $origin)) {
+            // Strip trailing slash.
+            $origins[] = rtrim($origin, '/');
+        }
+    }
+
+    $origins = array_unique(array_values($origins));
+    update_option('jewd_allowed_origins', $origins);
+
+    return new WP_REST_Response(array(
+        'updated' => true,
+        'origins' => jewd_allowed_origins(),
+        'custom'  => $origins,
+    ), 200);
+}
+
+/* =========================================================================
+ * RATE LIMITING — BE-05
+ * ========================================================================= */
+
+/**
+ * Simple rate limiter using WordPress transients.
+ *
+ * Tracks requests per consumer_key per action within a time window.
+ *
+ * @param string $action   The action type ('upload', 'delete').
+ * @param int    $limit    Max requests allowed in the window.
+ * @param int    $window   Time window in seconds (default 60).
+ * @return bool|WP_REST_Response True if allowed, WP_REST_Response(429) if exceeded.
+ */
+function jewd_check_rate_limit($action, $limit, $window = 60)
+{
+    // Identify the client by consumer_key or IP.
+    // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+    $key = ! empty($_GET['consumer_key'])
+        ? sanitize_text_field(wp_unslash($_GET['consumer_key']))
+        : '';
+
+    // Also check POST body for multipart uploads.
+    // phpcs:ignore WordPress.Security.NonceVerification.Missing
+    if (empty($key) && ! empty($_POST['consumer_key'])) {
+        $key = sanitize_text_field(wp_unslash($_POST['consumer_key']));
+    }
+
+    if (empty($key)) {
+        // Fallback to IP address.
+        $key = isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : 'unknown';
+    }
+
+    $transient_key = 'jewd_rl_' . md5($action . '_' . $key);
+    $current       = get_transient($transient_key);
+
+    if (false === $current) {
+        // First request in this window.
+        set_transient($transient_key, 1, $window);
+        return true;
+    }
+
+    $count = (int) $current;
+
+    if ($count >= $limit) {
+        return new WP_REST_Response(
+            array(
+                'error'       => 'Too Many Requests',
+                'action'      => $action,
+                'limit'       => $limit,
+                'window_secs' => $window,
+                'retry_after' => $window,
+            ),
+            429
+        );
+    }
+
+    // Increment counter (keep same TTL by deleting + resetting).
+    // Use a small trick: read remaining TTL from _transient_timeout.
+    $timeout_key    = '_transient_timeout_' . $transient_key;
+    $timeout        = get_option($timeout_key);
+    $remaining_ttl  = $timeout ? max(1, (int) $timeout - time()) : $window;
+
+    set_transient($transient_key, $count + 1, $remaining_ttl);
+
+    return true;
+}
+
+/**
+ * Apply rate limiting to upload endpoint.
+ * Limit: 10 uploads/minute per consumer_key.
+ */
+add_filter('rest_pre_dispatch', function ($result, $server, $request) {
+    $route  = $request->get_route();
+    $method = $request->get_method();
+
+    // Rate limit uploads: POST /jewd/v1/media — 10/min.
+    if ('/jewd/v1/media' === $route && 'POST' === $method) {
+        $check = jewd_check_rate_limit('upload', 10, 60);
+        if ($check instanceof WP_REST_Response) {
+            return $check;
+        }
+    }
+
+    // Rate limit deletes: DELETE /jewd/v1/media/<id> — 5/min.
+    if (preg_match('#^/jewd/v1/media/\d+$#', $route) && 'DELETE' === $method) {
+        $check = jewd_check_rate_limit('delete', 5, 60);
+        if ($check instanceof WP_REST_Response) {
+            return $check;
+        }
+    }
+
+    return $result;
+}, 10, 3);
+
+/* =========================================================================
+ * ADMIN SETTINGS PAGE — BE-04 (Origins UI in WP Admin)
+ * ========================================================================= */
+
+/**
+ * Register a lightweight settings page under WooCommerce menu.
+ */
+add_action('admin_menu', function () {
+    add_submenu_page(
+        'woocommerce',
+        'Jewelry Dashboard Settings',
+        'Dashboard CORS',
+        'manage_woocommerce',
+        'jewd-cors-settings',
+        'jewd_render_admin_settings_page'
+    );
+});
+
+/**
+ * Register the setting for the admin page.
+ */
+add_action('admin_init', function () {
+    register_setting('jewd_settings_group', 'jewd_allowed_origins', array(
+        'type'              => 'array',
+        'sanitize_callback' => 'jewd_sanitize_origins',
+        'default'           => array(),
+    ));
+});
+
+/**
+ * Sanitize the origins array from admin form submission.
+ *
+ * @param mixed $input Raw input.
+ * @return array
+ */
+function jewd_sanitize_origins($input)
+{
+    if (! is_array($input)) {
+        // Textarea input — split by newlines.
+        $input = array_filter(array_map('trim', explode("\n", (string) $input)));
+    }
+
+    $clean = array();
+    foreach ($input as $origin) {
+        $origin = esc_url_raw(trim($origin));
+        if (! empty($origin) && preg_match('#^https?://#', $origin)) {
+            $clean[] = rtrim($origin, '/');
+        }
+    }
+
+    return array_unique(array_values($clean));
+}
+
+/**
+ * Render the WP Admin settings page for CORS origins.
+ */
+function jewd_render_admin_settings_page()
+{
+    $custom   = get_option('jewd_allowed_origins', array());
+    $defaults = jewd_default_origins();
+
+    ?>
+    <div class="wrap">
+        <h1>Jewelry Dashboard — CORS Origins</h1>
+        <p>Configura los origins permitidos para el dashboard SPA externo. Los origins por defecto siempre están incluidos.</p>
+
+        <h2>Origins por Defecto (siempre activos)</h2>
+        <ul>
+            <?php foreach ($defaults as $d) : ?>
+                <li><code><?php echo esc_html($d); ?></code></li>
+            <?php endforeach; ?>
+        </ul>
+
+        <h2>Origins Personalizados</h2>
+        <form method="post" action="options.php">
+            <?php settings_fields('jewd_settings_group'); ?>
+            <p>Agrega un origin por línea (ej: <code>https://mi-dashboard.com</code>):</p>
+            <textarea name="jewd_allowed_origins" rows="6" cols="60" class="large-text code"><?php
+                echo esc_textarea(implode("\n", is_array($custom) ? $custom : array()));
+            ?></textarea>
+            <?php submit_button('Guardar Origins'); ?>
+        </form>
+
+        <h2>Rate Limiting</h2>
+        <table class="widefat fixed striped" style="max-width:500px">
+            <thead><tr><th>Acción</th><th>Límite</th><th>Ventana</th></tr></thead>
+            <tbody>
+                <tr><td>Image Upload (POST /jewd/v1/media)</td><td>10 requests</td><td>60 segundos</td></tr>
+                <tr><td>Image Delete (DELETE /jewd/v1/media/&lt;id&gt;)</td><td>5 requests</td><td>60 segundos</td></tr>
+            </tbody>
+        </table>
+        <p class="description">El rate limiting se aplica por consumer_key. Retorna HTTP 429 si se excede.</p>
+    </div>
+    <?php
 }
