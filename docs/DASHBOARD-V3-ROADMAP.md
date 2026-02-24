@@ -1,8 +1,8 @@
 # Dashboard v3.0 — Roadmap, Tickets & TDD Checklist
 
 > **Documento maestro de seguimiento.** Cada ticket tiene su test definido ANTES de implementar (TDD).
-> **Última actualización:** 2026-02-25
-> **Estado global:** 🟢 Fase 5 — Completado ✅ Dashboard v3.0 100%
+> **Última actualización:** 2026-02-24
+> **Estado global:** 🟢 COMPLETADO — Dashboard v3.0 Roadmap 37/37 (100%) ✅
 
 ---
 
@@ -29,10 +29,10 @@
 | Fase 3 — CRUD            | 6       | 6           | 🟢 Completado |
 | Fase 4 — Navegación      | 5       | 5           | 🟢 Completado |
 | Fase 5 — Polish          | 6       | 6           | 🟢 Completado |
-| **Backend**              | 5       | 3           | 🟡 Parcial    |
-| **TOTAL**                | **37**  | **35**      | **95%**       |
+| **Backend**              | 5       | 5           | 🟢 Completado |
+| **TOTAL**                | **37**  | **37**      | **100%**      |
 
-> **Dashboard Phases 1-5: 32/32 (100%)** — Solo quedan BE-04 y BE-05 como mejoras futuras opcionales.
+> **🎉 ROADMAP COMPLETO — 37/37 tickets (100%)** — Todas las fases y dependencias backend implementadas.
 
 **Leyenda:** 🔴 En curso | 🟡 Parcial | 🟢 Completado | ⚪ Pendiente | ❌ Bloqueado
 
@@ -826,23 +826,25 @@ ESTADO: 🟢 PASS
 
 ### TICKET BE-04: Añadir origins dinámicos
 
-- **Estado:** ⬜
+- **Estado:** ✅ Completado (PR #6)
 
 **Checklist:**
 
-- [ ] Leer origins permitidos desde opción de WP (`get_option('jewd_allowed_origins')`)
-- [ ] Panel de ajustes para configurar origins
-- [ ] Fallback a lista hardcoded actual
+- [x] Leer origins permitidos desde opción de WP (`get_option('jewd_allowed_origins')`)
+- [x] Panel de ajustes para configurar origins (WP Admin + Dashboard SPA)
+- [x] REST API: GET/PUT `/jewd/v1/origins`
+- [x] Fallback a lista hardcoded actual
 
 ### TICKET BE-05: Rate limiting básico
 
-- **Estado:** ⬜
+- **Estado:** ✅ Completado (PR #6)
 
 **Checklist:**
 
-- [ ] Limitar uploads a 10/minuto por consumer_key
-- [ ] Limitar deletes a 5/minuto
-- [ ] Retornar 429 Too Many Requests si se excede
+- [x] Limitar uploads a 10/minuto por consumer_key
+- [x] Limitar deletes a 5/minuto
+- [x] Retornar 429 Too Many Requests si se excede
+- [x] Transient-based con fallback a IP si no hay consumer_key
 
 ---
 
@@ -887,6 +889,9 @@ ESTADO: 🟢 PASS
 | 2026-02-25 | F5-UX-05  | Responsive <480px: table→cards, bottom nav, 44px touch targets      | ✅     |
 | 2026-02-25 | F5-UX-06  | Typed toasts, stock alerts con pulse, order badge, sonido           | ✅     |
 | 2026-02-25 | —         | Phase 5 merged: PR #5 → main (`3fecc18`) +1131/-222 líneas         | ✅     |
+| 2026-02-24 | BE-04     | Dynamic CORS origins: WP option + REST API + Admin page + SPA UI    | ✅     |
+| 2026-02-24 | BE-05     | Rate limiting: 10 uploads/min, 5 deletes/min, HTTP 429              | ✅     |
+| 2026-02-24 | —         | Backend merged: PR #6 → main (`97671f3`) +515/-3 líneas            | ✅     |
 
 ---
 
@@ -918,4 +923,4 @@ SPRINT 1 (Fase 1 - Imágenes):
 ---
 
 **Mantenido por:** GitHub Copilot
-**Estado final:** ✅ Dashboard v3.0 — Fases 1-5 completadas (32/32 tickets). Pendientes opcionales: BE-04, BE-05.
+**Estado final:** ✅ Dashboard v3.0 COMPLETO — 37/37 tickets, 6 PRs merged (#1-#6). Fases 1-5 + Backend 100%.
