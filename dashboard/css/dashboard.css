@@ -36,6 +36,10 @@
   --jewd-overlay: rgba(0, 0, 0, 0.7);
   --jewd-vrow: rgba(212, 168, 67, 0.04);
   --jewd-vrow-h: rgba(212, 168, 67, 0.08);
+  --jewd-accent: #d4a843;
+  --jewd-bg2: #1e1e1e;
+  --jewd-gold-hover: #f0c850;
+  --jewd-danger: #ef5350;
 }
 
 /* Light mode */
@@ -55,6 +59,10 @@
   --jewd-overlay: rgba(0, 0, 0, 0.4);
   --jewd-vrow: rgba(184, 146, 46, 0.06);
   --jewd-vrow-h: rgba(184, 146, 46, 0.12);
+  --jewd-accent: #b8922e;
+  --jewd-bg2: #ede9e0;
+  --jewd-gold-hover: #d4a843;
+  --jewd-danger: #c62828;
 }
 
 /* ===== BASE ===== */
@@ -696,7 +704,7 @@ body {
   padding: 12px 20px;
   border-radius: 8px;
   font-size: 0.85rem;
-  z-index: 300000;
+  z-index: 600000;
   opacity: 0;
   transform: translateY(20px);
   transition: 0.3s;
@@ -1454,7 +1462,7 @@ body {
   gap: 10px;
 }
 .jewd-btn-success {
-  background: #2e7d32;
+  background: var(--jewd-green);
   color: #fff;
   border: none;
   border-radius: 6px;
@@ -1463,7 +1471,7 @@ body {
   transition: background 0.15s;
 }
 .jewd-btn-success:hover:not(:disabled) {
-  background: #388e3c;
+  filter: brightness(1.15);
 }
 .jewd-btn-success:disabled {
   opacity: 0.5;
@@ -1476,7 +1484,7 @@ body {
 
 /* ===== DELETE / TRASH / RESTORE ===== */
 .jewd-action-danger {
-  color: #ef5350 !important;
+  color: var(--jewd-red) !important;
   opacity: 0.7;
 }
 .jewd-action-danger:hover {
@@ -1484,28 +1492,28 @@ body {
   background: rgba(239, 83, 80, 0.15);
 }
 .jewd-action-restore {
-  color: #66bb6a !important;
+  color: var(--jewd-green) !important;
 }
 .jewd-action-restore:hover {
   background: rgba(102, 187, 106, 0.15);
 }
 .jewd-btn-danger {
-  background: #c62828;
+  background: var(--jewd-danger);
   color: #fff;
-  border: 1px solid #c62828;
+  border: 1px solid var(--jewd-danger);
   border-radius: 6px;
   cursor: pointer;
   font-weight: 600;
   transition: background 0.15s;
 }
 .jewd-btn-danger:hover {
-  background: #b71c1c;
+  filter: brightness(0.85);
 }
 .jewd-modal-sm {
   max-width: 440px;
 }
 .jewd-badge-trash {
-  background: #c62828;
+  background: var(--jewd-danger);
   color: #fff;
 }
 
@@ -2087,8 +2095,8 @@ body {
 }
 .jewd-btn-danger-sm {
   background: none;
-  border: 1px solid #e74c3c;
-  color: #e74c3c;
+  border: 1px solid var(--jewd-red);
+  color: var(--jewd-red);
   border-radius: 4px;
   cursor: pointer;
   padding: 2px 8px;
@@ -2096,7 +2104,7 @@ body {
   transition: background 0.2s;
 }
 .jewd-btn-danger-sm:hover {
-  background: #e74c3c;
+  background: var(--jewd-red);
   color: #fff;
 }
 .jewd-btn-sm {
@@ -2258,26 +2266,9 @@ body {
   gap: 8px;
   justify-content: flex-end;
 }
-.jewd-btn-danger {
-  background: var(--jewd-red);
-  color: #fff;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: 600;
-}
-.jewd-btn-danger:hover {
-  opacity: 0.9;
-}
+/* Danger/Success overrides consolidated above — kept minimal here. */
 .jewd-btn-success {
-  background: var(--jewd-green);
-  color: #fff;
-  border: none;
   padding: 8px 16px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: 600;
 }
 
 /* ===== FORM VALIDATION (F5-UX-03) ===== */
@@ -2507,6 +2498,7 @@ body {
 
   /* Stat cards responsive */
   .jewd-stats {
+    display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 6px;
   }

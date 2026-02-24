@@ -299,6 +299,9 @@
     // Keyboard.
     document.addEventListener("keydown", (e) => {
       if (e.key === "Escape") {
+        // If a confirm dialog is open, let its own Escape handler deal with it.
+        if (document.querySelector(".jewd-confirm-overlay")) return;
+
         closeModal();
         closeEditModal();
         closeOrderDetailModal();
@@ -391,7 +394,7 @@
   function catNames(cats) {
     if (!cats) return "";
     return Object.keys(cats)
-      .map((k) => cats[k].name)
+      .map((k) => esc(cats[k].name))
       .join(", ");
   }
 
@@ -798,7 +801,7 @@
     // Attributes.
     if (p.attributes && p.attributes.length) {
       const attrStr = p.attributes
-        .map((a) => `<strong>${esc(a.name)}:</strong> ${a.options.join(", ")}`)
+        .map((a) => `<strong>${esc(a.name)}:</strong> ${a.options.map((o) => esc(o)).join(", ")}`)
         .join("<br>");
       html += `<div class="jewd-detail-field wide"><div class="jewd-detail-label">Atributos</div>
                 <div class="jewd-detail-value">${attrStr}</div></div>`;
@@ -1290,13 +1293,17 @@
       }
     });
 
-    // Close dropdown on outside click.
-    document.addEventListener("click", (e) => {
+    // Close dropdown on outside click (remove previous to avoid leak).
+    if (initEditTagHandlers._docClickHandler) {
+      document.removeEventListener("click", initEditTagHandlers._docClickHandler);
+    }
+    initEditTagHandlers._docClickHandler = (e) => {
       if (!e.target.closest(".jewd-tags-input-wrap")) {
         dropdown.innerHTML = "";
         dropdown.classList.remove("active");
       }
-    });
+    };
+    document.addEventListener("click", initEditTagHandlers._docClickHandler);
   }
 
   async function searchTags(query) {
@@ -1541,6 +1548,10 @@
     let draggedEl = null;
 
     zone.querySelectorAll(".jewd-img-edit-card").forEach((card) => {
+      // Skip cards that already have drag handlers to prevent accumulation.
+      if (card._dragInit) return;
+      card._dragInit = true;
+
       card.addEventListener("dragstart", (e) => {
         draggedEl = card;
         card.classList.add("jewd-img-dragging");
@@ -1817,17 +1828,24 @@
     }
   }
 
+  let _closingEditModal = false;
   async function closeEditModal(force) {
+    if (_closingEditModal) return; // Prevent re-entrancy while confirm is shown
     if (!force && editingProduct && editInitialSnapshot !== null) {
       const currentSnapshot = getEditFormSnapshot();
       if (currentSnapshot !== editInitialSnapshot) {
-        const ok = await showConfirm({
-          title: "⚠️ Cambios sin guardar",
-          html: "<span>Tienes cambios sin guardar. ¿Descartar los cambios?</span>",
-          confirmText: "Descartar",
-          danger: true,
-        });
-        if (!ok) return;
+        _closingEditModal = true;
+        try {
+          const ok = await showConfirm({
+            title: "⚠️ Cambios sin guardar",
+            html: "<span>Tienes cambios sin guardar. ¿Descartar los cambios?</span>",
+            confirmText: "Descartar",
+            danger: true,
+          });
+          if (!ok) return;
+        } finally {
+          _closingEditModal = false;
+        }
       }
     }
     $("#editModal").classList.remove("active");
@@ -2051,7 +2069,11 @@
 
     // Close.
     async function wizardClose() {
-      const hasData = wizardData.name || wizardData.sku || wizardData.regular_price || wizardData.imageFiles.length;
+      const hasData =
+        wizardData.name ||
+        wizardData.sku ||
+        wizardData.regular_price ||
+        wizardData.imageFiles.length;
       if (hasData) {
         const ok = await showConfirm({
           title: "⚠️ Cerrar asistente",
@@ -2435,7 +2457,7 @@
     return new Promise((resolve) => {
       const overlay = document.createElement("div");
       overlay.className = "jewd-modal active";
-      overlay.style.zIndex = "10001";
+      overlay.style.zIndex = "500000";
       overlay.innerHTML = `
         <div class="jewd-modal-dialog jewd-modal-sm">
           <div class="jewd-modal-header">
@@ -2806,6 +2828,7 @@
         const noteInput = $("#orderNoteInput");
         const note = noteInput ? noteInput.value.trim() : "";
         if (!note) return;
+        noteBtn.disabled = true;
         try {
           await JewdAPI.createOrderNote(order.id, note);
           noteInput.value = "";
@@ -2813,6 +2836,8 @@
           loadOrderNotes(order.id);
         } catch (e) {
           toast("❌ Error: " + e.message);
+        } finally {
+          noteBtn.disabled = false;
         }
       });
     }
@@ -3018,7 +3043,12 @@
       grad.addColorStop(1, goldColor + "44");
       ctx.fillStyle = grad;
       ctx.beginPath();
-      ctx.roundRect(x, y, barW, barHeight, [3, 3, 0, 0]);
+      if (ctx.roundRect) {
+        ctx.roundRect(x, y, barW, barHeight, [3, 3, 0, 0]);
+      } else {
+        // Fallback for older browsers without roundRect.
+        ctx.rect(x, y, barW, barHeight);
+      }
       ctx.fill();
 
       // X-axis labels (show every Nth).
@@ -3583,12 +3613,7 @@
 
   /* ===== ACCESSIBILITY (F5-UX-04) ===== */
   function initAccessibility() {
-    // Add skip link.
-    const skipLink = document.createElement("a");
-    skipLink.href = "#sectionProducts";
-    skipLink.className = "jewd-skip-link";
-    skipLink.textContent = "Saltar al contenido";
-    document.body.prepend(skipLink);
+    // Skip link already exists in HTML — no need to create a duplicate.
 
     // Add aria-labels to icon-only buttons.
     $$(".jewd-action-btn").forEach((btn) => {
@@ -3609,9 +3634,10 @@
     const main = $(".jewd-main");
     if (main) main.setAttribute("role", "main");
 
-    // Focus trap for modals.
+    // Focus trap for modals (skip if confirm overlay is open — it has its own trap).
     document.addEventListener("keydown", (e) => {
       if (e.key !== "Tab") return;
+      if (document.querySelector(".jewd-confirm-overlay")) return;
       const activeModal = $(".jewd-modal.active");
       if (!activeModal) return;
 
@@ -3639,6 +3665,10 @@
     const headers = $$("#sectionProducts .jewd-table thead th");
     const labels = Array.from(headers).map((th) => th.textContent.trim());
     $$("#sectionProducts .jewd-table tbody tr.jewd-prow td").forEach((td, i) => {
+      if (labels[i]) td.setAttribute("data-label", labels[i]);
+    });
+    // Also add labels for variation rows.
+    $$("#sectionProducts .jewd-table tbody tr.jewd-vrow td").forEach((td, i) => {
       if (labels[i]) td.setAttribute("data-label", labels[i]);
     });
     // Orders table.
@@ -3705,17 +3735,21 @@
   }
 
   /* ===== HELPERS ===== */
+  const _escMap = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" };
   function esc(s) {
     if (!s) return "";
-    const div = document.createElement("div");
-    div.appendChild(document.createTextNode(String(s)));
-    return div.innerHTML;
+    return String(s).replace(/[&<>"']/g, (c) => _escMap[c]);
   }
 
   function fmtN(n) {
     const v = parseFloat(n);
     if (isNaN(v)) return "0";
-    return v.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+    // Show decimals only when present (e.g. $29.99 not $30)
+    const hasDec = v % 1 !== 0;
+    return v.toLocaleString("en-US", {
+      minimumFractionDigits: hasDec ? 2 : 0,
+      maximumFractionDigits: 2,
+    });
   }
 
   function csvEsc(s) {

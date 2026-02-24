@@ -8,7 +8,7 @@
       rel="icon"
       href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💎</text></svg>"
     />
-    <link rel="stylesheet" href="css/dashboard.css?v=3.5.1" />
+    <link rel="stylesheet" href="css/dashboard.css?v=3.6.0" />
   </head>
   <body>
     <a href="#sectionProducts" class="jewd-skip-link">Saltar al contenido</a>
@@ -132,22 +132,39 @@
                 type="text"
                 id="filterSearch"
                 class="jewd-input"
+                aria-label="Buscar productos"
                 placeholder="🔍 Buscar nombre, SKU, categoría..."
               />
-              <select id="filterCategory" class="jewd-select">
+              <select
+                id="filterCategory"
+                class="jewd-select"
+                aria-label="Filtrar por categoría"
+              >
                 <option value="">Todas categorías</option>
               </select>
-              <select id="filterType" class="jewd-select">
+              <select
+                id="filterType"
+                class="jewd-select"
+                aria-label="Filtrar por tipo"
+              >
                 <option value="">Todos tipos</option>
                 <option value="variable">Variable</option>
                 <option value="simple">Simple</option>
               </select>
-              <select id="filterStock" class="jewd-select">
+              <select
+                id="filterStock"
+                class="jewd-select"
+                aria-label="Filtrar por stock"
+              >
                 <option value="">Todo stock</option>
                 <option value="instock">En stock</option>
                 <option value="outofstock">Sin stock</option>
               </select>
-              <select id="filterStatus" class="jewd-select">
+              <select
+                id="filterStatus"
+                class="jewd-select"
+                aria-label="Filtrar por estado"
+              >
                 <option value="">Todos estados</option>
                 <option value="publish">Publicado</option>
                 <option value="draft">Borrador</option>
@@ -184,6 +201,7 @@
                         id="selectAll"
                         class="jewd-row-check"
                         title="Seleccionar todo"
+                        aria-label="Seleccionar todos los productos"
                       />
                     </th>
                     <th style="width: 30px"></th>
@@ -222,9 +240,14 @@
                 type="text"
                 id="orderSearch"
                 class="jewd-input"
+                aria-label="Buscar pedidos"
                 placeholder="🔍 Buscar pedido, cliente..."
               />
-              <select id="orderStatusFilter" class="jewd-select">
+              <select
+                id="orderStatusFilter"
+                class="jewd-select"
+                aria-label="Filtrar pedidos por estado"
+              >
                 <option value="">Todos estados</option>
                 <option value="pending">Pendiente</option>
                 <option value="processing">Procesando</option>
@@ -457,8 +480,8 @@
       <div class="jewd-toast" id="toast"></div>
     </div>
 
-    <script src=".env.js?v=3.5.1"></script>
-    <script src="js/api.js?v=3.5.1"></script>
-    <script src="js/dashboard.js?v=3.5.1"></script>
+    <script src=".env.js?v=3.6.0"></script>
+    <script src="js/api.js?v=3.6.0"></script>
+    <script src="js/dashboard.js?v=3.6.0"></script>
   </body>
 </html>
