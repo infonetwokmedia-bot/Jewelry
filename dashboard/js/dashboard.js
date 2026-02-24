@@ -582,7 +582,7 @@
         html += `<button class="jewd-action-btn" data-action="edit" data-idx="${idx}" title="Editar producto">✏️</button>`;
         html += `<button class="jewd-action-btn" data-action="duplicate" data-idx="${idx}" title="Duplicar producto">📋</button>`;
         html += `<button class="jewd-action-btn jewd-action-danger" data-action="delete" data-idx="${idx}" title="Eliminar producto">🗑</button>`;
-        html += `<a class="jewd-action-btn" href="${esc(p.permalink || "#")}" title="Ver en tienda" target="_blank">🔗</a>`;
+        html += `<a class="jewd-action-btn" href="${esc(normalizePermalink(p.permalink || "#"))}" title="Ver en tienda" target="_blank">🔗</a>`;
       }
       html += "</td>";
       html += "</tr>";
@@ -753,7 +753,7 @@
 
     $("#modalTitle").textContent = p.name;
     $("#modalEditLink").href = `${cfg.adminUrl}/post.php?post=${p.id}&action=edit`;
-    $("#modalViewLink").href = p.permalink || "#";
+    $("#modalViewLink").href = normalizePermalink(p.permalink || "#");
 
     let html = '<div class="jewd-detail-grid">';
     html += detailField("ID", p.id);
@@ -3524,6 +3524,32 @@
     } catch (e) {}
 
     return window.location.origin;
+  }
+
+  /**
+   * Rewrite internal WP permalinks so "Ver en tienda" opens
+   * the product on the same public origin the user is browsing.
+   * e.g. https://tujoyita.local/product/x → https://dev.tujoyita.com/product/x
+   */
+  function normalizePermalink(url) {
+    if (!url || url === "#") return url;
+    try {
+      const parsed = new URL(url);
+      const cfg = window.JEWD_CONFIG || {};
+      let storeHost = "";
+      try { storeHost = cfg.siteUrl ? new URL(cfg.siteUrl).hostname : ""; } catch (_) {}
+
+      const wpHosts = [storeHost, "tujoyita.local", "jewelry.local.dev", "localhost", "127.0.0.1"].filter(Boolean);
+
+      if (wpHosts.includes(parsed.hostname)) {
+        // Replace internal host with the public origin the user is on.
+        const pub = getStoreOrigin();
+        return `${pub}${parsed.pathname}${parsed.search}${parsed.hash}`;
+      }
+      return url;
+    } catch (_) {
+      return url;
+    }
   }
 
   function normalizeMediaUrl(url) {
