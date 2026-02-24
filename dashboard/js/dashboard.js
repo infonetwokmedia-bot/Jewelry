@@ -49,7 +49,7 @@
     state.perPage = cfg.perPage || 50;
 
     $("#versionTag").textContent = "v" + (cfg.version || "3.0.0");
-    $("#btnWPAdmin").href = cfg.adminUrl || "#";
+    $("#btnWPAdmin").href = normalizePermalink(cfg.adminUrl || "#");
 
     initTheme();
     initRouter();
@@ -552,7 +552,7 @@
           : "";
 
       // Edit URL.
-      const editUrl = `${cfg.adminUrl}/post.php?post=${p.id}&action=edit`;
+      const editUrl = normalizePermalink(`${cfg.adminUrl}/post.php?post=${p.id}&action=edit`);
 
       // Build row.
       html += '<tr class="jewd-prow">';
@@ -752,7 +752,7 @@
     const vs = state.variations[p.id] || [];
 
     $("#modalTitle").textContent = p.name;
-    $("#modalEditLink").href = `${cfg.adminUrl}/post.php?post=${p.id}&action=edit`;
+    $("#modalEditLink").href = normalizePermalink(`${cfg.adminUrl}/post.php?post=${p.id}&action=edit`);
     $("#modalViewLink").href = normalizePermalink(p.permalink || "#");
 
     let html = '<div class="jewd-detail-grid">';
@@ -3537,9 +3537,17 @@
       const parsed = new URL(url);
       const cfg = window.JEWD_CONFIG || {};
       let storeHost = "";
-      try { storeHost = cfg.siteUrl ? new URL(cfg.siteUrl).hostname : ""; } catch (_) {}
+      try {
+        storeHost = cfg.siteUrl ? new URL(cfg.siteUrl).hostname : "";
+      } catch (_) {}
 
-      const wpHosts = [storeHost, "tujoyita.local", "jewelry.local.dev", "localhost", "127.0.0.1"].filter(Boolean);
+      const wpHosts = [
+        storeHost,
+        "tujoyita.local",
+        "jewelry.local.dev",
+        "localhost",
+        "127.0.0.1",
+      ].filter(Boolean);
 
       if (wpHosts.includes(parsed.hostname)) {
         // Replace internal host with the public origin the user is on.
