@@ -680,7 +680,7 @@ function jewd_render_admin_settings_page()
     $custom   = get_option('jewd_allowed_origins', array());
     $defaults = jewd_default_origins();
 
-    ?>
+?>
     <div class="wrap">
         <h1>Jewelry Dashboard — CORS Origins</h1>
         <p>Configura los origins permitidos para el dashboard SPA externo. Los origins por defecto siempre están incluidos.</p>
@@ -697,20 +697,34 @@ function jewd_render_admin_settings_page()
             <?php settings_fields('jewd_settings_group'); ?>
             <p>Agrega un origin por línea (ej: <code>https://mi-dashboard.com</code>):</p>
             <textarea name="jewd_allowed_origins" rows="6" cols="60" class="large-text code"><?php
-                echo esc_textarea(implode("\n", is_array($custom) ? $custom : array()));
-            ?></textarea>
+                                                                                                echo esc_textarea(implode("\n", is_array($custom) ? $custom : array()));
+                                                                                                ?></textarea>
             <?php submit_button('Guardar Origins'); ?>
         </form>
 
         <h2>Rate Limiting</h2>
         <table class="widefat fixed striped" style="max-width:500px">
-            <thead><tr><th>Acción</th><th>Límite</th><th>Ventana</th></tr></thead>
+            <thead>
+                <tr>
+                    <th>Acción</th>
+                    <th>Límite</th>
+                    <th>Ventana</th>
+                </tr>
+            </thead>
             <tbody>
-                <tr><td>Image Upload (POST /jewd/v1/media)</td><td>10 requests</td><td>60 segundos</td></tr>
-                <tr><td>Image Delete (DELETE /jewd/v1/media/&lt;id&gt;)</td><td>5 requests</td><td>60 segundos</td></tr>
+                <tr>
+                    <td>Image Upload (POST /jewd/v1/media)</td>
+                    <td>10 requests</td>
+                    <td>60 segundos</td>
+                </tr>
+                <tr>
+                    <td>Image Delete (DELETE /jewd/v1/media/&lt;id&gt;)</td>
+                    <td>5 requests</td>
+                    <td>60 segundos</td>
+                </tr>
             </tbody>
         </table>
         <p class="description">El rate limiting se aplica por consumer_key. Retorna HTTP 429 si se excede.</p>
     </div>
-    <?php
+<?php
 }

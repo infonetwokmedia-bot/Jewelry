@@ -2105,7 +2105,9 @@ body {
   border-radius: 6px;
   cursor: pointer;
   font-weight: 600;
-  transition: background 0.2s, transform 0.1s;
+  transition:
+    background 0.2s,
+    transform 0.1s;
 }
 .jewd-btn-primary:hover {
   background: var(--jewd-gold-hover);

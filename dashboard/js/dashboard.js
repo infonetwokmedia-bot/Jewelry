@@ -2994,7 +2994,8 @@
       let html = "";
 
       // Default origins (read-only).
-      html += '<p class="jewd-text-muted" style="margin:0 0 8px">Origins por defecto (siempre activos):</p>';
+      html +=
+        '<p class="jewd-text-muted" style="margin:0 0 8px">Origins por defecto (siempre activos):</p>';
       html += '<div class="jewd-origins-list jewd-origins-defaults">';
       defaults.forEach((o) => {
         html += `<div class="jewd-origin-row jewd-origin-default"><code>${esc(o)}</code> <span class="jewd-badge jewd-badge-default">default</span></div>`;
@@ -3017,13 +3018,15 @@
 
       // Add new origin input.
       html += '<div class="jewd-origin-add" style="margin-top:10px;display:flex;gap:8px">';
-      html += '<input type="url" id="newOriginInput" class="jewd-input" placeholder="https://example.com" style="flex:1">';
+      html +=
+        '<input type="url" id="newOriginInput" class="jewd-input" placeholder="https://example.com" style="flex:1">';
       html += '<button class="jewd-btn jewd-btn-sm" id="btnAddOrigin">+ Agregar</button>';
       html += "</div>";
 
       // Save button.
       html += '<div style="margin-top:12px;text-align:right">';
-      html += '<button class="jewd-btn jewd-btn-primary jewd-btn-sm" id="btnSaveOrigins">💾 Guardar Origins</button>';
+      html +=
+        '<button class="jewd-btn jewd-btn-primary jewd-btn-sm" id="btnSaveOrigins">💾 Guardar Origins</button>';
       html += "</div>";
 
       el.innerHTML = html;
@@ -3530,17 +3533,38 @@
 
     try {
       const parsed = new URL(url, window.location.origin);
-      const localHosts = [
+      const cfg = window.JEWD_CONFIG || {};
+
+      // Get the WordPress store hostname from siteUrl config.
+      let storeHost = "";
+      try {
+        storeHost = cfg.siteUrl ? new URL(cfg.siteUrl).hostname : "";
+      } catch (_) {}
+
+      // Hosts whose /wp-content/uploads/ paths need proxying through /media/.
+      const wpHosts = [
+        storeHost,
+        "tujoyita.local",
         "jewelry.local.dev",
-        "dashboard.jewelry.local.dev",
         "localhost",
         "127.0.0.1",
-      ];
-      const isExternalPublic = (window.location.hostname || "").endsWith("dev.tujoyita.com");
+      ].filter(Boolean);
 
-      if (isExternalPublic && localHosts.includes(parsed.hostname)) {
-        const storeOrigin = getStoreOrigin();
-        return `${storeOrigin}${parsed.pathname}${parsed.search}${parsed.hash}`;
+      // If the image points to any WP host's uploads dir, rewrite to local /media/ proxy.
+      if (wpHosts.includes(parsed.hostname)) {
+        const uploadsPrefix = "/wp-content/uploads/";
+        const idx = parsed.pathname.indexOf(uploadsPrefix);
+        if (idx !== -1) {
+          // /wp-content/uploads/2026/02/img.jpg → /media/2026/02/img.jpg
+          const relativePath = parsed.pathname.substring(idx + uploadsPrefix.length);
+
+          // When running under a sub-path like /dashboard/, prepend it.
+          const basePath = window.location.pathname.includes("/dashboard")
+            ? "/dashboard/media/"
+            : "/media/";
+
+          return `${basePath}${relativePath}`;
+        }
       }
 
       return parsed.toString();

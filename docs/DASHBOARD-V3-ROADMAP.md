@@ -870,28 +870,28 @@ ESTADO: 🟢 PASS
 | 2026-02-24 | F2-UI-05  | Crear variaciones: form + selector atributos + detección duplicados | ✅       |
 | 2026-02-24 | F2-UI-06  | Duplicar producto como borrador                                     | ✅       |
 | 2026-02-24 | F2-UI-07  | Editor con pestañas: General                                        | Imágenes | Variaciones | ✅  |
-| 2026-02-24 | F3-API-01 | deleteProduct(), updateProductStatus(), batchProducts() en API      | ✅     |
-| 2026-02-24 | F3-UI-01  | Wizard "Nuevo Producto" 3 pasos: Datos → Precios → Imágenes        | ✅     |
-| 2026-02-24 | F3-UI-02  | Eliminar/archivar con modal dual (papelera/permanente)              | ✅     |
-| 2026-02-24 | F3-UI-03  | Acciones bulk: checkbox + barra (estado/precio/stock/eliminar)      | ✅     |
-| 2026-02-24 | F3-UI-04  | Vista papelera: filtro estado + restaurar + eliminar permanente     | ✅     |
-| 2026-02-24 | F3-UI-05  | Crear variación con imagen: upload opcional al crear                | ✅     |
-| 2026-02-25 | F4-UI-01  | Sidebar SPA con hash routing, hamburger toggle, active state dorado | ✅     |
-| 2026-02-25 | F4-UI-02  | Vista pedidos: tabla, filtros, paginación, cambio de estado         | ✅     |
-| 2026-02-25 | F4-UI-03  | Detalle de pedido: modal con cliente, items, totales, notas         | ✅     |
-| 2026-02-25 | F4-UI-04  | Reportes: resumen ventas, gráfica Canvas, top sellers               | ✅     |
-| 2026-02-25 | F4-UI-05  | Ajustes: config WC, API keys, info del sistema                      | ✅     |
-| 2026-02-25 | —         | Phase 4 merged: PR #4 → main (`2c944bb`) +1432/-114 líneas         | ✅     |
-| 2026-02-25 | F5-UX-01  | Skeleton loaders con shimmer animation (stats + tablas)             | ✅     |
-| 2026-02-25 | F5-UX-02  | Confirm modal genérico con focus trap, Promise-based                | ✅     |
-| 2026-02-25 | F5-UX-03  | Validación de formularios (required, min, pattern + visual)         | ✅     |
-| 2026-02-25 | F5-UX-04  | WCAG 2.1: skip link, aria attrs, focus-visible, sr-only             | ✅     |
-| 2026-02-25 | F5-UX-05  | Responsive <480px: table→cards, bottom nav, 44px touch targets      | ✅     |
-| 2026-02-25 | F5-UX-06  | Typed toasts, stock alerts con pulse, order badge, sonido           | ✅     |
-| 2026-02-25 | —         | Phase 5 merged: PR #5 → main (`3fecc18`) +1131/-222 líneas         | ✅     |
-| 2026-02-24 | BE-04     | Dynamic CORS origins: WP option + REST API + Admin page + SPA UI    | ✅     |
-| 2026-02-24 | BE-05     | Rate limiting: 10 uploads/min, 5 deletes/min, HTTP 429              | ✅     |
-| 2026-02-24 | —         | Backend merged: PR #6 → main (`97671f3`) +515/-3 líneas            | ✅     |
+| 2026-02-24 | F3-API-01 | deleteProduct(), updateProductStatus(), batchProducts() en API      | ✅       |
+| 2026-02-24 | F3-UI-01  | Wizard "Nuevo Producto" 3 pasos: Datos → Precios → Imágenes         | ✅       |
+| 2026-02-24 | F3-UI-02  | Eliminar/archivar con modal dual (papelera/permanente)              | ✅       |
+| 2026-02-24 | F3-UI-03  | Acciones bulk: checkbox + barra (estado/precio/stock/eliminar)      | ✅       |
+| 2026-02-24 | F3-UI-04  | Vista papelera: filtro estado + restaurar + eliminar permanente     | ✅       |
+| 2026-02-24 | F3-UI-05  | Crear variación con imagen: upload opcional al crear                | ✅       |
+| 2026-02-25 | F4-UI-01  | Sidebar SPA con hash routing, hamburger toggle, active state dorado | ✅       |
+| 2026-02-25 | F4-UI-02  | Vista pedidos: tabla, filtros, paginación, cambio de estado         | ✅       |
+| 2026-02-25 | F4-UI-03  | Detalle de pedido: modal con cliente, items, totales, notas         | ✅       |
+| 2026-02-25 | F4-UI-04  | Reportes: resumen ventas, gráfica Canvas, top sellers               | ✅       |
+| 2026-02-25 | F4-UI-05  | Ajustes: config WC, API keys, info del sistema                      | ✅       |
+| 2026-02-25 | —         | Phase 4 merged: PR #4 → main (`2c944bb`) +1432/-114 líneas          | ✅       |
+| 2026-02-25 | F5-UX-01  | Skeleton loaders con shimmer animation (stats + tablas)             | ✅       |
+| 2026-02-25 | F5-UX-02  | Confirm modal genérico con focus trap, Promise-based                | ✅       |
+| 2026-02-25 | F5-UX-03  | Validación de formularios (required, min, pattern + visual)         | ✅       |
+| 2026-02-25 | F5-UX-04  | WCAG 2.1: skip link, aria attrs, focus-visible, sr-only             | ✅       |
+| 2026-02-25 | F5-UX-05  | Responsive <480px: table→cards, bottom nav, 44px touch targets      | ✅       |
+| 2026-02-25 | F5-UX-06  | Typed toasts, stock alerts con pulse, order badge, sonido           | ✅       |
+| 2026-02-25 | —         | Phase 5 merged: PR #5 → main (`3fecc18`) +1131/-222 líneas          | ✅       |
+| 2026-02-24 | BE-04     | Dynamic CORS origins: WP option + REST API + Admin page + SPA UI    | ✅       |
+| 2026-02-24 | BE-05     | Rate limiting: 10 uploads/min, 5 deletes/min, HTTP 429              | ✅       |
+| 2026-02-24 | —         | Backend merged: PR #6 → main (`97671f3`) +515/-3 líneas             | ✅       |
 
 ---
 
