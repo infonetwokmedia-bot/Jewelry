@@ -127,9 +127,11 @@
       if (e.target === $("#editModal")) closeEditModal();
     });
 
-    // Image modal.
-    $("#imgModal").addEventListener("click", () => {
-      $("#imgModal").classList.remove("active");
+    // Image modal — close on background click (not nav buttons).
+    $("#imgModal").addEventListener("click", (e) => {
+      if (e.target === $("#imgModal") || e.target === $("#imgModalSrc")) {
+        $("#imgModal").classList.remove("active");
+      }
     });
 
     // Keyboard.
@@ -138,6 +140,16 @@
         closeModal();
         closeEditModal();
         $("#imgModal").classList.remove("active");
+      }
+      // Lightbox arrow navigation.
+      if ($("#imgModal").classList.contains("active") && lightboxImages.length > 1) {
+        if (e.key === "ArrowLeft") {
+          lightboxIdx = (lightboxIdx - 1 + lightboxImages.length) % lightboxImages.length;
+          renderLightbox();
+        } else if (e.key === "ArrowRight") {
+          lightboxIdx = (lightboxIdx + 1) % lightboxImages.length;
+          renderLightbox();
+        }
       }
     });
   }
@@ -564,11 +576,18 @@
 
     html += detailField("Fecha Creación", p.date_created ? p.date_created.split("T")[0] : "—");
 
-    // Image.
+    // Image gallery — show ALL images.
     if (p.images && p.images.length) {
-      const detailImg = normalizeMediaUrl(p.images[0].src);
-      html += `<div class="jewd-detail-field wide"><div class="jewd-detail-label">Imagen</div>
-                <div><img src="${esc(detailImg)}" style="max-width:200px;border-radius:8px;cursor:pointer;border:1px solid var(--jewd-border)" onclick="document.getElementById('imgModalSrc').src=this.src;document.getElementById('imgModal').classList.add('active')"></div></div>`;
+      html += `<div class="jewd-detail-field wide"><div class="jewd-detail-label">Galería (${p.images.length} imágenes)</div>`;
+      html += '<div class="jewd-img-gallery">';
+      p.images.forEach((img, i) => {
+        const src = normalizeMediaUrl(img.src);
+        html += `<div class="jewd-img-gallery-item${i === 0 ? " jewd-img-featured" : ""}">`;
+        html += `<img src="${esc(src)}" data-full="${esc(src)}" data-idx="${i}" class="jewd-gallery-thumb" alt="${esc(img.alt || "")}">`;
+        if (i === 0) html += '<span class="jewd-img-badge">Principal</span>';
+        html += "</div>";
+      });
+      html += "</div></div>";
     }
 
     // Attributes.
@@ -609,6 +628,17 @@
     html += "</div>";
     $("#modalBody").innerHTML = html;
     $("#detailModal").classList.add("active");
+
+    // Bind gallery thumbnail clicks → lightbox with navigation.
+    const galleryThumbs = $("#modalBody").querySelectorAll(".jewd-gallery-thumb");
+    if (galleryThumbs.length) {
+      const srcs = Array.from(galleryThumbs).map((t) => t.dataset.full || t.src);
+      galleryThumbs.forEach((thumb) => {
+        thumb.addEventListener("click", () => {
+          showLightbox(srcs, parseInt(thumb.dataset.idx) || 0);
+        });
+      });
+    }
   }
 
   function detailField(label, value, wide, extraClass) {
@@ -667,18 +697,57 @@
     );
     html += "</div>";
 
+    // === IMAGE MANAGEMENT SECTION ===
+    html += '<div class="jewd-edit-section">';
+    html += '<h3 class="jewd-edit-section-title">📷 Imágenes del Producto</h3>';
+    html += '<div class="jewd-img-edit-zone" id="editImageZone">';
+
+    // Existing images.
+    if (p.images && p.images.length) {
+      p.images.forEach((img, i) => {
+        const src = normalizeMediaUrl(img.src);
+        html += `<div class="jewd-img-edit-card" draggable="true" data-img-id="${img.id}" data-img-idx="${i}">`;
+        html += `<img src="${esc(src)}" class="jewd-img-edit-thumb" alt="${esc(img.alt || "")}">`;
+        html += `<div class="jewd-img-edit-actions">`;
+        if (i === 0) html += '<span class="jewd-img-badge-sm">★ Principal</span>';
+        html += `<button type="button" class="jewd-img-remove-btn" data-img-id="${img.id}" title="Quitar imagen">✕</button>`;
+        html += "</div></div>";
+      });
+    }
+
+    // Add image button.
+    html += '<div class="jewd-img-edit-add" id="editImageAdd">';
+    html += '<span class="jewd-img-add-icon">＋</span>';
+    html += '<span class="jewd-img-add-text">Añadir imagen</span>';
+    html += "</div>";
+    html += "</div>";
+    html +=
+      '<p class="jewd-img-hint">Arrastra para reordenar · Primera imagen = destacada · Máx 5MB por imagen (JPG, PNG, WebP)</p>';
+    html +=
+      '<input type="file" id="editImageInput" accept="image/jpeg,image/png,image/gif,image/webp" multiple style="display:none">';
+    html += "</div>";
+
     // Variation fields
     if (p.type === "variable" && vs.length) {
       html += '<div class="jewd-edit-section">';
       html += `<h3 class="jewd-edit-section-title">Variaciones (${vs.length})</h3>`;
       html += '<div class="jewd-edit-vtable"><table class="jewd-table" style="font-size:.82rem">';
       html +=
-        "<thead><tr><th>Atributos</th><th>SKU</th><th>Precio Regular</th><th>Precio Oferta</th><th>Stock</th><th>Peso</th></tr></thead><tbody>";
+        "<thead><tr><th style='width:50px'>Img</th><th>Atributos</th><th>SKU</th><th>Precio Regular</th><th>Precio Oferta</th><th>Stock</th><th>Peso</th></tr></thead><tbody>";
       vs.forEach((v, vi) => {
         const vAttr = v.attributes
           ? v.attributes.map((a) => `${a.name}: ${a.option}`).join(", ")
           : "";
+        const vImgSrc = v.image ? normalizeMediaUrl(v.image.src) : "";
         html += "<tr>";
+        html += `<td class="jewd-center">`;
+        if (vImgSrc) {
+          html += `<img src="${esc(vImgSrc)}" class="jewd-var-img-thumb" data-vidx="${vi}" data-vid="${v.id}" title="Click para cambiar">`;
+        } else {
+          html += `<span class="jewd-var-img-placeholder" data-vidx="${vi}" data-vid="${v.id}" title="Click para añadir imagen">＋</span>`;
+        }
+        html += `<input type="file" class="jewd-var-img-input" data-vidx="${vi}" accept="image/jpeg,image/png,image/gif,image/webp" style="display:none">`;
+        html += "</td>";
         html += `<td class="jewd-var-attr">${esc(vAttr)}</td>`;
         html += `<td><input class="jewd-edit-input jewd-edit-sm" name="v_sku_${vi}" value="${esc(v.sku || "")}" data-vid="${v.id}"></td>`;
         html += `<td><input class="jewd-edit-input jewd-edit-sm jewd-edit-num" type="number" step="0.01" name="v_regular_price_${vi}" value="${esc(v.regular_price || v.price || "")}" data-vid="${v.id}"></td>`;
@@ -694,6 +763,194 @@
 
     $("#editModalBody").innerHTML = html;
     $("#editModal").classList.add("active");
+
+    // ---- Bind image management events ----
+    initEditImageHandlers(p);
+  }
+
+  /* ===== EDIT IMAGE HANDLERS ===== */
+
+  /** State for images being edited (tracks adds/removes/reorder). */
+  let editImages = []; // [{id, src, file?, isNew?}]
+  let editVarImages = {}; // vidx -> {id?, file?, src}
+
+  function initEditImageHandlers(p) {
+    // Initialize image state from product.
+    editImages = (p.images || []).map((img) => ({
+      id: img.id,
+      src: normalizeMediaUrl(img.src),
+    }));
+    editVarImages = {};
+
+    const zone = $("#editImageZone");
+    const addBtn = $("#editImageAdd");
+    const fileInput = $("#editImageInput");
+
+    // Click "add" button → trigger file input.
+    if (addBtn && fileInput) {
+      addBtn.addEventListener("click", () => fileInput.click());
+      fileInput.addEventListener("change", handleImageSelect);
+    }
+
+    // Click remove buttons.
+    zone.querySelectorAll(".jewd-img-remove-btn").forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        e.preventDefault();
+        const imgId = parseInt(btn.dataset.imgId);
+        editImages = editImages.filter((img) => img.id !== imgId);
+        btn.closest(".jewd-img-edit-card").remove();
+        updateImageBadges();
+      });
+    });
+
+    // Drag & drop reorder.
+    initImageDragDrop(zone);
+
+    // Variation image handlers.
+    const varThumbs = $$(
+      "#editModalBody .jewd-var-img-thumb, #editModalBody .jewd-var-img-placeholder",
+    );
+    varThumbs.forEach((el) => {
+      el.addEventListener("click", () => {
+        const vidx = el.dataset.vidx;
+        const input = $$(`.jewd-var-img-input[data-vidx="${vidx}"]`)[0];
+        if (input) input.click();
+      });
+    });
+
+    $$("#editModalBody .jewd-var-img-input").forEach((input) => {
+      input.addEventListener("change", (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const vidx = input.dataset.vidx;
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          editVarImages[vidx] = { file, src: ev.target.result };
+          // Update visual preview.
+          const td = input.closest("td");
+          const existing = td.querySelector(".jewd-var-img-thumb");
+          const placeholder = td.querySelector(".jewd-var-img-placeholder");
+          if (existing) {
+            existing.src = ev.target.result;
+          } else if (placeholder) {
+            const img = document.createElement("img");
+            img.src = ev.target.result;
+            img.className = "jewd-var-img-thumb";
+            placeholder.replaceWith(img);
+          }
+        };
+        reader.readAsDataURL(file);
+      });
+    });
+  }
+
+  function handleImageSelect(e) {
+    const files = Array.from(e.target.files);
+    if (!files.length) return;
+
+    files.forEach((file) => {
+      if (file.size > 5 * 1024 * 1024) {
+        toast("❌ " + file.name + " excede 5MB");
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        const tempId = "new_" + Date.now() + "_" + Math.random().toString(36).slice(2, 6);
+        editImages.push({ id: tempId, src: ev.target.result, file, isNew: true });
+
+        // Insert card before the add button.
+        const addBtn = $("#editImageAdd");
+        const card = document.createElement("div");
+        card.className = "jewd-img-edit-card jewd-img-new";
+        card.draggable = true;
+        card.dataset.imgId = tempId;
+        card.innerHTML = `
+          <img src="${ev.target.result}" class="jewd-img-edit-thumb" alt="Nueva imagen">
+          <div class="jewd-img-edit-actions">
+            <span class="jewd-img-badge-sm jewd-img-badge-new">Nueva</span>
+            <button type="button" class="jewd-img-remove-btn" data-img-id="${tempId}" title="Quitar imagen">✕</button>
+          </div>`;
+
+        card.querySelector(".jewd-img-remove-btn").addEventListener("click", (ev) => {
+          ev.preventDefault();
+          editImages = editImages.filter((img) => img.id !== tempId);
+          card.remove();
+          updateImageBadges();
+        });
+
+        addBtn.parentNode.insertBefore(card, addBtn);
+        initImageDragDrop($("#editImageZone"));
+        updateImageBadges();
+      };
+      reader.readAsDataURL(file);
+    });
+
+    // Reset input so same file can be re-selected.
+    e.target.value = "";
+  }
+
+  function updateImageBadges() {
+    const cards = $$("#editImageZone .jewd-img-edit-card");
+    cards.forEach((card, i) => {
+      const badge = card.querySelector(".jewd-img-badge-sm");
+      if (badge && !badge.classList.contains("jewd-img-badge-new")) {
+        badge.textContent = i === 0 ? "★ Principal" : "";
+        badge.style.display = i === 0 ? "" : "none";
+      }
+      // Add principal badge if first and doesn't have one yet.
+      if (i === 0 && !card.querySelector(".jewd-img-badge-sm:not(.jewd-img-badge-new)")) {
+        const actions = card.querySelector(".jewd-img-edit-actions");
+        if (actions && !actions.querySelector(".jewd-img-badge-sm:not(.jewd-img-badge-new)")) {
+          const span = document.createElement("span");
+          span.className = "jewd-img-badge-sm";
+          span.textContent = "★ Principal";
+          actions.prepend(span);
+        }
+      }
+    });
+  }
+
+  /** Simple HTML5 drag & drop for image reorder. */
+  function initImageDragDrop(zone) {
+    if (!zone) return;
+    let draggedEl = null;
+
+    zone.querySelectorAll(".jewd-img-edit-card").forEach((card) => {
+      card.addEventListener("dragstart", (e) => {
+        draggedEl = card;
+        card.classList.add("jewd-img-dragging");
+        e.dataTransfer.effectAllowed = "move";
+      });
+
+      card.addEventListener("dragend", () => {
+        if (draggedEl) draggedEl.classList.remove("jewd-img-dragging");
+        draggedEl = null;
+        // Sync editImages order with DOM order.
+        const ids = Array.from(zone.querySelectorAll(".jewd-img-edit-card")).map(
+          (c) => c.dataset.imgId,
+        );
+        editImages.sort((a, b) => {
+          const aStr = String(a.id);
+          const bStr = String(b.id);
+          return ids.indexOf(aStr) - ids.indexOf(bStr);
+        });
+        updateImageBadges();
+      });
+
+      card.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = "move";
+        if (!draggedEl || draggedEl === card) return;
+        const rect = card.getBoundingClientRect();
+        const mid = rect.left + rect.width / 2;
+        if (e.clientX < mid) {
+          zone.insertBefore(draggedEl, card);
+        } else {
+          zone.insertBefore(draggedEl, card.nextSibling);
+        }
+      });
+    });
   }
 
   function editField(label, name, value, type, options) {
@@ -769,9 +1026,44 @@
         }
       }
 
+      // ---- IMAGE MANAGEMENT ----
+      // Upload new images first, then build the images array.
+      let imgUploaded = 0;
+      const finalImages = [];
+      for (let i = 0; i < editImages.length; i++) {
+        const img = editImages[i];
+        if (img.isNew && img.file) {
+          btn.textContent = `⏳ Subiendo imagen ${imgUploaded + 1}...`;
+          try {
+            const result = await JewdAPI.uploadImage(img.file);
+            finalImages.push({ id: result.data.id });
+            imgUploaded++;
+          } catch (uploadErr) {
+            toast("❌ Error subiendo imagen: " + uploadErr.message);
+            console.error("Image upload failed:", uploadErr);
+            throw uploadErr;
+          }
+        } else {
+          // Existing image — keep by ID.
+          finalImages.push({ id: img.id });
+        }
+      }
+
+      // Compare images: check if order changed, images added, or images removed.
+      const origIds = (editingProduct.images || []).map((img) => img.id);
+      const newIds = finalImages.map((img) => img.id);
+      const imagesChanged =
+        origIds.length !== newIds.length ||
+        origIds.some((id, idx) => id !== newIds[idx]);
+
+      if (imagesChanged) {
+        payload.images = finalImages;
+      }
+
       // Save product if changed
       let saved = false;
       if (Object.keys(payload).length > 0) {
+        btn.textContent = "⏳ Guardando producto...";
         await JewdAPI.updateProduct(editingProduct.id, payload);
         saved = true;
       }
@@ -797,16 +1089,34 @@
         const vWt = fd.get(`v_weight_${vi}`);
         if (vWt !== (v.weight || "")) vPayload.weight = vWt;
 
+        // Variation image upload.
+        if (editVarImages[vi] && editVarImages[vi].file) {
+          btn.textContent = `⏳ Subiendo imagen variación ${vi + 1}...`;
+          try {
+            const vImgResult = await JewdAPI.uploadImage(editVarImages[vi].file);
+            vPayload.image = { id: vImgResult.data.id };
+          } catch (vImgErr) {
+            console.error("Variation image upload failed:", vImgErr);
+            toast("⚠️ Error subiendo imagen de variación " + (vi + 1));
+          }
+        }
+
         if (Object.keys(vPayload).length > 0) {
+          btn.textContent = `⏳ Guardando variación ${vi + 1}/${vs.length}...`;
           await JewdAPI.updateVariation(editingProduct.id, v.id, vPayload);
           vSaved++;
         }
       }
 
-      if (saved || vSaved > 0) {
-        toast(
-          `✅ Guardado: producto${saved ? "" : ""} ${vSaved > 0 ? "+ " + vSaved + " variaciones" : ""}`,
-        );
+      // Build summary message.
+      const parts = [];
+      if (saved) parts.push("producto");
+      if (imgUploaded > 0) parts.push(imgUploaded + " imagen" + (imgUploaded > 1 ? "es" : "") + " subida" + (imgUploaded > 1 ? "s" : ""));
+      if (imagesChanged && imgUploaded === 0) parts.push("imágenes reordenadas");
+      if (vSaved > 0) parts.push(vSaved + " variacion" + (vSaved > 1 ? "es" : ""));
+
+      if (parts.length > 0) {
+        toast("✅ Guardado: " + parts.join(" + "));
         // Refresh data
         delete state.variations[editingProduct.id];
         await loadProducts();
@@ -830,10 +1140,68 @@
     editingProduct = null;
   }
 
-  /* ===== IMAGE MODAL ===== */
-  function showImage(src) {
-    $("#imgModalSrc").src = src;
+  /* ===== IMAGE LIGHTBOX WITH NAVIGATION ===== */
+  let lightboxImages = [];
+  let lightboxIdx = 0;
+
+  function showLightbox(images, startIdx) {
+    lightboxImages = images || [];
+    lightboxIdx = startIdx || 0;
+    if (!lightboxImages.length) return;
+    renderLightbox();
     $("#imgModal").classList.add("active");
+  }
+
+  function renderLightbox() {
+    const src = lightboxImages[lightboxIdx] || "";
+    $("#imgModalSrc").src = src;
+
+    // Counter.
+    let counter = $("#imgModalCounter");
+    if (!counter) {
+      counter = document.createElement("span");
+      counter.id = "imgModalCounter";
+      counter.className = "jewd-lightbox-counter";
+      $("#imgModal").appendChild(counter);
+    }
+    counter.textContent =
+      lightboxImages.length > 1 ? `${lightboxIdx + 1} / ${lightboxImages.length}` : "";
+
+    // Navigation arrows.
+    let prevBtn = $("#imgModalPrev");
+    let nextBtn = $("#imgModalNext");
+    if (!prevBtn) {
+      prevBtn = document.createElement("button");
+      prevBtn.id = "imgModalPrev";
+      prevBtn.className = "jewd-lightbox-nav jewd-lightbox-prev";
+      prevBtn.innerHTML = "‹";
+      prevBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        lightboxIdx = (lightboxIdx - 1 + lightboxImages.length) % lightboxImages.length;
+        renderLightbox();
+      });
+      $("#imgModal").appendChild(prevBtn);
+
+      nextBtn = document.createElement("button");
+      nextBtn.id = "imgModalNext";
+      nextBtn.className = "jewd-lightbox-nav jewd-lightbox-next";
+      nextBtn.innerHTML = "›";
+      nextBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        lightboxIdx = (lightboxIdx + 1) % lightboxImages.length;
+        renderLightbox();
+      });
+      $("#imgModal").appendChild(nextBtn);
+    }
+
+    const multi = lightboxImages.length > 1;
+    prevBtn.style.display = multi ? "" : "none";
+    nextBtn.style.display = multi ? "" : "none";
+  }
+
+  /** Backwards-compat wrapper for single image (table thumbnail clicks). */
+  function showImage(src) {
+    showLightbox([src], 0);
   }
 
   /* ===== EXPORT ===== */

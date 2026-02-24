@@ -164,6 +164,55 @@ const JewdAPI = (function () {
     });
   }
 
+  /**
+   * UPLOAD an image to the media library.
+   * Uses multipart/form-data (no JSON Content-Type).
+   *
+   * @param {File} file - The image file to upload.
+   * @returns {Promise<{id:number, url:string, thumbnail:string, medium:string, filename:string, width:number, height:number, filesize:number}>}
+   */
+  async function uploadImage(file) {
+    const c = cfg();
+    const url = `${c.wpBaseUrl}/jewd/v1/media?${authParams()}`;
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const res = await fetch(url, {
+      method: "POST",
+      body: formData,
+      // NOTE: Do NOT set Content-Type — browser sets it with boundary for multipart.
+    });
+
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(`Upload Error ${res.status}: ${text}`);
+    }
+
+    return { data: await res.json() };
+  }
+
+  /**
+   * DELETE an image from the media library.
+   *
+   * @param {number} id - The attachment ID to delete.
+   * @returns {Promise<{deleted:boolean, id:number}>}
+   */
+  async function deleteImage(id) {
+    const c = cfg();
+    const url = `${c.wpBaseUrl}/jewd/v1/media/${id}?${authParams()}`;
+    const res = await fetch(url, {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+    });
+
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(`Delete Error ${res.status}: ${text}`);
+    }
+
+    return { data: await res.json() };
+  }
+
   // Public API
   return {
     getProducts,
@@ -174,5 +223,7 @@ const JewdAPI = (function () {
     testConnection,
     updateProduct,
     updateVariation,
+    uploadImage,
+    deleteImage,
   };
 })();
