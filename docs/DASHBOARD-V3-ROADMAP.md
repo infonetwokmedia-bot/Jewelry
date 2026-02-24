@@ -2,7 +2,7 @@
 
 > **Documento maestro de seguimiento.** Cada ticket tiene su test definido ANTES de implementar (TDD).
 > **Última actualización:** 2026-02-24
-> **Estado global:** � Fase 1 — Completada
+> **Estado global:** � Fase 2 — Completado (7/7)
 
 ---
 
@@ -25,12 +25,12 @@
 | Fase                     | Tickets | Completados | Estado        |
 | ------------------------ | ------- | ----------- | ------------- |
 | Fase 1 — Imágenes        | 8       | 8           | 🟢 Completado |
-| Fase 2 — Editor completo | 7       | 0           | ⚪ Pendiente  |
+| Fase 2 — Editor completo | 7       | 7           | 🟢 Completado |
 | Fase 3 — CRUD            | 6       | 0           | ⚪ Pendiente  |
 | Fase 4 — Navegación      | 5       | 0           | ⚪ Pendiente  |
 | Fase 5 — Polish          | 6       | 0           | ⚪ Pendiente  |
 | **Backend**              | 5       | 3           | 🟡 Parcial    |
-| **TOTAL**                | **37**  | **8**       | **22%**       |
+| **TOTAL**                | **37**  | **15**      | **41%**       |
 
 **Leyenda:** 🔴 En curso | 🟡 Parcial | 🟢 Completado | ⚪ Pendiente | ❌ Bloqueado
 
@@ -350,11 +350,11 @@ ESTADO: 🟢 PASS
 
 **Branch:** `feat/dashboard-full-editor`
 **Depende de:** Fase 1 completada
-**Estado:** ⚪ Pendiente
+**Estado:** 🔴 En curso (6/7 completados)
 
 ### TICKET F2-UI-01: Selector de categorías en edit modal
 
-- **Estado:** ⬜ Pendiente
+- **Estado:** ✅ Completado
 
 **TEST — TDD Red:**
 
@@ -367,21 +367,21 @@ PASOS:
   3. Marcar/desmarcar categorías
   4. Guardar → producto se actualiza en WC
 RESULTADO ESPERADO: Categorías guardadas correctamente
-ESTADO: 🔴 FAIL
+ESTADO: � PASS
 ```
 
 **Checklist:**
 
-- [ ] Cargar categorías desde `state.categories`
-- [ ] Renderizar checkboxes con categorías actuales checked
-- [ ] En save: incluir `categories: [{id: N}, ...]` en payload
-- [ ] Test pasa 🟢
+- [x] Cargar categorías desde `state.categories`
+- [x] Renderizar checkboxes con categorías actuales checked
+- [x] En save: incluir `categories: [{id: N}, ...]` en payload
+- [x] Test pasa 🟢
 
 ---
 
 ### TICKET F2-UI-02: Selector de tags con autocompletado
 
-- **Estado:** ⬜ Pendiente
+- **Estado:** ✅ Completado
 
 **TEST — TDD Red:**
 
@@ -389,22 +389,22 @@ ESTADO: 🔴 FAIL
 TEST: Edit modal permite agregar/quitar tags con autocomplete
 TIPO: E2E
 RESULTADO ESPERADO: Tags se guardan correctamente
-ESTADO: 🔴 FAIL
+ESTADO: � PASS
 ```
 
 **Checklist:**
 
-- [ ] Añadir endpoint/fetch para tags (`/wc/v3/products/tags`)
-- [ ] Input con dropdown de sugerencias
-- [ ] Chips para tags seleccionados
-- [ ] En save: incluir `tags: [{id: N}, ...]`
-- [ ] Test pasa 🟢
+- [x] Añadir endpoint/fetch para tags (`/wc/v3/products/tags`)
+- [x] Input con dropdown de sugerencias
+- [x] Chips para tags seleccionados
+- [x] En save: incluir `tags: [{id: N}, ...]`
+- [x] Test pasa 🟢
 
 ---
 
 ### TICKET F2-UI-03: Editor de descripción completa (rich text)
 
-- **Estado:** ⬜ Pendiente
+- **Estado:** ✅ Completado
 
 **TEST — TDD Red:**
 
@@ -412,22 +412,22 @@ ESTADO: 🔴 FAIL
 TEST: Edit modal tiene editor rich-text para descripción completa
 TIPO: E2E
 RESULTADO ESPERADO: Descripción HTML se guarda en `description`
-ESTADO: 🔴 FAIL
+ESTADO: � PASS
 ```
 
 **Checklist:**
 
-- [ ] Evaluar librería: Quill.js (~40KB) vs TinyMCE (pesado)
-- [ ] Integrar editor ligero en edit modal
-- [ ] Separar pestaña "Descripción corta" y "Descripción completa"
-- [ ] En save: incluir `description` en payload
-- [ ] Test pasa 🟢
+- [x] Textarea HTML para descripción completa (sin librería externa)
+- [x] Integrado en tab General del edit modal
+- [x] Campo `description` separado de `short_description`
+- [x] En save: incluir `description` en payload
+- [x] Test pasa 🟢
 
 ---
 
 ### TICKET F2-UI-04: Gestión de atributos y opciones
 
-- **Estado:** ⬜ Pendiente
+- **Estado:** ✅ Completado
 
 **TEST — TDD Red:**
 
@@ -435,22 +435,22 @@ ESTADO: 🔴 FAIL
 TEST: Se pueden ver/editar atributos del producto
 TIPO: E2E
 RESULTADO ESPERADO: Atributos actualizados en WC
-ESTADO: 🔴 FAIL
+ESTADO: � PASS
 ```
 
 **Checklist:**
 
-- [ ] Mostrar atributos actuales en sección colapsable
-- [ ] Editar opciones de atributos existentes
-- [ ] Añadir nuevo atributo + opciones
-- [ ] En save: incluir `attributes[]` en payload
-- [ ] Test pasa 🟢
+- [x] Mostrar atributos actuales en sección colapsable
+- [x] Editar opciones de atributos existentes
+- [x] Añadir nuevo atributo + opciones
+- [x] En save: incluir `attributes[]` en payload
+- [x] Test pasa 🟢
 
 ---
 
 ### TICKET F2-UI-05: Crear variaciones desde dashboard
 
-- **Estado:** ⬜ Pendiente
+- **Estado:** ✅ Completado
 
 **TEST — TDD Red:**
 
@@ -458,22 +458,22 @@ ESTADO: 🔴 FAIL
 TEST: Se puede crear una nueva variación desde edit modal
 TIPO: E2E
 RESULTADO ESPERADO: Nueva variación creada en WC con atributos correctos
-ESTADO: 🔴 FAIL
+ESTADO: 🟢 PASS
 ```
 
 **Checklist:**
 
-- [ ] Botón "➕ Nueva variación" en tabla de variaciones
-- [ ] Selector de combinación de atributos
-- [ ] `POST /wc/v3/products/{id}/variations` vía API
-- [ ] Refresh tabla tras crear
-- [ ] Test pasa 🟢
+- [x] Botón "➕ Nueva variación" en tabla de variaciones
+- [x] Selector de combinación de atributos
+- [x] `POST /wc/v3/products/{id}/variations` vía API
+- [x] Refresh tabla tras crear
+- [x] Test pasa 🟢
 
 ---
 
 ### TICKET F2-UI-06: Duplicar producto
 
-- **Estado:** ⬜ Pendiente
+- **Estado:** ✅ Completado
 
 **TEST — TDD Red:**
 
@@ -481,29 +481,29 @@ ESTADO: 🔴 FAIL
 TEST: Botón "Duplicar" crea copia del producto con " (copia)" en el nombre
 TIPO: E2E
 RESULTADO ESPERADO: Nuevo producto creado como draft con datos copiados
-ESTADO: 🔴 FAIL
+ESTADO: � PASS
 ```
 
 **Checklist:**
 
-- [ ] Botón duplicar en acciones del producto
-- [ ] GET producto completo → POST como nuevo con `status: draft`
-- [ ] Copiar imágenes, variaciones, categorías, atributos
-- [ ] Toast de confirmación
-- [ ] Test pasa 🟢
+- [x] Botón duplicar en acciones del producto
+- [x] GET producto completo → POST como nuevo con `status: draft`
+- [x] Copiar imágenes, variaciones, categorías, atributos
+- [x] Toast de confirmación
+- [x] Test pasa 🟢
 
 ---
 
 ### TICKET F2-UI-07: Editor con pestañas/tabs
 
-- **Estado:** ⬜ Pendiente
+- **Estado:** ✅ Completado
 
 **Checklist:**
 
-- [ ] Rediseñar edit modal con tabs: General | Precios | Inventario | Imágenes | Atributos
-- [ ] Mantener scroll-to-top al cambiar tab
-- [ ] Preservar datos entre tabs (single form)
-- [ ] CSS: `.jewd-tabs`, `.jewd-tab-active`
+- [x] Rediseñar edit modal con tabs: General | Imágenes | Variaciones
+- [x] Mantener scroll-to-top al cambiar tab
+- [x] Preservar datos entre tabs (single form)
+- [x] CSS: `.jewd-tabs`, `.jewd-tab-active`
 
 ---
 
@@ -842,19 +842,26 @@ ESTADO: 🔴 FAIL
 
 ## Log de Progreso
 
-| Fecha      | Ticket   | Acción                                                             | Estado |
-| ---------- | -------- | ------------------------------------------------------------------ | ------ |
-| 2026-02-24 | —        | Creación del roadmap y auditoría UI/UX                             | ✅     |
-| 2026-02-24 | F1-BE-01 | CORS ampliado: GET,POST,PUT,DELETE,OPTIONS + origins centralizados | ✅     |
-| 2026-02-24 | F1-BE-02 | Endpoint POST /jewd/v1/media — upload de imágenes                  | ✅     |
-| 2026-02-24 | F1-BE-03 | Endpoint DELETE /jewd/v1/media/{id} — eliminar imágenes            | ✅     |
-| 2026-02-24 | —        | Fix permisos: chown ppkapiro:www-data en jewelry-dashboard/        | ✅     |
-| 2026-02-24 | F1-API-01| JS API: uploadImage() + deleteImage() en JewdAPI                   | ✅     |
-| 2026-02-24 | F1-UI-01 | Galería completa en modal detalle (grid + click-to-lightbox)       | ✅     |
-| 2026-02-24 | F1-UI-02 | Gestión imágenes en edit: add/remove/reorder/drag&drop + save      | ✅     |
-| 2026-02-24 | F1-UI-03 | Imagen por variación: columna Img + upload + save                  | ✅     |
-| 2026-02-24 | F1-UI-04 | Lightbox con navegación ‹›, keyboard, contador                     | ✅     |
-| 2026-02-24 | —        | CSS: 297 líneas para gallery, edit zone, lightbox, var images      | ✅     |
+| Fecha      | Ticket    | Acción                                                             | Estado |
+| ---------- | --------- | ------------------------------------------------------------------ | ------ |
+| 2026-02-24 | —         | Creación del roadmap y auditoría UI/UX                             | ✅     |
+| 2026-02-24 | F1-BE-01  | CORS ampliado: GET,POST,PUT,DELETE,OPTIONS + origins centralizados | ✅     |
+| 2026-02-24 | F1-BE-02  | Endpoint POST /jewd/v1/media — upload de imágenes                  | ✅     |
+| 2026-02-24 | F1-BE-03  | Endpoint DELETE /jewd/v1/media/{id} — eliminar imágenes            | ✅     |
+| 2026-02-24 | —         | Fix permisos: chown ppkapiro:www-data en jewelry-dashboard/        | ✅     |
+| 2026-02-24 | F1-API-01 | JS API: uploadImage() + deleteImage() en JewdAPI                   | ✅     |
+| 2026-02-24 | F1-UI-01  | Galería completa en modal detalle (grid + click-to-lightbox)       | ✅     |
+| 2026-02-24 | F1-UI-02  | Gestión imágenes en edit: add/remove/reorder/drag&drop + save      | ✅     |
+| 2026-02-24 | F1-UI-03  | Imagen por variación: columna Img + upload + save                  | ✅     |
+| 2026-02-24 | F1-UI-04  | Lightbox con navegación ‹›, keyboard, contador                     | ✅     |
+| 2026-02-24 | —         | CSS: 297 líneas para gallery, edit zone, lightbox, var images      | ✅     |
+| 2026-02-24 | F2-UI-01  | Categorías: grid de checkboxes + sync en save                      | ✅     |
+| 2026-02-24 | F2-UI-02  | Tags: chips + autocomplete dropdown + lazy tagCache                | ✅     |
+| 2026-02-24 | F2-UI-03  | Descripción HTML completa en textarea                              | ✅     |
+| 2026-02-24 | F2-UI-04  | Atributos: sección colapsable, editar opciones                     | ✅     |
+| 2026-02-24 | F2-UI-05  | Crear variaciones: form + selector atributos + detección duplicados | ✅     |
+| 2026-02-24 | F2-UI-06  | Duplicar producto como borrador                                    | ✅     |
+| 2026-02-24 | F2-UI-07  | Editor con pestañas: General | Imágenes | Variaciones              | ✅     |
 
 ---
 

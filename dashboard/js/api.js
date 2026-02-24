@@ -122,6 +122,15 @@ const JewdAPI = (function () {
   }
 
   /**
+   * GET all product tags.
+   */
+  async function getTags() {
+    const c = cfg();
+    const url = `${c.wcBaseUrl}/products/tags?${authParams()}&per_page=100&orderby=count&order=desc`;
+    return request(url);
+  }
+
+  /**
    * GET dashboard stats from custom WP REST endpoint.
    */
   async function getStats() {
@@ -153,6 +162,18 @@ const JewdAPI = (function () {
   }
 
   /**
+   * CREATE a new product (POST).
+   */
+  async function createProduct(data) {
+    const c = cfg();
+    const url = `${c.wcBaseUrl}/products?${authParams()}`;
+    return request(url, {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+  }
+
+  /**
    * UPDATE a variation (PUT).
    */
   async function updateVariation(productId, variationId, data) {
@@ -161,6 +182,29 @@ const JewdAPI = (function () {
     return request(url, {
       method: "PUT",
       body: JSON.stringify(data),
+    });
+  }
+
+  /**
+   * CREATE a new variation (POST).
+   */
+  async function createVariation(productId, data) {
+    const c = cfg();
+    const url = `${c.wcBaseUrl}/products/${productId}/variations?${authParams()}`;
+    return request(url, {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+  }
+
+  /**
+   * DELETE a variation (DELETE).
+   */
+  async function deleteVariation(productId, variationId) {
+    const c = cfg();
+    const url = `${c.wcBaseUrl}/products/${productId}/variations/${variationId}?${authParams()}&force=true`;
+    return request(url, {
+      method: "DELETE",
     });
   }
 
@@ -219,10 +263,14 @@ const JewdAPI = (function () {
     getProduct,
     getVariations,
     getCategories,
+    getTags,
     getStats,
     testConnection,
+    createProduct,
     updateProduct,
     updateVariation,
+    createVariation,
+    deleteVariation,
     uploadImage,
     deleteImage,
   };

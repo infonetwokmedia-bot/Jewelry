@@ -408,6 +408,7 @@
       html += '<td class="jewd-center">';
       html += `<button class="jewd-action-btn" data-action="detail" data-idx="${idx}" title="Ver detalle">👁</button>`;
       html += `<button class="jewd-action-btn" data-action="edit" data-idx="${idx}" title="Editar producto">✏️</button>`;
+      html += `<button class="jewd-action-btn" data-action="duplicate" data-idx="${idx}" title="Duplicar producto">📋</button>`;
       html += `<a class="jewd-action-btn" href="${esc(p.permalink || "#")}" title="Ver en tienda" target="_blank">🔗</a>`;
       html += "</td>";
       html += "</tr>";
@@ -486,6 +487,13 @@
     // Bind edit buttons.
     tb.querySelectorAll('[data-action="edit"]').forEach((btn) => {
       btn.addEventListener("click", () => showEditModal(state.products[parseInt(btn.dataset.idx)]));
+    });
+
+    // Bind duplicate buttons.
+    tb.querySelectorAll('[data-action="duplicate"]').forEach((btn) => {
+      btn.addEventListener("click", () =>
+        duplicateProduct(state.products[parseInt(btn.dataset.idx)]),
+      );
     });
   }
 
@@ -654,15 +662,32 @@
 
   /* ===== EDIT MODAL ===== */
   let editingProduct = null;
+  let editTags = []; // [{id, name}]
 
   function showEditModal(p) {
     if (!p) return;
     editingProduct = p;
+    editTags = (p.tags || []).map((t) => ({ id: t.id, name: t.name }));
     const vs = state.variations[p.id] || [];
 
     $("#editModalTitle").textContent = "✏️ Editar: " + p.name;
 
-    let html = '<form id="editForm" class="jewd-edit-form">';
+    // === TAB NAVIGATION ===
+    const hasVars = p.type === "variable" && vs.length;
+    let html = '<div class="jewd-tabs" id="editTabs">';
+    html += '<button type="button" class="jewd-tab active" data-tab="general">📋 General</button>';
+    html += '<button type="button" class="jewd-tab" data-tab="images">📷 Imágenes</button>';
+    if (hasVars)
+      html +=
+        '<button type="button" class="jewd-tab" data-tab="variations">🔀 Variaciones (' +
+        vs.length +
+        ")</button>";
+    html += "</div>";
+
+    html += '<form id="editForm" class="jewd-edit-form">';
+
+    // ========== TAB: GENERAL ==========
+    html += '<div class="jewd-tab-panel active" data-panel="general">';
 
     // Product fields
     html += '<div class="jewd-edit-section">';
@@ -697,7 +722,74 @@
     );
     html += "</div>";
 
-    // === IMAGE MANAGEMENT SECTION ===
+    // --- Description full (HTML) ---
+    html += '<div class="jewd-edit-section">';
+    html += '<h3 class="jewd-edit-section-title">📝 Descripción Completa</h3>';
+    html +=
+      '<textarea class="jewd-edit-input jewd-edit-textarea jewd-edit-desc-full" name="edit_description" rows="6" placeholder="HTML permitido — descripción detallada del producto">' +
+      esc(p.description || "") +
+      "</textarea>";
+    html +=
+      '<p class="jewd-edit-hint">Soporta HTML básico: &lt;b&gt;, &lt;i&gt;, &lt;ul&gt;, &lt;li&gt;, &lt;p&gt;, &lt;br&gt;</p>';
+    html += "</div>";
+
+    // --- Categories Checkboxes ---
+    html += '<div class="jewd-edit-section">';
+    html += '<h3 class="jewd-edit-section-title">🏷️ Categorías</h3>';
+    html += '<div class="jewd-cat-grid" id="editCatGrid">';
+    const pCatIds = (p.categories || []).map((c) => c.id);
+    if (state.categories.length) {
+      state.categories.forEach((cat) => {
+        const checked = pCatIds.includes(cat.id) ? " checked" : "";
+        html += `<label class="jewd-cat-checkbox"><input type="checkbox" name="edit_cat" value="${cat.id}"${checked}><span class="jewd-cat-name">${esc(cat.name)}</span><span class="jewd-cat-count">(${cat.count})</span></label>`;
+      });
+    } else {
+      html += '<span class="jewd-text-muted">Cargando categorías...</span>';
+    }
+    html += "</div></div>";
+
+    // --- Tags with chips ---
+    html += '<div class="jewd-edit-section">';
+    html += '<h3 class="jewd-edit-section-title">🔖 Etiquetas</h3>';
+    html += '<div class="jewd-tags-wrap" id="editTagsWrap">';
+    html += '<div class="jewd-tags-chips" id="editTagsChips">';
+    editTags.forEach((t) => {
+      html += `<span class="jewd-tag-chip" data-tag-id="${t.id}">${esc(t.name)} <button type="button" class="jewd-tag-remove" data-tag-id="${t.id}">✕</button></span>`;
+    });
+    html += "</div>";
+    html += '<div class="jewd-tags-input-wrap">';
+    html +=
+      '<input type="text" class="jewd-edit-input jewd-tags-input" id="editTagInput" placeholder="Escribir etiqueta..." autocomplete="off">';
+    html += '<div class="jewd-tags-dropdown" id="editTagDropdown"></div>';
+    html += "</div></div></div>";
+
+    // --- Attributes section ---
+    if (p.attributes && p.attributes.length) {
+      html += '<div class="jewd-edit-section">';
+      html += '<h3 class="jewd-edit-section-title">🧩 Atributos</h3>';
+      html += '<div class="jewd-attr-list" id="editAttrList">';
+      p.attributes.forEach((attr, ai) => {
+        const isVar = attr.variation;
+        html += `<div class="jewd-attr-row" data-attr-idx="${ai}">`;
+        html += `<div class="jewd-attr-header">`;
+        html += `<span class="jewd-attr-name">${esc(attr.name)}</span>`;
+        if (isVar) html += ' <span class="jewd-attr-badge">variación</span>';
+        html += "</div>";
+        html += `<div class="jewd-attr-options">`;
+        (attr.options || []).forEach((opt) => {
+          html += `<span class="jewd-attr-option">${esc(opt)}</span>`;
+        });
+        html += "</div>";
+        html += `<input type="text" class="jewd-edit-input jewd-edit-sm jewd-attr-edit-input" name="edit_attr_options_${ai}" value="${esc((attr.options || []).join(", "))}" placeholder="Opciones separadas por coma" data-attr-idx="${ai}" data-attr-name="${esc(attr.name)}" data-attr-variation="${isVar ? "1" : "0"}">`;
+        html += "</div>";
+      });
+      html += "</div></div>";
+    }
+
+    html += "</div>"; // END TAB GENERAL
+
+    // ========== TAB: IMAGES ==========
+    html += '<div class="jewd-tab-panel" data-panel="images">';
     html += '<div class="jewd-edit-section">';
     html += '<h3 class="jewd-edit-section-title">📷 Imágenes del Producto</h3>';
     html += '<div class="jewd-img-edit-zone" id="editImageZone">';
@@ -725,12 +817,13 @@
       '<p class="jewd-img-hint">Arrastra para reordenar · Primera imagen = destacada · Máx 5MB por imagen (JPG, PNG, WebP)</p>';
     html +=
       '<input type="file" id="editImageInput" accept="image/jpeg,image/png,image/gif,image/webp" multiple style="display:none">';
-    html += "</div>";
+    html += "</div></div>"; // END TAB IMAGES
 
-    // Variation fields
-    if (p.type === "variable" && vs.length) {
+    // ========== TAB: VARIATIONS ==========
+    if (hasVars) {
+      html += '<div class="jewd-tab-panel" data-panel="variations">';
       html += '<div class="jewd-edit-section">';
-      html += `<h3 class="jewd-edit-section-title">Variaciones (${vs.length})</h3>`;
+      html += `<h3 class="jewd-edit-section-title">🔀 Variaciones (${vs.length})</h3>`;
       html += '<div class="jewd-edit-vtable"><table class="jewd-table" style="font-size:.82rem">';
       html +=
         "<thead><tr><th style='width:50px'>Img</th><th>Atributos</th><th>SKU</th><th>Precio Regular</th><th>Precio Oferta</th><th>Stock</th><th>Peso</th></tr></thead><tbody>";
@@ -756,7 +849,36 @@
         html += `<td><input class="jewd-edit-input jewd-edit-sm" name="v_weight_${vi}" value="${esc(v.weight || "")}" data-vid="${v.id}"></td>`;
         html += "</tr>";
       });
-      html += "</tbody></table></div></div>";
+      html += "</tbody></table></div>";
+
+      // --- New Variation Form ---
+      const varAttrs = (p.attributes || []).filter((a) => a.variation);
+      if (varAttrs.length) {
+        html += '<div class="jewd-new-var-section" id="newVarSection">';
+        html += '<h4 class="jewd-edit-section-subtitle">➕ Nueva Variación</h4>';
+        html += '<div class="jewd-new-var-grid">';
+        varAttrs.forEach((attr) => {
+          html += '<div class="jewd-new-var-field">';
+          html += `<label class="jewd-edit-label">${esc(attr.name)}</label>`;
+          html += `<select class="jewd-edit-input jewd-edit-sm jewd-new-var-attr" data-attr-name="${esc(attr.name)}">`;
+          html += '<option value="">— Seleccionar —</option>';
+          (attr.options || []).forEach((opt) => {
+            html += `<option value="${esc(opt)}">${esc(opt)}</option>`;
+          });
+          html += "</select></div>";
+        });
+        html += "</div>";
+        html += '<div class="jewd-new-var-actions">';
+        html +=
+          '<button type="button" class="jewd-btn jewd-btn-sm jewd-btn-success" id="btnCreateVariation" disabled>➕ Crear Variación</button>';
+        html += "</div></div>";
+      } else {
+        html +=
+          '<p class="jewd-edit-hint">Para crear variaciones, primero agrega atributos marcados como "variación" en la pestaña General.</p>';
+      }
+
+      html += "</div>"; // end edit-section
+      html += "</div>"; // END TAB VARIATIONS
     }
 
     html += "</form>";
@@ -764,8 +886,245 @@
     $("#editModalBody").innerHTML = html;
     $("#editModal").classList.add("active");
 
+    // ---- Bind tab navigation ----
+    initEditTabs();
+
     // ---- Bind image management events ----
     initEditImageHandlers(p);
+
+    // ---- Bind tags events ----
+    initEditTagHandlers();
+
+    // ---- Bind new variation events ----
+    initNewVariationHandlers(p);
+  }
+
+  /* ===== EDIT TABS ===== */
+  function initEditTabs() {
+    const tabs = $$("#editTabs .jewd-tab");
+    tabs.forEach((tab) => {
+      tab.addEventListener("click", () => {
+        const target = tab.dataset.tab;
+        // Switch active tab button.
+        tabs.forEach((t) => t.classList.remove("active"));
+        tab.classList.add("active");
+        // Switch active panel.
+        $$("#editModalBody .jewd-tab-panel").forEach((panel) => {
+          panel.classList.toggle("active", panel.dataset.panel === target);
+        });
+      });
+    });
+  }
+
+  /* ===== NEW VARIATION HANDLERS ===== */
+  function initNewVariationHandlers(product) {
+    const btn = $("#btnCreateVariation");
+    if (!btn) return;
+
+    // Enable button only when all attribute selects have a value.
+    const selects = $$("#newVarSection .jewd-new-var-attr");
+    function checkSelects() {
+      const allFilled = Array.from(selects).every((s) => s.value !== "");
+      btn.disabled = !allFilled;
+    }
+    selects.forEach((s) => s.addEventListener("change", checkSelects));
+
+    btn.addEventListener("click", async () => {
+      // Build attributes array from selects.
+      const attributes = [];
+      selects.forEach((s) => {
+        if (s.value) {
+          attributes.push({ name: s.dataset.attrName, option: s.value });
+        }
+      });
+
+      // Check for duplicate combination.
+      const vs = state.variations[product.id] || [];
+      const newKey = attributes
+        .map((a) => `${a.name}:${a.option}`)
+        .sort()
+        .join("|");
+      const isDuplicate = vs.some((v) => {
+        const vKey = (v.attributes || [])
+          .map((a) => `${a.name}:${a.option}`)
+          .sort()
+          .join("|");
+        return vKey === newKey;
+      });
+
+      if (isDuplicate) {
+        toast("⚠️ Esa combinación de atributos ya existe");
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = "⏳ Creando...";
+
+      try {
+        const varData = {
+          attributes,
+          regular_price: "",
+          status: "publish",
+        };
+        const result = await JewdAPI.createVariation(product.id, varData);
+        toast("✅ Variación creada (ID: " + result.data.id + ")");
+
+        // Refresh variations in state and re-open modal.
+        const vRes = await JewdAPI.getVariations(product.id);
+        state.variations[product.id] = vRes.data;
+
+        // Refresh product data to get updated count.
+        const pRes = await JewdAPI.getProduct(product.id);
+        const updatedProduct = pRes.data;
+
+        // Update product in state.
+        const idx = state.products.findIndex((pr) => pr.id === product.id);
+        if (idx !== -1) state.products[idx] = updatedProduct;
+
+        // Re-render edit modal with updated variations.
+        showEditModal(updatedProduct);
+
+        // Switch to variations tab.
+        const varTab = $('[data-tab="variations"]');
+        if (varTab) varTab.click();
+      } catch (e) {
+        toast("❌ Error creando variación: " + e.message);
+        console.error("Create variation failed:", e);
+        btn.disabled = false;
+        btn.textContent = "➕ Crear Variación";
+      }
+    });
+  }
+
+  /* ===== EDIT TAG HANDLERS ===== */
+  let tagCache = null; // lazy-loaded tags list
+  let tagDebounce = null;
+
+  function initEditTagHandlers() {
+    // Remove tag chips.
+    $$("#editTagsChips .jewd-tag-remove").forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        e.preventDefault();
+        const tagId = parseInt(btn.dataset.tagId);
+        editTags = editTags.filter((t) => t.id !== tagId);
+        btn.closest(".jewd-tag-chip").remove();
+      });
+    });
+
+    // Tag input — autocomplete.
+    const input = $("#editTagInput");
+    const dropdown = $("#editTagDropdown");
+    if (!input || !dropdown) return;
+
+    input.addEventListener("input", () => {
+      clearTimeout(tagDebounce);
+      tagDebounce = setTimeout(() => searchTags(input.value.trim()), 250);
+    });
+
+    input.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        const val = input.value.trim();
+        if (!val) return;
+        // Check if it matches a dropdown item.
+        const first = dropdown.querySelector(".jewd-tag-option");
+        if (first) {
+          first.click();
+        } else {
+          // Add as new tag (name only, no ID — WC will create it).
+          addTagChip({ id: 0, name: val });
+          input.value = "";
+          dropdown.innerHTML = "";
+          dropdown.classList.remove("active");
+        }
+      }
+      if (e.key === "Escape") {
+        dropdown.innerHTML = "";
+        dropdown.classList.remove("active");
+      }
+    });
+
+    // Close dropdown on outside click.
+    document.addEventListener("click", (e) => {
+      if (!e.target.closest(".jewd-tags-input-wrap")) {
+        dropdown.innerHTML = "";
+        dropdown.classList.remove("active");
+      }
+    });
+  }
+
+  async function searchTags(query) {
+    const dropdown = $("#editTagDropdown");
+    if (!dropdown) return;
+    if (!query) {
+      dropdown.innerHTML = "";
+      dropdown.classList.remove("active");
+      return;
+    }
+
+    // Lazy-load all tags on first search.
+    if (!tagCache) {
+      try {
+        const res = await JewdAPI.getTags();
+        tagCache = res.data || [];
+      } catch (e) {
+        console.error("Error loading tags:", e);
+        tagCache = [];
+      }
+    }
+
+    const lower = query.toLowerCase();
+    const existing = editTags.map((t) => t.id);
+    const matches = tagCache
+      .filter((t) => t.name.toLowerCase().includes(lower) && !existing.includes(t.id))
+      .slice(0, 8);
+
+    if (!matches.length) {
+      dropdown.innerHTML = `<div class="jewd-tag-option jewd-tag-option-new">Crear: "${esc(query)}"</div>`;
+      dropdown.classList.add("active");
+      dropdown.querySelector(".jewd-tag-option-new").addEventListener("click", () => {
+        addTagChip({ id: 0, name: query });
+        $("#editTagInput").value = "";
+        dropdown.innerHTML = "";
+        dropdown.classList.remove("active");
+      });
+      return;
+    }
+
+    dropdown.innerHTML = matches
+      .map(
+        (t) =>
+          `<div class="jewd-tag-option" data-tag-id="${t.id}" data-tag-name="${esc(t.name)}">${esc(t.name)} <span class="jewd-text-muted">(${t.count})</span></div>`,
+      )
+      .join("");
+    dropdown.classList.add("active");
+
+    dropdown.querySelectorAll(".jewd-tag-option").forEach((opt) => {
+      opt.addEventListener("click", () => {
+        addTagChip({ id: parseInt(opt.dataset.tagId), name: opt.dataset.tagName });
+        $("#editTagInput").value = "";
+        dropdown.innerHTML = "";
+        dropdown.classList.remove("active");
+      });
+    });
+  }
+
+  function addTagChip(tag) {
+    // Avoid duplicates.
+    if (editTags.find((t) => t.name.toLowerCase() === tag.name.toLowerCase())) return;
+    editTags.push(tag);
+    const chips = $("#editTagsChips");
+    if (!chips) return;
+    const span = document.createElement("span");
+    span.className = "jewd-tag-chip";
+    span.dataset.tagId = tag.id;
+    span.innerHTML = `${esc(tag.name)} <button type="button" class="jewd-tag-remove" data-tag-id="${tag.id}">✕</button>`;
+    span.querySelector(".jewd-tag-remove").addEventListener("click", (e) => {
+      e.preventDefault();
+      editTags = editTags.filter((t) => t.name !== tag.name);
+      span.remove();
+    });
+    chips.appendChild(span);
   }
 
   /* ===== EDIT IMAGE HANDLERS ===== */
@@ -1013,6 +1372,58 @@
       const descVal = fd.get("edit_short_description");
       if (descVal !== (editingProduct.short_description || "")) payload.short_description = descVal;
 
+      // Full description.
+      const descFull = fd.get("edit_description");
+      if (descFull !== (editingProduct.description || "")) payload.description = descFull;
+
+      // ---- CATEGORIES ----
+      const checkedCats = Array.from(form.querySelectorAll('input[name="edit_cat"]:checked')).map(
+        (cb) => ({ id: parseInt(cb.value) }),
+      );
+      const origCatIds = (editingProduct.categories || []).map((c) => c.id).sort();
+      const newCatIds = checkedCats.map((c) => c.id).sort();
+      if (JSON.stringify(origCatIds) !== JSON.stringify(newCatIds)) {
+        payload.categories = checkedCats;
+      }
+
+      // ---- TAGS ----
+      const origTagNames = (editingProduct.tags || []).map((t) => t.name.toLowerCase()).sort();
+      const newTagNames = editTags.map((t) => t.name.toLowerCase()).sort();
+      if (JSON.stringify(origTagNames) !== JSON.stringify(newTagNames)) {
+        // Tags with id:0 are new — WC will create them by name.
+        payload.tags = editTags.map((t) => (t.id ? { id: t.id } : { name: t.name }));
+      }
+
+      // ---- ATTRIBUTES ----
+      const attrInputs = form.querySelectorAll(".jewd-attr-edit-input");
+      if (attrInputs.length) {
+        const newAttrs = [];
+        let attrsChanged = false;
+        attrInputs.forEach((input, ai) => {
+          const newOpts = input.value
+            .split(",")
+            .map((s) => s.trim())
+            .filter(Boolean);
+          const origOpts = (editingProduct.attributes[ai]?.options || []).map((o) =>
+            String(o).trim(),
+          );
+          const attrName = input.dataset.attrName;
+          const isVar = input.dataset.attrVariation === "1";
+          if (JSON.stringify(newOpts.slice().sort()) !== JSON.stringify(origOpts.slice().sort())) {
+            attrsChanged = true;
+          }
+          newAttrs.push({
+            name: attrName,
+            options: newOpts,
+            visible: true,
+            variation: isVar,
+          });
+        });
+        if (attrsChanged) {
+          payload.attributes = newAttrs;
+        }
+      }
+
       if (editingProduct.type === "simple") {
         const rpVal = fd.get("edit_regular_price");
         if (rpVal !== (editingProduct.regular_price || "")) payload.regular_price = rpVal;
@@ -1053,8 +1464,7 @@
       const origIds = (editingProduct.images || []).map((img) => img.id);
       const newIds = finalImages.map((img) => img.id);
       const imagesChanged =
-        origIds.length !== newIds.length ||
-        origIds.some((id, idx) => id !== newIds[idx]);
+        origIds.length !== newIds.length || origIds.some((id, idx) => id !== newIds[idx]);
 
       if (imagesChanged) {
         payload.images = finalImages;
@@ -1111,7 +1521,14 @@
       // Build summary message.
       const parts = [];
       if (saved) parts.push("producto");
-      if (imgUploaded > 0) parts.push(imgUploaded + " imagen" + (imgUploaded > 1 ? "es" : "") + " subida" + (imgUploaded > 1 ? "s" : ""));
+      if (imgUploaded > 0)
+        parts.push(
+          imgUploaded +
+            " imagen" +
+            (imgUploaded > 1 ? "es" : "") +
+            " subida" +
+            (imgUploaded > 1 ? "s" : ""),
+        );
       if (imagesChanged && imgUploaded === 0) parts.push("imágenes reordenadas");
       if (vSaved > 0) parts.push(vSaved + " variacion" + (vSaved > 1 ? "es" : ""));
 
@@ -1138,6 +1555,53 @@
   function closeEditModal() {
     $("#editModal").classList.remove("active");
     editingProduct = null;
+  }
+
+  /* ===== DUPLICATE PRODUCT ===== */
+  async function duplicateProduct(p) {
+    if (!confirm(`¿Duplicar "${p.name}"?\nSe creará una copia en borrador.`)) return;
+
+    toast("📋 Duplicando producto...");
+    try {
+      // Build new product data from the original.
+      const newData = {
+        name: p.name + " (copia)",
+        type: p.type || "simple",
+        status: "draft",
+        catalog_visibility: p.catalog_visibility || "visible",
+        description: p.description || "",
+        short_description: p.short_description || "",
+        sku: p.sku ? p.sku + "-COPY" : "",
+        regular_price: p.regular_price || "",
+        sale_price: p.sale_price || "",
+        manage_stock: p.manage_stock || false,
+        stock_quantity: p.stock_quantity ?? null,
+        stock_status: p.stock_status || "instock",
+        weight: p.weight || "",
+        categories: (p.categories || []).map((c) => ({ id: c.id })),
+        tags: (p.tags || []).map((t) => ({ id: t.id })),
+        attributes: (p.attributes || []).map((a) => ({
+          name: a.name,
+          options: a.options || [],
+          visible: true,
+          variation: a.variation || false,
+        })),
+        // Copy images by referencing existing media IDs.
+        images: (p.images || []).map((img) => ({ id: img.id })),
+      };
+
+      // Remove empty SKU to avoid conflicts.
+      if (!newData.sku) delete newData.sku;
+
+      const result = await JewdAPI.createProduct(newData);
+      toast(`✅ Producto duplicado: ID ${result.data.id} (borrador)`);
+
+      // Refresh product list.
+      await loadProducts();
+    } catch (err) {
+      console.error("Duplicate failed:", err);
+      toast("❌ Error al duplicar: " + err.message);
+    }
   }
 
   /* ===== IMAGE LIGHTBOX WITH NAVIGATION ===== */
