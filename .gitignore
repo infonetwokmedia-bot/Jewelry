@@ -87,3 +87,4 @@ docker-compose.yml.backup*
 !.vscode/extensions.json
 !.vscode/tasks.json
 !.vscode/jewelry.code-snippets
+dashboard/.env.production.js

@@ -1,0 +1,154 @@
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: tujoyita_mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    volumes:
+      - mysql-data:/var/lib/mysql
+    networks:
+      - tujoyita_internal
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "mysqladmin",
+          "ping",
+          "-h",
+          "localhost",
+          "-u",
+          "root",
+          "-p${MYSQL_ROOT_PASSWORD}",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  wordpress:
+    image: wordpress:latest
+    container_name: tujoyita_wordpress
+    restart: always
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      WORDPRESS_DB_HOST: mysql
+      WORDPRESS_DB_NAME: ${MYSQL_DATABASE}
+      WORDPRESS_DB_USER: ${MYSQL_USER}
+      WORDPRESS_DB_PASSWORD: ${MYSQL_PASSWORD}
+      WORDPRESS_TABLE_PREFIX: wp_
+      WORDPRESS_DEBUG: "0"
+      WORDPRESS_CONFIG_EXTRA: |
+        define('DISALLOW_FILE_EDIT', true);
+        define('WP_AUTO_UPDATE_CORE', 'minor');
+        define('WP_POST_REVISIONS', 5);
+        define('EMPTY_TRASH_DAYS', 15);
+        define('WP_MEMORY_LIMIT', '256M');
+        define('WP_MAX_MEMORY_LIMIT', '512M');
+    volumes:
+      - wp-data:/var/www/html
+    networks:
+      - tujoyita_internal
+      - traefik-public
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik-public"
+      # Main domain
+      - "traefik.http.routers.tujoyita.rule=Host(`tujoyita.com`)"
+      - "traefik.http.routers.tujoyita.entrypoints=websecure"
+      - "traefik.http.routers.tujoyita.tls=true"
+      - "traefik.http.routers.tujoyita.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.tujoyita.middlewares=tujoyita-headers@docker"
+      # WWW redirect
+      - "traefik.http.routers.tujoyita-www.rule=Host(`www.tujoyita.com`)"
+      - "traefik.http.routers.tujoyita-www.entrypoints=websecure"
+      - "traefik.http.routers.tujoyita-www.tls=true"
+      - "traefik.http.routers.tujoyita-www.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.tujoyita-www.middlewares=tujoyita-www-redirect@docker"
+      - "traefik.http.routers.tujoyita-www.priority=200"
+      # Middleware: www redirect
+      - "traefik.http.middlewares.tujoyita-www-redirect.redirectregex.regex=^https://www\\.tujoyita\\.com/(.*)"
+      - "traefik.http.middlewares.tujoyita-www-redirect.redirectregex.replacement=https://tujoyita.com/$${1}"
+      - "traefik.http.middlewares.tujoyita-www-redirect.redirectregex.permanent=true"
+      # Middleware: Security headers
+      - "traefik.http.middlewares.tujoyita-headers.headers.stsSeconds=31536000"
+      - "traefik.http.middlewares.tujoyita-headers.headers.stsIncludeSubdomains=true"
+      - "traefik.http.middlewares.tujoyita-headers.headers.stsPreload=true"
+      - "traefik.http.middlewares.tujoyita-headers.headers.forceSTSHeader=true"
+      - "traefik.http.middlewares.tujoyita-headers.headers.contentTypeNosniff=true"
+      - "traefik.http.middlewares.tujoyita-headers.headers.frameDeny=false"
+      - "traefik.http.middlewares.tujoyita-headers.headers.customFrameOptionsValue=SAMEORIGIN"
+      - "traefik.http.middlewares.tujoyita-headers.headers.referrerPolicy=strict-origin-when-cross-origin"
+      - "traefik.http.middlewares.tujoyita-headers.headers.permissionsPolicy=camera=(), microphone=(), geolocation=()"
+      # Service
+      - "traefik.http.services.tujoyita.loadbalancer.server.port=80"
+
+  dashboard:
+    image: nginx:alpine
+    container_name: tujoyita_dashboard
+    restart: always
+    depends_on:
+      - wordpress
+    volumes:
+      - ./dashboard:/usr/share/nginx/html:ro
+      - ./dashboard/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    networks:
+      - tujoyita_internal
+      - traefik-public
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik-public"
+      # Router: tujoyita.com/dashboard/ → dashboard container
+      - "traefik.http.routers.tujoyita-dashboard.rule=Host(`tujoyita.com`) && PathPrefix(`/dashboard/`)"
+      - "traefik.http.routers.tujoyita-dashboard.entrypoints=websecure"
+      - "traefik.http.routers.tujoyita-dashboard.tls=true"
+      - "traefik.http.routers.tujoyita-dashboard.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.tujoyita-dashboard.priority=300"
+      - "traefik.http.routers.tujoyita-dashboard.middlewares=tujoyita-dashboard-strip@docker,tujoyita-headers@docker"
+      # Router: /dashboard (no slash) → redirect to /dashboard/
+      - "traefik.http.routers.tujoyita-dashboard-redirect.rule=Host(`tujoyita.com`) && Path(`/dashboard`)"
+      - "traefik.http.routers.tujoyita-dashboard-redirect.entrypoints=websecure"
+      - "traefik.http.routers.tujoyita-dashboard-redirect.tls=true"
+      - "traefik.http.routers.tujoyita-dashboard-redirect.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.tujoyita-dashboard-redirect.priority=301"
+      - "traefik.http.routers.tujoyita-dashboard-redirect.middlewares=tujoyita-dashboard-addslash@docker"
+      # Middleware: strip /dashboard prefix
+      - "traefik.http.middlewares.tujoyita-dashboard-strip.stripprefix.prefixes=/dashboard"
+      # Middleware: add trailing slash
+      - "traefik.http.middlewares.tujoyita-dashboard-addslash.redirectregex.regex=^https://([^/]+)/dashboard$$"
+      - "traefik.http.middlewares.tujoyita-dashboard-addslash.redirectregex.replacement=https://$${1}/dashboard/"
+      - "traefik.http.middlewares.tujoyita-dashboard-addslash.redirectregex.permanent=true"
+      # Service
+      - "traefik.http.services.tujoyita-dashboard.loadbalancer.server.port=80"
+
+  wpcli:
+    image: wordpress:cli
+    container_name: tujoyita_wpcli
+    profiles: ["cli"]
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      WORDPRESS_DB_HOST: mysql
+      WORDPRESS_DB_NAME: ${MYSQL_DATABASE}
+      WORDPRESS_DB_USER: ${MYSQL_USER}
+      WORDPRESS_DB_PASSWORD: ${MYSQL_PASSWORD}
+    volumes:
+      - wp-data:/var/www/html
+    networks:
+      - tujoyita_internal
+    user: "33:33"
+
+volumes:
+  mysql-data:
+  wp-data:
+
+networks:
+  tujoyita_internal:
+    driver: bridge
+  traefik-public:
+    external: true
