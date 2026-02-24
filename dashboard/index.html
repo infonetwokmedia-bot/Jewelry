@@ -11,6 +11,7 @@
     <link rel="stylesheet" href="css/dashboard.css?v=3.0.0" />
   </head>
   <body>
+    <a href="#sectionProducts" class="jewd-skip-link">Saltar al contenido</a>
     <div id="jewd-app" class="jewd-wrap">
       <!-- TOPBAR -->
       <div class="jewd-topbar">
@@ -350,7 +351,13 @@
       </div>
 
       <!-- DETAIL MODAL -->
-      <div class="jewd-modal" id="detailModal">
+      <div
+        class="jewd-modal"
+        id="detailModal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modalTitle"
+      >
         <div class="jewd-modal-dialog">
           <div class="jewd-modal-header">
             <h2 id="modalTitle">Detalle del Producto</h2>
@@ -380,7 +387,13 @@
       </div>
 
       <!-- EDIT MODAL -->
-      <div class="jewd-modal" id="editModal">
+      <div
+        class="jewd-modal"
+        id="editModal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="editModalTitle"
+      >
         <div class="jewd-modal-dialog jewd-modal-lg">
           <div class="jewd-modal-header">
             <h2 id="editModalTitle">✏️ Editar Producto</h2>
@@ -401,7 +414,13 @@
       </div>
 
       <!-- ORDER DETAIL MODAL -->
-      <div class="jewd-modal" id="orderDetailModal">
+      <div
+        class="jewd-modal"
+        id="orderDetailModal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="orderDetailTitle"
+      >
         <div class="jewd-modal-dialog jewd-modal-lg">
           <div class="jewd-modal-header">
             <h2 id="orderDetailTitle">Detalle del Pedido</h2>

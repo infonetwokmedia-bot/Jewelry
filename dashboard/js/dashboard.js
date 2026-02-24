@@ -53,8 +53,10 @@
 
     initTheme();
     initRouter();
+    initAccessibility();
     bindEvents();
     initBulkActions();
+    showStatSkeletons();
     await testConnection();
     loadCategories();
     loadStats();
@@ -114,7 +116,11 @@
     // Close sidebar when clicking outside on mobile.
     document.addEventListener("click", (e) => {
       const sidebar = $("#sidebar");
-      if (sidebar.classList.contains("open") && !e.target.closest(".jewd-sidebar") && !e.target.closest(".jewd-sidebar-toggle")) {
+      if (
+        sidebar.classList.contains("open") &&
+        !e.target.closest(".jewd-sidebar") &&
+        !e.target.closest(".jewd-sidebar-toggle")
+      ) {
         sidebar.classList.remove("open");
       }
     });
@@ -179,10 +185,16 @@
     $("#btnTheme").addEventListener("click", toggleTheme);
     $("#btnRefresh").addEventListener("click", () => {
       const s = state.activeSection;
-      if (s === "products") { loadStats(); loadProducts(); }
-      else if (s === "orders") { loadOrders(); }
-      else if (s === "reports") { loadReports(); }
-      else if (s === "settings") { loadSettingsPage(); }
+      if (s === "products") {
+        loadStats();
+        loadProducts();
+      } else if (s === "orders") {
+        loadOrders();
+      } else if (s === "reports") {
+        loadReports();
+      } else if (s === "settings") {
+        loadSettingsPage();
+      }
       toast("Datos actualizados");
     });
     $("#btnExpandAll").addEventListener("click", toggleExpandAll);
@@ -241,9 +253,10 @@
     const orderDetailCloseBtn = $("#orderDetailCloseBtn");
     if (orderDetailCloseBtn) orderDetailCloseBtn.addEventListener("click", closeOrderDetailModal);
     const orderDetailModal = $("#orderDetailModal");
-    if (orderDetailModal) orderDetailModal.addEventListener("click", (e) => {
-      if (e.target === orderDetailModal) closeOrderDetailModal();
-    });
+    if (orderDetailModal)
+      orderDetailModal.addEventListener("click", (e) => {
+        if (e.target === orderDetailModal) closeOrderDetailModal();
+      });
 
     // Order filters.
     let orderDebounce;
@@ -251,19 +264,37 @@
     if (orderSearchEl) {
       orderSearchEl.addEventListener("input", () => {
         clearTimeout(orderDebounce);
-        orderDebounce = setTimeout(() => { state.ordersPage = 1; loadOrders(); }, 400);
+        orderDebounce = setTimeout(() => {
+          state.ordersPage = 1;
+          loadOrders();
+        }, 400);
       });
     }
     const orderStatusEl = $("#orderStatusFilter");
     if (orderStatusEl) {
-      orderStatusEl.addEventListener("change", () => { state.ordersPage = 1; loadOrders(); });
+      orderStatusEl.addEventListener("change", () => {
+        state.ordersPage = 1;
+        loadOrders();
+      });
     }
 
     // Report period buttons.
     const rp7 = $("#reportPeriod7");
     const rp30 = $("#reportPeriod30");
-    if (rp7) rp7.addEventListener("click", () => { state.reportPeriod = 7; rp7.classList.add("active"); rp30.classList.remove("active"); loadReports(); });
-    if (rp30) rp30.addEventListener("click", () => { state.reportPeriod = 30; rp30.classList.add("active"); rp7.classList.remove("active"); loadReports(); });
+    if (rp7)
+      rp7.addEventListener("click", () => {
+        state.reportPeriod = 7;
+        rp7.classList.add("active");
+        rp30.classList.remove("active");
+        loadReports();
+      });
+    if (rp30)
+      rp30.addEventListener("click", () => {
+        state.reportPeriod = 30;
+        rp30.classList.add("active");
+        rp7.classList.remove("active");
+        loadReports();
+      });
 
     // Keyboard.
     document.addEventListener("keydown", (e) => {
@@ -423,6 +454,8 @@
       renderProducts();
       renderPagination();
       updateFilterCount();
+      addTableDataLabels();
+      checkStockAlerts();
     } catch (e) {
       tb.innerHTML = `<tr><td colspan="12" class="jewd-loading-row">Error: ${esc(e.message)}</td></tr>`;
     } finally {
@@ -1034,9 +1067,11 @@
         html += '<label class="jewd-edit-label">Imagen (opcional)</label>';
         html += '<div class="jewd-new-var-img-wrap" id="newVarImgWrap">';
         html += '<input type="file" accept="image/*" id="newVarImgInput" style="display:none">';
-        html += '<button type="button" class="jewd-btn jewd-btn-outline jewd-btn-sm" id="newVarImgBtn">📷 Seleccionar</button>';
-        html += '<span id="newVarImgName" style="font-size:.78rem;color:var(--jewd-text2);margin-left:8px"></span>';
-        html += '</div></div>';
+        html +=
+          '<button type="button" class="jewd-btn jewd-btn-outline jewd-btn-sm" id="newVarImgBtn">📷 Seleccionar</button>';
+        html +=
+          '<span id="newVarImgName" style="font-size:.78rem;color:var(--jewd-text2);margin-left:8px"></span>';
+        html += "</div></div>";
         html += "</div>";
         html += '<div class="jewd-new-var-actions">';
         html +=
@@ -1752,22 +1787,22 @@
   function openNewProductWizard() {
     let wizardStep = 0;
     const wizardData = {
-      type: 'simple',
-      name: '',
-      sku: '',
-      short_description: '',
-      regular_price: '',
-      sale_price: '',
+      type: "simple",
+      name: "",
+      sku: "",
+      short_description: "",
+      regular_price: "",
+      sale_price: "",
       manage_stock: true,
-      stock_quantity: '',
-      weight: '',
+      stock_quantity: "",
+      weight: "",
       categories: [],
       images: [],
       imageFiles: [],
     };
 
-    const overlay = document.createElement('div');
-    overlay.className = 'jewd-modal active';
+    const overlay = document.createElement("div");
+    overlay.className = "jewd-modal active";
     overlay.innerHTML = `
       <div class="jewd-modal-dialog jewd-modal-lg">
         <div class="jewd-modal-header">
@@ -1801,7 +1836,7 @@
             <div class="jewd-edit-section" style="margin-top:12px">
               <div class="jewd-edit-section-title">Categorías</div>
               <div class="jewd-cat-grid" id="wizCatGrid">
-                ${state.categories.map(c => `<label class="jewd-cat-checkbox"><input type="checkbox" value="${c.id}"> ${esc(c.name)}</label>`).join('')}
+                ${state.categories.map((c) => `<label class="jewd-cat-checkbox"><input type="checkbox" value="${c.id}"> ${esc(c.name)}</label>`).join("")}
               </div>
             </div>
           </div>
@@ -1840,88 +1875,107 @@
     document.body.appendChild(overlay);
 
     // Type selection.
-    overlay.querySelectorAll('.jewd-wizard-type-card').forEach(card => {
-      card.addEventListener('click', () => {
-        overlay.querySelectorAll('.jewd-wizard-type-card').forEach(c => c.classList.remove('selected'));
-        card.classList.add('selected');
+    overlay.querySelectorAll(".jewd-wizard-type-card").forEach((card) => {
+      card.addEventListener("click", () => {
+        overlay
+          .querySelectorAll(".jewd-wizard-type-card")
+          .forEach((c) => c.classList.remove("selected"));
+        card.classList.add("selected");
         wizardData.type = card.dataset.type;
       });
     });
 
     // Image dropzone.
-    const dropzone = overlay.querySelector('#wizImageDropzone');
-    const fileInput = overlay.querySelector('#wizImageInput');
-    dropzone.addEventListener('click', () => fileInput.click());
-    dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.style.borderColor = 'var(--jewd-accent)'; });
-    dropzone.addEventListener('dragleave', () => { dropzone.style.borderColor = 'var(--jewd-border)'; });
-    dropzone.addEventListener('drop', (e) => {
+    const dropzone = overlay.querySelector("#wizImageDropzone");
+    const fileInput = overlay.querySelector("#wizImageInput");
+    dropzone.addEventListener("click", () => fileInput.click());
+    dropzone.addEventListener("dragover", (e) => {
       e.preventDefault();
-      dropzone.style.borderColor = 'var(--jewd-border)';
+      dropzone.style.borderColor = "var(--jewd-accent)";
+    });
+    dropzone.addEventListener("dragleave", () => {
+      dropzone.style.borderColor = "var(--jewd-border)";
+    });
+    dropzone.addEventListener("drop", (e) => {
+      e.preventDefault();
+      dropzone.style.borderColor = "var(--jewd-border)";
       addWizardImages(Array.from(e.dataTransfer.files));
     });
-    fileInput.addEventListener('change', () => {
+    fileInput.addEventListener("change", () => {
       addWizardImages(Array.from(fileInput.files));
-      fileInput.value = '';
+      fileInput.value = "";
     });
 
     function addWizardImages(files) {
-      files.filter(f => f.type.startsWith('image/')).forEach(f => {
-        wizardData.imageFiles.push(f);
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          const wrap = document.createElement('div');
-          wrap.style.cssText = 'position:relative;width:70px;height:70px;border-radius:6px;overflow:hidden';
-          wrap.innerHTML = `<img src="${e.target.result}" style="width:100%;height:100%;object-fit:cover">
+      files
+        .filter((f) => f.type.startsWith("image/"))
+        .forEach((f) => {
+          wizardData.imageFiles.push(f);
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            const wrap = document.createElement("div");
+            wrap.style.cssText =
+              "position:relative;width:70px;height:70px;border-radius:6px;overflow:hidden";
+            wrap.innerHTML = `<img src="${e.target.result}" style="width:100%;height:100%;object-fit:cover">
             <button style="position:absolute;top:2px;right:2px;background:rgba(0,0,0,.6);color:#fff;border:none;border-radius:50%;width:18px;height:18px;cursor:pointer;font-size:10px;line-height:18px;text-align:center" data-rmidx="${wizardData.imageFiles.length - 1}">×</button>`;
-          wrap.querySelector('button').addEventListener('click', (ev) => {
-            const idx = parseInt(ev.target.dataset.rmidx);
-            wizardData.imageFiles[idx] = null;
-            wrap.remove();
-          });
-          overlay.querySelector('#wizImagePreview').appendChild(wrap);
-        };
-        reader.readAsDataURL(f);
-      });
+            wrap.querySelector("button").addEventListener("click", (ev) => {
+              const idx = parseInt(ev.target.dataset.rmidx);
+              wizardData.imageFiles[idx] = null;
+              wrap.remove();
+            });
+            overlay.querySelector("#wizImagePreview").appendChild(wrap);
+          };
+          reader.readAsDataURL(f);
+        });
     }
 
     // Navigation.
     function goToStep(step) {
       wizardStep = step;
-      overlay.querySelectorAll('.jewd-wizard-panel').forEach((p, i) => {
-        p.classList.toggle('active', i === step);
+      overlay.querySelectorAll(".jewd-wizard-panel").forEach((p, i) => {
+        p.classList.toggle("active", i === step);
       });
-      overlay.querySelectorAll('.jewd-wizard-step').forEach((s, i) => {
-        s.classList.remove('active', 'done');
-        if (i === step) s.classList.add('active');
-        else if (i < step) s.classList.add('done');
+      overlay.querySelectorAll(".jewd-wizard-step").forEach((s, i) => {
+        s.classList.remove("active", "done");
+        if (i === step) s.classList.add("active");
+        else if (i < step) s.classList.add("done");
       });
-      overlay.querySelector('#wizPrev').style.visibility = step === 0 ? 'hidden' : 'visible';
-      overlay.querySelector('#wizNext').textContent = step === 2 ? '💾 Crear Producto' : 'Siguiente →';
+      overlay.querySelector("#wizPrev").style.visibility = step === 0 ? "hidden" : "visible";
+      overlay.querySelector("#wizNext").textContent =
+        step === 2 ? "💾 Crear Producto" : "Siguiente →";
     }
 
-    overlay.querySelector('#wizPrev').addEventListener('click', () => {
+    overlay.querySelector("#wizPrev").addEventListener("click", () => {
       if (wizardStep > 0) goToStep(wizardStep - 1);
     });
 
-    overlay.querySelector('#wizNext').addEventListener('click', async () => {
+    overlay.querySelector("#wizNext").addEventListener("click", async () => {
       if (wizardStep < 2) {
         // Validate step 0.
         if (wizardStep === 0) {
-          const name = overlay.querySelector('#wizName').value.trim();
-          if (!name) { toast('⚠️ El nombre es obligatorio'); return; }
+          const name = overlay.querySelector("#wizName").value.trim();
+          if (!name) {
+            toast("⚠️ El nombre es obligatorio");
+            return;
+          }
           wizardData.name = name;
-          wizardData.sku = overlay.querySelector('#wizSku').value.trim();
-          wizardData.short_description = overlay.querySelector('#wizDesc').value.trim();
-          wizardData.categories = Array.from(overlay.querySelectorAll('#wizCatGrid input:checked')).map(cb => ({ id: parseInt(cb.value) }));
+          wizardData.sku = overlay.querySelector("#wizSku").value.trim();
+          wizardData.short_description = overlay.querySelector("#wizDesc").value.trim();
+          wizardData.categories = Array.from(
+            overlay.querySelectorAll("#wizCatGrid input:checked"),
+          ).map((cb) => ({ id: parseInt(cb.value) }));
         }
         // Validate step 1.
         if (wizardStep === 1) {
-          const price = overlay.querySelector('#wizPrice').value.trim();
-          if (wizardData.type === 'simple' && !price) { toast('⚠️ El precio es obligatorio para productos simples'); return; }
+          const price = overlay.querySelector("#wizPrice").value.trim();
+          if (wizardData.type === "simple" && !price) {
+            toast("⚠️ El precio es obligatorio para productos simples");
+            return;
+          }
           wizardData.regular_price = price;
-          wizardData.sale_price = overlay.querySelector('#wizSalePrice').value.trim();
-          wizardData.stock_quantity = overlay.querySelector('#wizStock').value.trim();
-          wizardData.weight = overlay.querySelector('#wizWeight').value.trim();
+          wizardData.sale_price = overlay.querySelector("#wizSalePrice").value.trim();
+          wizardData.stock_quantity = overlay.querySelector("#wizStock").value.trim();
+          wizardData.weight = overlay.querySelector("#wizWeight").value.trim();
         }
         goToStep(wizardStep + 1);
       } else {
@@ -1931,19 +1985,21 @@
     });
 
     // Close.
-    overlay.querySelector('#wizardClose').addEventListener('click', () => overlay.remove());
-    overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
+    overlay.querySelector("#wizardClose").addEventListener("click", () => overlay.remove());
+    overlay.addEventListener("click", (e) => {
+      if (e.target === overlay) overlay.remove();
+    });
   }
 
   async function createNewProduct(data, overlay) {
-    const btn = overlay.querySelector('#wizNext');
+    const btn = overlay.querySelector("#wizNext");
     btn.disabled = true;
-    btn.textContent = '⏳ Creando...';
+    btn.textContent = "⏳ Creando...";
 
     try {
       // Upload images first.
       const uploadedImages = [];
-      const validFiles = data.imageFiles.filter(f => f !== null);
+      const validFiles = data.imageFiles.filter((f) => f !== null);
       for (let i = 0; i < validFiles.length; i++) {
         toast(`📷 Subiendo imagen ${i + 1}/${validFiles.length}...`);
         const result = await JewdAPI.uploadImage(validFiles[i]);
@@ -1953,7 +2009,7 @@
       const productData = {
         name: data.name,
         type: data.type,
-        status: 'draft',
+        status: "draft",
         short_description: data.short_description,
         regular_price: data.regular_price || undefined,
         sale_price: data.sale_price || undefined,
@@ -1967,9 +2023,11 @@
       if (data.sku) productData.sku = data.sku;
 
       // Remove undefined values.
-      Object.keys(productData).forEach(k => { if (productData[k] === undefined) delete productData[k]; });
+      Object.keys(productData).forEach((k) => {
+        if (productData[k] === undefined) delete productData[k];
+      });
 
-      toast('💾 Creando producto...');
+      toast("💾 Creando producto...");
       const result = await JewdAPI.createProduct(productData);
       overlay.remove();
       toast(`✅ Producto creado: "${result.data.name}" (ID: ${result.data.id})`);
@@ -1979,14 +2037,13 @@
       loadStats();
 
       // Open the newly created product in edit modal.
-      const newProduct = state.products.find(p => p.id === result.data.id);
+      const newProduct = state.products.find((p) => p.id === result.data.id);
       if (newProduct) showEditModal(newProduct);
-
     } catch (err) {
-      console.error('Create product failed:', err);
-      toast('❌ Error al crear: ' + err.message);
+      console.error("Create product failed:", err);
+      toast("❌ Error al crear: " + err.message);
       btn.disabled = false;
-      btn.textContent = '💾 Crear Producto';
+      btn.textContent = "💾 Crear Producto";
     }
   }
 
@@ -1994,11 +2051,11 @@
   let selectedProducts = new Set();
 
   function initBulkActions() {
-    const selectAll = $('#selectAll');
+    const selectAll = $("#selectAll");
     if (selectAll) {
-      selectAll.addEventListener('change', () => {
+      selectAll.addEventListener("change", () => {
         const checked = selectAll.checked;
-        $$('.jewd-row-check[data-id]').forEach(cb => {
+        $$(".jewd-row-check[data-id]").forEach((cb) => {
           cb.checked = checked;
           const id = parseInt(cb.dataset.id);
           if (checked) selectedProducts.add(id);
@@ -2009,8 +2066,8 @@
     }
 
     // Delegate checkbox changes in table.
-    $('#productsTable').addEventListener('change', (e) => {
-      if (e.target.classList.contains('jewd-row-check')) {
+    $("#productsTable").addEventListener("change", (e) => {
+      if (e.target.classList.contains("jewd-row-check")) {
         const id = parseInt(e.target.dataset.id);
         if (e.target.checked) selectedProducts.add(id);
         else selectedProducts.delete(id);
@@ -2019,40 +2076,47 @@
     });
 
     // Bulk action buttons.
-    const bind = (id, fn) => { const el = $(id); if (el) el.addEventListener('click', fn); };
-    bind('#bulkChangeStatus', bulkChangeStatus);
-    bind('#bulkChangePrice', bulkChangePrice);
-    bind('#bulkChangeStock', bulkChangeStock);
-    bind('#bulkDelete', bulkDeleteProducts);
-    bind('#bulkCancel', () => { selectedProducts.clear(); $$('.jewd-row-check').forEach(cb => cb.checked = false); updateBulkBar(); });
+    const bind = (id, fn) => {
+      const el = $(id);
+      if (el) el.addEventListener("click", fn);
+    };
+    bind("#bulkChangeStatus", bulkChangeStatus);
+    bind("#bulkChangePrice", bulkChangePrice);
+    bind("#bulkChangeStock", bulkChangeStock);
+    bind("#bulkDelete", bulkDeleteProducts);
+    bind("#bulkCancel", () => {
+      selectedProducts.clear();
+      $$(".jewd-row-check").forEach((cb) => (cb.checked = false));
+      updateBulkBar();
+    });
   }
 
   function updateBulkBar() {
-    const bar = $('#bulkBar');
+    const bar = $("#bulkBar");
     const count = selectedProducts.size;
     if (bar) {
-      bar.classList.toggle('active', count > 0);
-      const countEl = $('#bulkCount');
-      if (countEl) countEl.textContent = `${count} seleccionado${count !== 1 ? 's' : ''}`;
+      bar.classList.toggle("active", count > 0);
+      const countEl = $("#bulkCount");
+      if (countEl) countEl.textContent = `${count} seleccionado${count !== 1 ? "s" : ""}`;
     }
   }
 
   async function bulkChangeStatus() {
-    const status = prompt('Nuevo estado:\n• publish\n• draft\n• private\n• trash');
-    if (!status || !['publish', 'draft', 'private', 'trash'].includes(status)) return;
-    await executeBulkAction('Estado → ' + status, (id) => JewdAPI.updateProductStatus(id, status));
+    const status = prompt("Nuevo estado:\n• publish\n• draft\n• private\n• trash");
+    if (!status || !["publish", "draft", "private", "trash"].includes(status)) return;
+    await executeBulkAction("Estado → " + status, (id) => JewdAPI.updateProductStatus(id, status));
   }
 
   async function bulkChangePrice() {
-    const input = prompt('Cambiar precio:\n• Número fijo: 99.99\n• Porcentaje: +10% o -15%');
+    const input = prompt("Cambiar precio:\n• Número fijo: 99.99\n• Porcentaje: +10% o -15%");
     if (!input) return;
 
     const isPercent = /^[+-]\d+(\.\d+)?%$/.test(input.trim());
 
-    await executeBulkAction('Precio', async (id) => {
+    await executeBulkAction("Precio", async (id) => {
       if (isPercent) {
         const pct = parseFloat(input) / 100;
-        const product = state.products.find(p => p.id === id);
+        const product = state.products.find((p) => p.id === id);
         if (!product) return;
         const currentPrice = parseFloat(product.regular_price) || parseFloat(product.price) || 0;
         const newPrice = (currentPrice * (1 + pct)).toFixed(2);
@@ -2064,15 +2128,17 @@
   }
 
   async function bulkChangeStock() {
-    const input = prompt('Nuevo stock (número):\nEj: 10');
+    const input = prompt("Nuevo stock (número):\nEj: 10");
     const qty = parseInt(input);
     if (isNaN(qty)) return;
-    await executeBulkAction('Stock → ' + qty, (id) => JewdAPI.updateProduct(id, { manage_stock: true, stock_quantity: qty }));
+    await executeBulkAction("Stock → " + qty, (id) =>
+      JewdAPI.updateProduct(id, { manage_stock: true, stock_quantity: qty }),
+    );
   }
 
   async function bulkDeleteProducts() {
     if (!confirm(`¿Mover ${selectedProducts.size} productos a la papelera?`)) return;
-    await executeBulkAction('Papelera', (id) => JewdAPI.updateProductStatus(id, 'trash'));
+    await executeBulkAction("Papelera", (id) => JewdAPI.updateProductStatus(id, "trash"));
   }
 
   async function executeBulkAction(label, actionFn) {
@@ -2095,10 +2161,10 @@
     }
 
     selectedProducts.clear();
-    $$('.jewd-row-check').forEach(cb => cb.checked = false);
+    $$(".jewd-row-check").forEach((cb) => (cb.checked = false));
     updateBulkBar();
 
-    toast(`✅ ${label}: ${done} OK${errors ? `, ${errors} errores` : ''}`);
+    toast(`✅ ${label}: ${done} OK${errors ? `, ${errors} errores` : ""}`);
     await loadProducts();
     loadStats();
   }
@@ -2330,7 +2396,9 @@
     state.ordersLoading = true;
 
     const tb = $("#ordersTable");
-    if (tb) tb.innerHTML = '<tr><td colspan="7" class="jewd-loading-row"><div class="jewd-spinner"></div> Cargando pedidos...</td></tr>';
+    if (tb)
+      tb.innerHTML =
+        '<tr><td colspan="7" class="jewd-loading-row"><div class="jewd-spinner"></div> Cargando pedidos...</td></tr>';
 
     try {
       const searchVal = $("#orderSearch") ? $("#orderSearch").value : "";
@@ -2350,8 +2418,10 @@
       renderOrders();
       renderOrdersPagination();
       updateOrderFilterCount();
+      updateOrderBadge();
     } catch (e) {
-      if (tb) tb.innerHTML = `<tr><td colspan="7" class="jewd-loading-row">Error: ${esc(e.message)}</td></tr>`;
+      if (tb)
+        tb.innerHTML = `<tr><td colspan="7" class="jewd-loading-row">Error: ${esc(e.message)}</td></tr>`;
     } finally {
       state.ordersLoading = false;
     }
@@ -2362,13 +2432,16 @@
     if (!tb) return;
 
     if (!state.orders.length) {
-      tb.innerHTML = '<tr><td colspan="7" class="jewd-empty">🔍<br>No se encontraron pedidos</td></tr>';
+      tb.innerHTML =
+        '<tr><td colspan="7" class="jewd-empty">🔍<br>No se encontraron pedidos</td></tr>';
       return;
     }
 
     let html = "";
     state.orders.forEach((o) => {
-      const name = o.billing ? `${o.billing.first_name || ""} ${o.billing.last_name || ""}`.trim() : "—";
+      const name = o.billing
+        ? `${o.billing.first_name || ""} ${o.billing.last_name || ""}`.trim()
+        : "—";
       const email = o.billing ? o.billing.email || "" : "";
       const items = (o.line_items || []).length;
       const date = o.date_created ? o.date_created.split("T")[0] : "—";
@@ -2376,7 +2449,7 @@
 
       html += "<tr>";
       html += `<td><strong>#${o.id}</strong></td>`;
-      html += `<td>${esc(name)}${email ? '<br><span class="jewd-text-sm">' + esc(email) + '</span>' : ''}</td>`;
+      html += `<td>${esc(name)}${email ? '<br><span class="jewd-text-sm">' + esc(email) + "</span>" : ""}</td>`;
       html += `<td class="jewd-center">${items}</td>`;
       html += `<td class="jewd-right"><strong>$${fmtN(o.total)}</strong></td>`;
       html += `<td><span class="jewd-order-status jewd-order-${esc(o.status)}">${statusLabel}</span></td>`;
@@ -2424,7 +2497,10 @@
     pg.querySelectorAll("button").forEach((btn) => {
       btn.addEventListener("click", () => {
         const p = parseInt(btn.dataset.page);
-        if (p && p !== state.ordersPage) { state.ordersPage = p; loadOrders(); }
+        if (p && p !== state.ordersPage) {
+          state.ordersPage = p;
+          loadOrders();
+        }
       });
     });
   }
@@ -2436,9 +2512,14 @@
 
   function orderStatusLabel(status) {
     const labels = {
-      pending: "Pendiente", processing: "Procesando", "on-hold": "En espera",
-      completed: "Completado", cancelled: "Cancelado", refunded: "Reembolsado",
-      failed: "Fallido", trash: "Papelera"
+      pending: "Pendiente",
+      processing: "Procesando",
+      "on-hold": "En espera",
+      completed: "Completado",
+      cancelled: "Cancelado",
+      refunded: "Reembolsado",
+      failed: "Fallido",
+      trash: "Papelera",
     };
     return labels[status] || status;
   }
@@ -2463,7 +2544,7 @@
     html += `<div class="jewd-detail-row"><strong>Fecha:</strong> ${esc(date)}</div>`;
     html += `<div class="jewd-detail-row"><strong>Método de pago:</strong> ${esc(order.payment_method_title || "—")}</div>`;
     html += `<div class="jewd-detail-row"><strong>Moneda:</strong> ${esc(order.currency || "USD")}</div>`;
-    html += '</div>';
+    html += "</div>";
 
     // Customer info
     html += '<div class="jewd-order-info-card">';
@@ -2472,65 +2553,71 @@
     html += `<div class="jewd-detail-row"><strong>Email:</strong> ${esc(b.email || "—")}</div>`;
     html += `<div class="jewd-detail-row"><strong>Teléfono:</strong> ${esc(b.phone || "—")}</div>`;
     if (b.address_1) {
-      html += `<div class="jewd-detail-row"><strong>Dirección:</strong> ${esc(b.address_1)}${b.city ? ', ' + esc(b.city) : ''}${b.state ? ' ' + esc(b.state) : ''} ${esc(b.postcode || '')}</div>`;
+      html += `<div class="jewd-detail-row"><strong>Dirección:</strong> ${esc(b.address_1)}${b.city ? ", " + esc(b.city) : ""}${b.state ? " " + esc(b.state) : ""} ${esc(b.postcode || "")}</div>`;
     }
-    html += '</div>';
+    html += "</div>";
 
     // Shipping info
     if (s.address_1) {
       html += '<div class="jewd-order-info-card">';
       html += `<h4>📦 Envío</h4>`;
       html += `<div class="jewd-detail-row">${esc(s.first_name || "")} ${esc(s.last_name || "")}</div>`;
-      html += `<div class="jewd-detail-row">${esc(s.address_1)}${s.city ? ', ' + esc(s.city) : ''}${s.state ? ' ' + esc(s.state) : ''} ${esc(s.postcode || '')}</div>`;
-      html += '</div>';
+      html += `<div class="jewd-detail-row">${esc(s.address_1)}${s.city ? ", " + esc(s.city) : ""}${s.state ? " " + esc(s.state) : ""} ${esc(s.postcode || "")}</div>`;
+      html += "</div>";
     }
 
-    html += '</div>'; // end grid
+    html += "</div>"; // end grid
 
     // Line items
     html += '<div class="jewd-order-items">';
-    html += '<h4>🛍️ Artículos</h4>';
+    html += "<h4>🛍️ Artículos</h4>";
     html += '<table class="jewd-table" style="font-size:.85rem">';
-    html += '<thead><tr><th>Producto</th><th class="jewd-center">Cant.</th><th class="jewd-right">Precio</th><th class="jewd-right">Total</th></tr></thead><tbody>';
+    html +=
+      '<thead><tr><th>Producto</th><th class="jewd-center">Cant.</th><th class="jewd-right">Precio</th><th class="jewd-right">Total</th></tr></thead><tbody>';
     items.forEach((item) => {
-      html += '<tr>';
-      html += `<td>${esc(item.name)}${item.sku ? '<br><span class="jewd-text-sm">SKU: ' + esc(item.sku) + '</span>' : ''}</td>`;
+      html += "<tr>";
+      html += `<td>${esc(item.name)}${item.sku ? '<br><span class="jewd-text-sm">SKU: ' + esc(item.sku) + "</span>" : ""}</td>`;
       html += `<td class="jewd-center">${item.quantity}</td>`;
       html += `<td class="jewd-right">$${fmtN(item.price)}</td>`;
       html += `<td class="jewd-right"><strong>$${fmtN(item.total)}</strong></td>`;
-      html += '</tr>';
+      html += "</tr>";
     });
-    html += '</tbody></table>';
-    html += '</div>';
+    html += "</tbody></table>";
+    html += "</div>";
 
     // Totals
     html += '<div class="jewd-order-totals">';
     html += `<div class="jewd-detail-row"><span>Subtotal:</span> <strong>$${fmtN(order.total - (parseFloat(order.shipping_total) || 0) - (parseFloat(order.total_tax) || 0))}</strong></div>`;
-    if (parseFloat(order.shipping_total)) html += `<div class="jewd-detail-row"><span>Envío:</span> <strong>$${fmtN(order.shipping_total)}</strong></div>`;
-    if (parseFloat(order.total_tax)) html += `<div class="jewd-detail-row"><span>Impuestos:</span> <strong>$${fmtN(order.total_tax)}</strong></div>`;
-    if (parseFloat(order.discount_total)) html += `<div class="jewd-detail-row"><span>Descuento:</span> <strong>-$${fmtN(order.discount_total)}</strong></div>`;
+    if (parseFloat(order.shipping_total))
+      html += `<div class="jewd-detail-row"><span>Envío:</span> <strong>$${fmtN(order.shipping_total)}</strong></div>`;
+    if (parseFloat(order.total_tax))
+      html += `<div class="jewd-detail-row"><span>Impuestos:</span> <strong>$${fmtN(order.total_tax)}</strong></div>`;
+    if (parseFloat(order.discount_total))
+      html += `<div class="jewd-detail-row"><span>Descuento:</span> <strong>-$${fmtN(order.discount_total)}</strong></div>`;
     html += `<div class="jewd-detail-row jewd-order-grand-total"><span>Total:</span> <strong>$${fmtN(order.total)}</strong></div>`;
-    html += '</div>';
+    html += "</div>";
 
     // Status change buttons
     html += '<div class="jewd-order-actions">';
-    html += '<h4>📝 Cambiar Estado</h4>';
+    html += "<h4>📝 Cambiar Estado</h4>";
     html += '<div class="jewd-order-status-btns">';
     const statuses = ["pending", "processing", "on-hold", "completed", "cancelled"];
     statuses.forEach((s) => {
       const isCurrent = s === order.status;
-      html += `<button class="jewd-btn jewd-btn-sm ${isCurrent ? 'jewd-btn-gold' : 'jewd-btn-outline'}" data-new-status="${s}" data-order-id="${order.id}" ${isCurrent ? 'disabled' : ''}>${orderStatusLabel(s)}</button>`;
+      html += `<button class="jewd-btn jewd-btn-sm ${isCurrent ? "jewd-btn-gold" : "jewd-btn-outline"}" data-new-status="${s}" data-order-id="${order.id}" ${isCurrent ? "disabled" : ""}>${orderStatusLabel(s)}</button>`;
     });
-    html += '</div></div>';
+    html += "</div></div>";
 
     // Notes
     html += '<div class="jewd-order-notes" id="orderNotesSection">';
-    html += '<h4>📝 Notas</h4>';
-    html += '<div id="orderNotesList" class="jewd-order-notes-list"><div class="jewd-loading-pulse">Cargando notas...</div></div>';
+    html += "<h4>📝 Notas</h4>";
+    html +=
+      '<div id="orderNotesList" class="jewd-order-notes-list"><div class="jewd-loading-pulse">Cargando notas...</div></div>';
     html += '<div class="jewd-order-note-form">';
-    html += '<textarea class="jewd-edit-input jewd-edit-textarea" id="orderNoteInput" rows="2" placeholder="Agregar nota..."></textarea>';
+    html +=
+      '<textarea class="jewd-edit-input jewd-edit-textarea" id="orderNoteInput" rows="2" placeholder="Agregar nota..."></textarea>';
     html += `<button class="jewd-btn jewd-btn-sm jewd-btn-outline" id="btnAddOrderNote" data-order-id="${order.id}">Agregar Nota</button>`;
-    html += '</div></div>';
+    html += "</div></div>";
 
     $("#orderDetailBody").innerHTML = html;
     modal.classList.add("active");
@@ -2587,10 +2674,10 @@
       let html = "";
       notes.forEach((n) => {
         const date = n.date_created ? n.date_created.split("T")[0] : "";
-        html += `<div class="jewd-order-note ${n.customer_note ? 'jewd-note-customer' : ''}">`;
+        html += `<div class="jewd-order-note ${n.customer_note ? "jewd-note-customer" : ""}">`;
         html += `<div class="jewd-note-text">${esc(n.note)}</div>`;
-        html += `<div class="jewd-note-meta">${date}${n.customer_note ? ' · Cliente' : ' · Sistema'}</div>`;
-        html += '</div>';
+        html += `<div class="jewd-note-meta">${date}${n.customer_note ? " · Cliente" : " · Sistema"}</div>`;
+        html += "</div>";
       });
       container.innerHTML = html;
     } catch (e) {
@@ -2606,7 +2693,9 @@
   async function changeOrderStatus(order) {
     const statuses = ["pending", "processing", "on-hold", "completed", "cancelled"];
     const labels = statuses.map((s) => `${s === order.status ? "► " : ""}${s}`);
-    const choice = prompt(`Cambiar estado del pedido #${order.id}:\nActual: ${order.status}\n\nOpciones:\n${labels.join("\n")}\n\nEscribe el nuevo estado:`);
+    const choice = prompt(
+      `Cambiar estado del pedido #${order.id}:\nActual: ${order.status}\n\nOpciones:\n${labels.join("\n")}\n\nEscribe el nuevo estado:`,
+    );
     if (!choice || !statuses.includes(choice.trim())) return;
     try {
       toast("⏳ Cambiando estado...");
@@ -2655,7 +2744,9 @@
     const totals = report.totals || {};
 
     // Aggregate from totals object (keyed by date).
-    let totalSales = 0, totalOrders = 0, totalItems = 0;
+    let totalSales = 0,
+      totalOrders = 0,
+      totalItems = 0;
     Object.values(totals).forEach((d) => {
       totalSales += parseFloat(d.sales || 0);
       totalOrders += parseInt(d.orders || 0);
@@ -2667,11 +2758,11 @@
     if (!totalOrders && report.total_orders) totalOrders = parseInt(report.total_orders);
     if (!totalItems && report.total_items) totalItems = parseInt(report.total_items);
 
-    let html = '';
+    let html = "";
     html += `<div class="jewd-report-stat"><div class="jewd-report-stat-value">$${fmtN(totalSales)}</div><div class="jewd-report-stat-label">Ventas totales</div></div>`;
     html += `<div class="jewd-report-stat"><div class="jewd-report-stat-value">${totalOrders}</div><div class="jewd-report-stat-label">Pedidos</div></div>`;
     html += `<div class="jewd-report-stat"><div class="jewd-report-stat-value">${totalItems}</div><div class="jewd-report-stat-label">Artículos vendidos</div></div>`;
-    html += `<div class="jewd-report-stat"><div class="jewd-report-stat-value">$${totalOrders ? fmtN(totalSales / totalOrders) : '0'}</div><div class="jewd-report-stat-label">Promedio por pedido</div></div>`;
+    html += `<div class="jewd-report-stat"><div class="jewd-report-stat-value">$${totalOrders ? fmtN(totalSales / totalOrders) : "0"}</div><div class="jewd-report-stat-label">Promedio por pedido</div></div>`;
     el.innerHTML = html;
   }
 
@@ -2705,7 +2796,9 @@
     }
 
     if (!points.length) {
-      ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue("--jewd-text2").trim() || "#999";
+      ctx.fillStyle =
+        getComputedStyle(document.documentElement).getPropertyValue("--jewd-text2").trim() ||
+        "#999";
       ctx.font = "14px sans-serif";
       ctx.textAlign = "center";
       ctx.fillText("Sin datos de ventas", W / 2, H / 2);
@@ -2713,7 +2806,10 @@
     }
 
     const maxSales = Math.max(...points.map((p) => p.sales), 1);
-    const padLeft = 60, padRight = 20, padTop = 20, padBottom = 40;
+    const padLeft = 60,
+      padRight = 20,
+      padTop = 20,
+      padBottom = 40;
     const chartW = W - padLeft - padRight;
     const chartH = H - padTop - padBottom;
     const barW = Math.max(4, (chartW / points.length) * 0.7);
@@ -2782,10 +2878,10 @@
     data.slice(0, 5).forEach((item, i) => {
       html += `<div class="jewd-top-item">`;
       html += `<span class="jewd-top-rank">${i + 1}</span>`;
-      html += `<div class="jewd-top-info"><div class="jewd-top-name">${esc(item.name || 'Producto #' + item.product_id)}</div><div class="jewd-top-meta">${item.quantity || 0} vendidos</div></div>`;
-      html += '</div>';
+      html += `<div class="jewd-top-info"><div class="jewd-top-name">${esc(item.name || "Producto #" + item.product_id)}</div><div class="jewd-top-meta">${item.quantity || 0} vendidos</div></div>`;
+      html += "</div>";
     });
-    html += '</div>';
+    html += "</div>";
     el.innerHTML = html;
   }
 
@@ -2805,19 +2901,28 @@
       const settings = res.data || [];
       let html = '<div class="jewd-settings-list">';
       const importantSettings = [
-        "woocommerce_store_address", "woocommerce_store_city", "woocommerce_default_country",
-        "woocommerce_currency", "woocommerce_price_thousand_sep", "woocommerce_price_decimal_sep",
-        "woocommerce_price_num_decimals"
+        "woocommerce_store_address",
+        "woocommerce_store_city",
+        "woocommerce_default_country",
+        "woocommerce_currency",
+        "woocommerce_price_thousand_sep",
+        "woocommerce_price_decimal_sep",
+        "woocommerce_price_num_decimals",
       ];
       settings.forEach((s) => {
-        if (!importantSettings.includes(s.id) && !s.id.includes("currency") && !s.id.includes("store")) return;
+        if (
+          !importantSettings.includes(s.id) &&
+          !s.id.includes("currency") &&
+          !s.id.includes("store")
+        )
+          return;
         const val = s.value || "—";
         html += `<div class="jewd-settings-row">`;
         html += `<span class="jewd-settings-label">${esc(s.label || s.id)}</span>`;
         html += `<span class="jewd-settings-value">${esc(String(val))}</span>`;
-        html += '</div>';
+        html += "</div>";
       });
-      html += '</div>';
+      html += "</div>";
       el.innerHTML = html || '<p class="jewd-text-muted">No hay configuraciones disponibles</p>';
     } catch (e) {
       el.innerHTML = `<p class="jewd-text-muted">Error: ${esc(e.message)}</p>`;
@@ -2828,8 +2933,12 @@
     const el = $("#settingsAPI");
     if (!el) return;
     const cfg = window.JEWD_CONFIG || {};
-    const maskedKey = cfg.consumerKey ? cfg.consumerKey.slice(0, 8) + "..." + cfg.consumerKey.slice(-4) : "—";
-    const maskedSecret = cfg.consumerSecret ? cfg.consumerSecret.slice(0, 8) + "..." + cfg.consumerSecret.slice(-4) : "—";
+    const maskedKey = cfg.consumerKey
+      ? cfg.consumerKey.slice(0, 8) + "..." + cfg.consumerKey.slice(-4)
+      : "—";
+    const maskedSecret = cfg.consumerSecret
+      ? cfg.consumerSecret.slice(0, 8) + "..." + cfg.consumerSecret.slice(-4)
+      : "—";
 
     let html = '<div class="jewd-settings-list">';
     html += `<div class="jewd-settings-row"><span class="jewd-settings-label">WC Base URL</span><span class="jewd-settings-value jewd-text-mono">${esc(cfg.wcBaseUrl || "—")}</span></div>`;
@@ -2837,8 +2946,9 @@
     html += `<div class="jewd-settings-row"><span class="jewd-settings-label">Consumer Secret</span><span class="jewd-settings-value jewd-text-mono">${esc(maskedSecret)}</span></div>`;
     html += `<div class="jewd-settings-row"><span class="jewd-settings-label">Per Page</span><span class="jewd-settings-value">${cfg.perPage || 50}</span></div>`;
     html += `<div class="jewd-settings-row"><span class="jewd-settings-label">Admin URL</span><span class="jewd-settings-value jewd-text-mono">${esc(cfg.adminUrl || "—")}</span></div>`;
-    html += '</div>';
-    html += '<p class="jewd-edit-hint" style="margin-top:12px">Las API keys se configuran en el archivo <code>.env.js</code></p>';
+    html += "</div>";
+    html +=
+      '<p class="jewd-edit-hint" style="margin-top:12px">Las API keys se configuran en el archivo <code>.env.js</code></p>';
     el.innerHTML = html;
   }
 
@@ -2859,7 +2969,7 @@
       html += settingsRow("Moneda", wp.currency || "—");
       html += settingsRow("Tema activo", (d.active_plugins || []).length + " plugins activos");
       html += settingsRow("Dashboard", "v3.0.0");
-      html += '</div>';
+      html += "</div>";
       el.innerHTML = html;
     } catch (e) {
       el.innerHTML = `<p class="jewd-text-muted">Error: ${esc(e.message)}</p>`;
@@ -2972,11 +3082,292 @@
   }
 
   /* ===== TOAST ===== */
-  function toast(msg) {
+  /* ===== TYPED TOAST (F5-UX-06) ===== */
+  let toastTimer = null;
+  function toast(msg, type) {
     const t = $("#toast");
+    // Auto-detect type from emoji prefixes.
+    if (!type) {
+      if (msg.startsWith("✅")) type = "success";
+      else if (msg.startsWith("❌")) type = "error";
+      else if (msg.startsWith("⚠️")) type = "warning";
+      else if (msg.startsWith("⏳") || msg.startsWith("📷") || msg.startsWith("💾")) type = "info";
+    }
+    t.className = "jewd-toast show";
+    if (type) t.classList.add("jewd-toast-" + type);
     t.textContent = msg;
-    t.classList.add("show");
-    setTimeout(() => t.classList.remove("show"), 3000);
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(
+      () => {
+        t.className = "jewd-toast";
+      },
+      type === "error" ? 5000 : 3000,
+    );
+  }
+
+  /* ===== SKELETON LOADERS (F5-UX-01) ===== */
+  function showStatSkeletons() {
+    const el = $("#statsContainer");
+    if (!el) return;
+    let html = "";
+    for (let i = 0; i < 8; i++) {
+      html += '<div class="jewd-stat jewd-skeleton jewd-skeleton-stat"></div>';
+    }
+    el.innerHTML = html;
+  }
+
+  function showTableSkeleton(tbId, cols) {
+    const tb = $(tbId || "#productsTable");
+    if (!tb) return;
+    let html = "";
+    for (let i = 0; i < 8; i++) {
+      html += "<tr>";
+      for (let c = 0; c < (cols || 12); c++) {
+        html +=
+          '<td><div class="jewd-skeleton jewd-skeleton-text' +
+          (c % 3 === 0 ? " short" : "") +
+          '"></div></td>';
+      }
+      html += "</tr>";
+    }
+    tb.innerHTML = html;
+  }
+
+  /* ===== GENERIC CONFIRMATION MODAL (F5-UX-02) ===== */
+  /**
+   * Show a generic confirmation dialog.
+   * @param {Object} opts - { title, message, confirmText, cancelText, danger }
+   * @returns {Promise<boolean>}
+   */
+  function showConfirm(opts = {}) {
+    return new Promise((resolve) => {
+      const overlay = document.createElement("div");
+      overlay.className = "jewd-confirm-overlay";
+      overlay.setAttribute("role", "dialog");
+      overlay.setAttribute("aria-modal", "true");
+      overlay.setAttribute("aria-label", opts.title || "Confirmación");
+      overlay.innerHTML = `
+        <div class="jewd-confirm-dialog">
+          <div class="jewd-confirm-title">${esc(opts.title || "¿Estás seguro?")}</div>
+          <div class="jewd-confirm-message">${esc(opts.message || "")}</div>
+          <div class="jewd-confirm-actions">
+            <button class="jewd-btn jewd-btn-outline" data-confirm="cancel">${esc(opts.cancelText || "Cancelar")}</button>
+            <button class="jewd-btn ${opts.danger ? "jewd-btn-danger" : "jewd-btn-gold"}" data-confirm="ok">${esc(opts.confirmText || "Confirmar")}</button>
+          </div>
+        </div>
+      `;
+
+      function cleanup(result) {
+        overlay.remove();
+        resolve(result);
+      }
+
+      // Focus trap.
+      const focusable = () => overlay.querySelectorAll('button, [tabindex]:not([tabindex="-1"])');
+      overlay.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") {
+          cleanup(false);
+          return;
+        }
+        if (e.key === "Tab") {
+          const els = focusable();
+          if (!els.length) return;
+          const first = els[0],
+            last = els[els.length - 1];
+          if (e.shiftKey && document.activeElement === first) {
+            e.preventDefault();
+            last.focus();
+          } else if (!e.shiftKey && document.activeElement === last) {
+            e.preventDefault();
+            first.focus();
+          }
+        }
+      });
+
+      overlay.addEventListener("click", (e) => {
+        const action = e.target.closest("[data-confirm]")?.dataset?.confirm;
+        if (action === "ok") cleanup(true);
+        else if (action === "cancel" || e.target === overlay) cleanup(false);
+      });
+
+      document.body.appendChild(overlay);
+      // Focus the confirm button.
+      const confirmBtn = overlay.querySelector('[data-confirm="ok"]');
+      if (confirmBtn) confirmBtn.focus();
+    });
+  }
+
+  /* ===== FORM VALIDATION (F5-UX-03) ===== */
+  function validateField(input, rules) {
+    const field = input.closest(".jewd-edit-field") || input.parentElement;
+    // Remove existing error.
+    const existingErr = field.querySelector(".jewd-error-msg");
+    if (existingErr) existingErr.remove();
+    field.classList.remove("jewd-field-error", "jewd-field-valid");
+
+    const value = input.value.trim();
+
+    if (rules.required && !value) {
+      field.classList.add("jewd-field-error");
+      const err = document.createElement("span");
+      err.className = "jewd-error-msg";
+      err.textContent = rules.requiredMsg || "Este campo es obligatorio";
+      field.appendChild(err);
+      return false;
+    }
+
+    if (rules.min !== undefined && value && parseFloat(value) < rules.min) {
+      field.classList.add("jewd-field-error");
+      const err = document.createElement("span");
+      err.className = "jewd-error-msg";
+      err.textContent = `Valor mínimo: ${rules.min}`;
+      field.appendChild(err);
+      return false;
+    }
+
+    if (rules.pattern && value && !rules.pattern.test(value)) {
+      field.classList.add("jewd-field-error");
+      const err = document.createElement("span");
+      err.className = "jewd-error-msg";
+      err.textContent = rules.patternMsg || "Formato inválido";
+      field.appendChild(err);
+      return false;
+    }
+
+    if (value) field.classList.add("jewd-field-valid");
+    return true;
+  }
+
+  function validateForm(form, rules) {
+    let valid = true;
+    for (const [name, fieldRules] of Object.entries(rules)) {
+      const input = form.querySelector(`[name="${name}"]`);
+      if (input && !validateField(input, fieldRules)) valid = false;
+    }
+    return valid;
+  }
+
+  /* ===== ACCESSIBILITY (F5-UX-04) ===== */
+  function initAccessibility() {
+    // Add skip link.
+    const skipLink = document.createElement("a");
+    skipLink.href = "#sectionProducts";
+    skipLink.className = "jewd-skip-link";
+    skipLink.textContent = "Saltar al contenido";
+    document.body.prepend(skipLink);
+
+    // Add aria-labels to icon-only buttons.
+    $$(".jewd-action-btn").forEach((btn) => {
+      if (!btn.getAttribute("aria-label") && btn.title) {
+        btn.setAttribute("aria-label", btn.title);
+      }
+    });
+
+    // Add role="dialog" and aria-modal to modals.
+    $$(".jewd-modal").forEach((modal) => {
+      modal.setAttribute("role", "dialog");
+      modal.setAttribute("aria-modal", "true");
+    });
+
+    // Add landmark roles.
+    const sidebar = $("#sidebar");
+    if (sidebar) sidebar.setAttribute("role", "navigation");
+    const main = $(".jewd-main");
+    if (main) main.setAttribute("role", "main");
+
+    // Focus trap for modals.
+    document.addEventListener("keydown", (e) => {
+      if (e.key !== "Tab") return;
+      const activeModal = $(".jewd-modal.active");
+      if (!activeModal) return;
+
+      const focusable = activeModal.querySelectorAll(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+      );
+      if (!focusable.length) return;
+
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    });
+  }
+
+  /* ===== RESPONSIVE HELPERS (F5-UX-05) ===== */
+  function addTableDataLabels() {
+    // Add data-label attributes for responsive card layout.
+    const headers = $$("#sectionProducts .jewd-table thead th");
+    const labels = Array.from(headers).map((th) => th.textContent.trim());
+    $$("#sectionProducts .jewd-table tbody tr.jewd-prow td").forEach((td, i) => {
+      if (labels[i]) td.setAttribute("data-label", labels[i]);
+    });
+    // Orders table.
+    const oHeaders = $$("#sectionOrders .jewd-table thead th");
+    const oLabels = Array.from(oHeaders).map((th) => th.textContent.trim());
+    $$("#sectionOrders .jewd-table tbody tr td").forEach((td, i) => {
+      const colIdx = i % oLabels.length;
+      if (oLabels[colIdx]) td.setAttribute("data-label", oLabels[colIdx]);
+    });
+  }
+
+  /* ===== NOTIFICATIONS & ALERTS (F5-UX-06) ===== */
+  let notificationSoundEnabled = false;
+
+  function checkStockAlerts() {
+    if (!state.products.length) return;
+    const lowStock = state.products.filter((p) => {
+      if (p.type === "variable") {
+        const vs = state.variations[p.id] || [];
+        const total = vs.reduce((s, v) => s + (v.stock_quantity || 0), 0);
+        return total > 0 && total <= 3;
+      }
+      return p.stock_quantity !== null && p.stock_quantity > 0 && p.stock_quantity <= 3;
+    });
+
+    if (lowStock.length > 0) {
+      toast(
+        `⚠️ ${lowStock.length} producto${lowStock.length > 1 ? "s" : ""} con stock bajo (≤3)`,
+        "warning",
+      );
+    }
+  }
+
+  function updateOrderBadge() {
+    const badge = $("#ordersBadge");
+    if (!badge) return;
+    // Show badge for processing orders.
+    const processing = state.orders.filter((o) => o.status === "processing").length;
+    if (processing > 0) {
+      badge.textContent = processing;
+      badge.style.display = "inline-block";
+    } else {
+      badge.textContent = "";
+      badge.style.display = "none";
+    }
+  }
+
+  function playNotificationSound() {
+    if (!notificationSoundEnabled) return;
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.frequency.value = 800;
+      gain.gain.value = 0.1;
+      osc.start();
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+      osc.stop(ctx.currentTime + 0.3);
+    } catch (e) {
+      /* ignore audio errors */
+    }
   }
 
   /* ===== HELPERS ===== */
