@@ -47,12 +47,14 @@ docker exec jewelry_wordpress wp eval '
     wp_cache_flush();
 ' --allow-root 2>/dev/null || true
 
-# Tema Kadence cache (si aplica)
+# Tema Astra cache (si aplica)
 echo -e "${GREEN}🎨 Limpiando cache del tema...${NC}"
 docker exec jewelry_wordpress wp eval '
-    if ( function_exists( "kadence_theme_delete_cache" ) ) {
-        kadence_theme_delete_cache();
+    if ( function_exists( "astra_clear_all_assets_cache" ) ) {
+        astra_clear_all_assets_cache();
     }
+    // Limpiar customizer cache de Astra
+    delete_option( "astra-settings-customizer-batch" );
 ' --allow-root 2>/dev/null || true
 
 # Browser cache headers (invalidar)

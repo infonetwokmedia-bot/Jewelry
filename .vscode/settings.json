@@ -46,6 +46,12 @@
   "github.copilot.chat.agents.enabled": true,
   "github.copilot.chat.useProjectTemplates": true,
 
+  // Habilitar prompt files (.prompt.md) y chat modes (.chatmode.md)
+  "chat.promptFiles": true,
+  "chat.promptFilesLocations": {
+    ".github/prompts": true
+  },
+
   // Configuración de inline suggestions
   "editor.inlineSuggest.enabled": true,
   "editor.quickSuggestions": {

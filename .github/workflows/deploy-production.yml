@@ -88,39 +88,58 @@ jobs:
             set -e
             cd ${{ env.PROD_DIR }}
 
+            COMPOSE="docker compose -f docker-compose.production.yml"
+
             echo "📋 Estado previo:"
-            docker compose ps --format 'table {{.Name}}\t{{.Status}}'
+            $COMPOSE ps --format 'table {{.Name}}\t{{.Status}}'
 
             echo ""
             echo "⟳ Pulling latest images..."
-            docker compose pull wordpress
+            $COMPOSE pull wordpress dashboard
 
             echo ""
-            echo "⟳ Restarting services..."
-            docker compose up -d --force-recreate wordpress
+            echo "⟳ Recreating WordPress & Dashboard (DB untouched)..."
+            $COMPOSE up -d --force-recreate wordpress dashboard
 
             echo ""
             echo "⏳ Esperando que WordPress arranque..."
             sleep 10
 
+            # Verify MySQL was NOT restarted
+            MYSQL_STATUS=$(docker inspect --format='{{.State.Status}}' tujoyita_mysql 2>/dev/null || echo "unknown")
+            echo "MySQL status: $MYSQL_STATUS (should be running, NOT restarted)"
+
             # Verify WordPress is responding
-            HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:80 2>/dev/null || echo "000")
-            if [ "$HTTP_CODE" = "000" ]; then
-              # Try via Traefik
-              HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" -H "Host: tujoyita.com" http://localhost:80 2>/dev/null || echo "000")
-            fi
+            HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" -H "Host: tujoyita.com" http://localhost:80 2>/dev/null || echo "000")
+            echo "WordPress HTTP: $HTTP_CODE"
 
             echo ""
             echo "📋 Estado posterior:"
-            docker compose ps --format 'table {{.Name}}\t{{.Status}}'
+            $COMPOSE ps --format 'table {{.Name}}\t{{.Status}}'
 
-      - name: Sync custom code
+      - name: Sync mu-plugins to production volume
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            cd ${{ env.PROD_DIR }}
+            # mu-plugins go into the Docker named volume via docker cp
+            for f in data/wordpress/wp-content/mu-plugins/jewelry-*.php; do
+              [ -f "$f" ] || continue
+              docker cp "$f" tujoyita_wordpress:/var/www/html/wp-content/mu-plugins/
+              echo "  ✔ $(basename $f)"
+            done
+            echo "✅ mu-plugins synced to container volume"
+
+      - name: Sync dashboard
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
-          source: "data/wordpress/wp-content/mu-plugins/"
+          source: "dashboard/"
           target: "${{ env.PROD_DIR }}/"
           strip_components: 0
 
@@ -132,7 +151,11 @@ jobs:
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
             cd ${{ env.PROD_DIR }}
-            docker compose run --rm wpcli wp cache flush --allow-root 2>/dev/null || true
+            COMPOSE="docker compose -f docker-compose.production.yml"
+            # Restart dashboard to pick up new files
+            $COMPOSE restart dashboard
+            # Flush WP cache (wpcli has profiles: ["cli"])
+            $COMPOSE --profile cli run --rm wpcli cache flush 2>/dev/null || true
             echo "✅ Cache cleared"
 
   health-check:

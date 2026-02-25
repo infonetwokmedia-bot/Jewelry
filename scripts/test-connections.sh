@@ -5,7 +5,21 @@
 # Verifica conectividad y salud de todos los servicios Docker
 ################################################################################
 
-set -e
+# Note: no 'set -e' — tests should continue even if individual checks fail
+
+# Source .env for credentials
+if [ -f .env ]; then
+    while IFS='=' read -r key value; do
+        # Skip comments and empty lines
+        [[ "$key" =~ ^#.*$ || -z "$key" ]] && continue
+        # Only export known safe variables
+        case "$key" in
+            MYSQL_ROOT_PASSWORD|MYSQL_DATABASE|MYSQL_USER|MYSQL_PASSWORD)
+                export "$key=$value"
+                ;;
+        esac
+    done < .env
+fi
 
 # Colors
 GREEN='\033[0;32m'
@@ -50,16 +64,16 @@ echo ""
 
 echo -e "${YELLOW}━━━ MySQL Database ━━━${NC}"
 run_test "MySQL ping" "docker exec jewelry_mysql mysqladmin ping -h localhost --silent"
-run_test "MySQL connects" "docker exec jewelry_mysql mysql -u root -p\${MYSQL_ROOT_PASSWORD} -e 'SELECT 1' 2>/dev/null"
-run_test "Database exists" "docker exec jewelry_mysql mysql -u root -p\${MYSQL_ROOT_PASSWORD} -e 'USE jewelry_db' 2>/dev/null"
+run_test "MySQL connects" "docker exec jewelry_mysql mysql -u root -p'${MYSQL_ROOT_PASSWORD}' -e 'SELECT 1' 2>/dev/null"
+run_test "Database exists" "docker exec jewelry_mysql mysql -u root -p'${MYSQL_ROOT_PASSWORD}' -e 'USE jewelry_db' 2>/dev/null"
 echo ""
 
 echo -e "${YELLOW}━━━ WordPress ━━━${NC}"
 run_test "WP-CLI available" "docker exec jewelry_wordpress wp --version --allow-root"
 run_test "WordPress installed" "docker exec jewelry_wordpress wp core is-installed --allow-root"
 run_test "WooCommerce active" "docker exec jewelry_wordpress wp plugin is-active woocommerce --allow-root"
-run_test "Bogo active" "docker exec jewelry_wordpress wp plugin is-active bogo --allow-root"
-run_test "Kadence active" "docker exec jewelry_wordpress wp theme is-active kadence --allow-root"
+run_test "TranslatePress active" "docker exec jewelry_wordpress wp plugin is-active translatepress-multilingual --allow-root"
+run_test "Astra active" "docker exec jewelry_wordpress wp theme is-active astra --allow-root"
 echo ""
 
 echo -e "${YELLOW}━━━ Network Connectivity ━━━${NC}"
@@ -71,7 +85,7 @@ echo ""
 echo -e "${YELLOW}━━━ File System ━━━${NC}"
 run_test "WordPress writable" "docker exec jewelry_wordpress wp eval 'echo is_writable(WP_CONTENT_DIR) ? \"yes\" : \"no\";' --allow-root | grep -q 'yes'"
 run_test "Uploads directory exists" "docker exec jewelry_wordpress test -d /var/www/html/wp-content/uploads"
-run_test "functions-custom.php exists" "test -f data/wordpress/wp-content/themes/kadence/functions-custom.php"
+run_test "mu-plugins exist" "test -f data/wordpress/wp-content/mu-plugins/jewelry-security.php"
 echo ""
 
 echo -e "${YELLOW}━━━ Configuration ━━━${NC}"
