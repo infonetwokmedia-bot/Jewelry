@@ -88,3 +88,4 @@ docker-compose.yml.backup*
 !.vscode/tasks.json
 !.vscode/jewelry.code-snippets
 dashboard/.env.production.js
+!data/wordpress/wp-content/mu-plugins/jewelry-roles.php
