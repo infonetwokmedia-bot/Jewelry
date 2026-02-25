@@ -345,6 +345,7 @@ body {
   padding: 0 24px 24px;
   overflow-x: auto;
 }
+.jewd-table {
 
 .jewd-table {
   width: 100%;
@@ -360,9 +361,6 @@ body {
   border-bottom: 2px solid var(--jewd-gold-dim);
   white-space: nowrap;
   user-select: none;
-  position: sticky;
-  top: 57px;
-  z-index: 2;
   transition: all 0.3s;
   font-weight: 600;
   text-transform: uppercase;
@@ -1767,6 +1765,7 @@ body {
   font-size: 1.15rem;
   font-weight: 700;
   color: var(--jewd-gold);
+  margin: 0;
 }
 
 /* ===== ORDER STATUS BADGES ===== */

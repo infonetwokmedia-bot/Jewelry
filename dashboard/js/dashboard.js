@@ -212,6 +212,9 @@
     // Close mobile sidebar.
     $("#sidebar").classList.remove("open");
 
+    // Reset scroll so the new section starts from the top.
+    window.scrollTo(0, 0);
+
     // Lazy-load section data on first visit.
     // Reports always reloads (sales change throughout the day).
     if (section === "reports") {
