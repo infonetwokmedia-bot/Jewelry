@@ -68,6 +68,23 @@ services:
       # Router HTTP para Cloudflare Tunnel (llega por puerto 80)
       - "traefik.http.routers.jewelry-tunnel.rule=Host(`dev.tujoyita.com`)"
       - "traefik.http.routers.jewelry-tunnel.entrypoints=web"
+      # ── PRODUCCION: tujoyita.com ──
+      - "traefik.http.routers.jewelry-prod.rule=Host(`tujoyita.com`)"
+      - "traefik.http.routers.jewelry-prod.entrypoints=websecure"
+      - "traefik.http.routers.jewelry-prod.tls=true"
+      - "traefik.http.routers.jewelry-prod-http.rule=Host(`tujoyita.com`)"
+      - "traefik.http.routers.jewelry-prod-http.entrypoints=web"
+      # www.tujoyita.com → tujoyita.com redirect
+      - "traefik.http.routers.jewelry-www.rule=Host(`www.tujoyita.com`)"
+      - "traefik.http.routers.jewelry-www.entrypoints=websecure"
+      - "traefik.http.routers.jewelry-www.tls=true"
+      - "traefik.http.routers.jewelry-www.middlewares=jewelry-www-redirect@docker"
+      - "traefik.http.routers.jewelry-www-http.rule=Host(`www.tujoyita.com`)"
+      - "traefik.http.routers.jewelry-www-http.entrypoints=web"
+      - "traefik.http.routers.jewelry-www-http.middlewares=jewelry-www-redirect@docker"
+      - "traefik.http.middlewares.jewelry-www-redirect.redirectregex.regex=^https?://www\\.tujoyita\\.com/(.*)"
+      - "traefik.http.middlewares.jewelry-www-redirect.redirectregex.replacement=https://tujoyita.com/$${1}"
+      - "traefik.http.middlewares.jewelry-www-redirect.redirectregex.permanent=true"
       # Servicio compartido
       - "traefik.http.services.jewelry.loadbalancer.server.port=80"
 
@@ -169,6 +186,26 @@ services:
       - "traefik.http.middlewares.jewelry-dashboard-addslash.redirectregex.regex=^https?://([^/]+)/dashboard$"
       - "traefik.http.middlewares.jewelry-dashboard-addslash.redirectregex.replacement=https://$${1}/dashboard/"
       - "traefik.http.middlewares.jewelry-dashboard-addslash.redirectregex.permanent=true"
+      # ── PRODUCCION: tujoyita.com/dashboard/ ──
+      - "traefik.http.routers.jewelry-dashboard-prod.rule=Host(`tujoyita.com`) && PathPrefix(`/dashboard/`)"
+      - "traefik.http.routers.jewelry-dashboard-prod.entrypoints=websecure"
+      - "traefik.http.routers.jewelry-dashboard-prod.tls=true"
+      - "traefik.http.routers.jewelry-dashboard-prod.priority=300"
+      - "traefik.http.routers.jewelry-dashboard-prod.middlewares=jewelry-dashboard-strip@docker"
+      - "traefik.http.routers.jewelry-dashboard-prod-redirect.rule=Host(`tujoyita.com`) && Path(`/dashboard`)"
+      - "traefik.http.routers.jewelry-dashboard-prod-redirect.entrypoints=websecure"
+      - "traefik.http.routers.jewelry-dashboard-prod-redirect.tls=true"
+      - "traefik.http.routers.jewelry-dashboard-prod-redirect.priority=301"
+      - "traefik.http.routers.jewelry-dashboard-prod-redirect.middlewares=jewelry-dashboard-addslash@docker"
+      # HTTP (tunnel llega por puerto 80)
+      - "traefik.http.routers.jewelry-dashboard-prod-http.rule=Host(`tujoyita.com`) && PathPrefix(`/dashboard/`)"
+      - "traefik.http.routers.jewelry-dashboard-prod-http.entrypoints=web"
+      - "traefik.http.routers.jewelry-dashboard-prod-http.priority=300"
+      - "traefik.http.routers.jewelry-dashboard-prod-http.middlewares=jewelry-dashboard-strip@docker"
+      - "traefik.http.routers.jewelry-dashboard-prod-http-redirect.rule=Host(`tujoyita.com`) && Path(`/dashboard`)"
+      - "traefik.http.routers.jewelry-dashboard-prod-http-redirect.entrypoints=web"
+      - "traefik.http.routers.jewelry-dashboard-prod-http-redirect.priority=301"
+      - "traefik.http.routers.jewelry-dashboard-prod-http-redirect.middlewares=jewelry-dashboard-addslash@docker"
       - "traefik.http.services.jewelry-dashboard.loadbalancer.server.port=80"
 
 networks:
