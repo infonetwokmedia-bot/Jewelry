@@ -51,10 +51,16 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=traefik-public"
-      # Router local
+      # Router local (jewelry.local.dev)
       - "traefik.http.routers.jewelry.rule=Host(`jewelry.local.dev`)"
       - "traefik.http.routers.jewelry.entrypoints=websecure"
       - "traefik.http.routers.jewelry.tls=true"
+      # Router local (tujoyita.local — /etc/hosts)
+      - "traefik.http.routers.jewelry-local.rule=Host(`tujoyita.local`)"
+      - "traefik.http.routers.jewelry-local.entrypoints=websecure"
+      - "traefik.http.routers.jewelry-local.tls=true"
+      - "traefik.http.routers.jewelry-local-http.rule=Host(`tujoyita.local`)"
+      - "traefik.http.routers.jewelry-local-http.entrypoints=web"
       # Router público (acceso externo via Cloudflare Tunnel)
       - "traefik.http.routers.jewelry-public.rule=Host(`dev.tujoyita.com`)"
       - "traefik.http.routers.jewelry-public.entrypoints=websecure"
@@ -121,6 +127,22 @@ services:
       - "traefik.http.routers.jewelry-dashboard.rule=Host(`dashboard.jewelry.local.dev`)"
       - "traefik.http.routers.jewelry-dashboard.entrypoints=websecure"
       - "traefik.http.routers.jewelry-dashboard.tls=true"
+      # Router local (dashboard.tujoyita.local — /etc/hosts)
+      - "traefik.http.routers.jewelry-dashboard-local.rule=Host(`dashboard.tujoyita.local`)"
+      - "traefik.http.routers.jewelry-dashboard-local.entrypoints=websecure"
+      - "traefik.http.routers.jewelry-dashboard-local.tls=true"
+      - "traefik.http.routers.jewelry-dashboard-local-http.rule=Host(`dashboard.tujoyita.local`)"
+      - "traefik.http.routers.jewelry-dashboard-local-http.entrypoints=web"
+      # Path-based route: tujoyita.local/dashboard/
+      - "traefik.http.routers.jewelry-dashboard-path-local.rule=Host(`tujoyita.local`) && PathPrefix(`/dashboard/`)"
+      - "traefik.http.routers.jewelry-dashboard-path-local.entrypoints=websecure"
+      - "traefik.http.routers.jewelry-dashboard-path-local.tls=true"
+      - "traefik.http.routers.jewelry-dashboard-path-local.priority=300"
+      - "traefik.http.routers.jewelry-dashboard-path-local.middlewares=jewelry-dashboard-strip@docker"
+      - "traefik.http.routers.jewelry-dashboard-path-local-http.rule=Host(`tujoyita.local`) && PathPrefix(`/dashboard/`)"
+      - "traefik.http.routers.jewelry-dashboard-path-local-http.entrypoints=web"
+      - "traefik.http.routers.jewelry-dashboard-path-local-http.priority=300"
+      - "traefik.http.routers.jewelry-dashboard-path-local-http.middlewares=jewelry-dashboard-strip@docker"
       - "traefik.http.routers.jewelry-dashboard-public.rule=Host(`dashboard.dev.tujoyita.com`)"
       - "traefik.http.routers.jewelry-dashboard-public.entrypoints=websecure"
       - "traefik.http.routers.jewelry-dashboard-public.tls=true"

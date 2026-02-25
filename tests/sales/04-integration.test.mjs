@@ -68,13 +68,19 @@ describe(
       assert.ok(result.includes("wc-completed"), "Status must be wc-completed");
     });
 
-    it("wp_wc_order_product_lookup is also populated", { todo: "WC Analytics product lookup sync requires scheduler — tracked separately" }, () => {
-      assert.ok(testOrderId, "Need test order ID");
-      const result = mysqlQuery(
-        `SELECT order_id FROM wp_wc_order_product_lookup WHERE order_id = ${testOrderId}`,
-      );
-      assert.ok(result.length > 0, "Order product lookup must be populated");
-    });
+    it(
+      "wp_wc_order_product_lookup is also populated",
+      {
+        todo: "WC Analytics product lookup sync requires scheduler — tracked separately",
+      },
+      () => {
+        assert.ok(testOrderId, "Need test order ID");
+        const result = mysqlQuery(
+          `SELECT order_id FROM wp_wc_order_product_lookup WHERE order_id = ${testOrderId}`,
+        );
+        assert.ok(result.length > 0, "Order product lookup must be populated");
+      },
+    );
   },
 );
 
