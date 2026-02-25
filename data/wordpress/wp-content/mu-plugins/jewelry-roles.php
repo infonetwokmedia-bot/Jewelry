@@ -833,6 +833,17 @@ function jewelry_register_sales_api()
             'permission_callback' => 'jewelry_api_can_manage_sales', // checks manage_woocommerce / manage_options
         )
     );
+
+    // GET /jewd/v1/sales/today — Today's individual orders for POS panel
+    register_rest_route(
+        'jewd/v1',
+        '/sales/today',
+        array(
+            'methods'             => 'GET',
+            'callback'            => 'jewelry_get_sales_today',
+            'permission_callback' => 'jewelry_api_can_view_sales',
+        )
+    );
 }
 
 /**
@@ -1087,4 +1098,110 @@ function jewelry_get_sales_by_seller($request)
     }
 
     return new \WP_REST_Response($sellers, 200);
+}
+
+/**
+ * GET /jewd/v1/sales/today
+ *
+ * Returns individual orders created today (for POS dashboard panel).
+ * Accepts optional ?seller=username to filter by _pos_seller.
+ *
+ * @param WP_REST_Request $request
+ * @return WP_REST_Response
+ */
+function jewelry_get_sales_today($request)
+{
+    global $wpdb;
+
+    $seller      = sanitize_text_field($request->get_param('seller'));
+    $today_start = gmdate('Y-m-d 00:00:00');
+
+    $orders_table = $wpdb->prefix . 'wc_orders';
+    $meta_table   = $wpdb->prefix . 'wc_orders_meta';
+    $use_hpos     = $wpdb->get_var("SHOW TABLES LIKE '{$orders_table}'") === $orders_table;
+
+    if ($use_hpos) {
+        $sql = "SELECT o.id, o.total_amount as total, o.date_created_gmt as date_created,
+                       o.payment_method, o.status
+                FROM {$orders_table} o";
+
+        $where = array(
+            $wpdb->prepare("o.date_created_gmt >= %s", $today_start),
+            "o.status IN ('wc-completed', 'wc-processing')",
+            "o.type = 'shop_order'",
+        );
+
+        if (! empty($seller)) {
+            $sql .= " INNER JOIN {$meta_table} om ON o.id = om.order_id";
+            $where[] = "om.meta_key = '_pos_seller'";
+            $where[] = $wpdb->prepare("om.meta_value = %s", $seller);
+        }
+
+        $sql .= ' WHERE ' . implode(' AND ', $where);
+        $sql .= ' ORDER BY o.date_created_gmt DESC';
+    } else {
+        $sql = "SELECT p.ID as id, pm_total.meta_value as total, p.post_date_gmt as date_created,
+                       pm_method.meta_value as payment_method, p.post_status as status
+                FROM {$wpdb->posts} p
+                INNER JOIN {$wpdb->postmeta} pm_total ON p.ID = pm_total.post_id AND pm_total.meta_key = '_order_total'
+                LEFT JOIN {$wpdb->postmeta} pm_method ON p.ID = pm_method.post_id AND pm_method.meta_key = '_payment_method'";
+
+        $where = array(
+            $wpdb->prepare("p.post_date_gmt >= %s", $today_start),
+            "p.post_status IN ('wc-completed', 'wc-processing')",
+            "p.post_type = 'shop_order'",
+        );
+
+        if (! empty($seller)) {
+            $sql .= " INNER JOIN {$wpdb->postmeta} pm_seller ON p.ID = pm_seller.post_id";
+            $where[] = "pm_seller.meta_key = '_pos_seller'";
+            $where[] = $wpdb->prepare("pm_seller.meta_value = %s", $seller);
+        }
+
+        $sql .= ' WHERE ' . implode(' AND ', $where);
+        $sql .= ' ORDER BY p.post_date_gmt DESC';
+    }
+
+    // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+    $rows = $wpdb->get_results($sql);
+
+    $orders = array();
+    foreach ($rows as $row) {
+        $order_id = intval($row->id);
+
+        // Get line items count
+        $qty = intval($wpdb->get_var($wpdb->prepare(
+            "SELECT COALESCE(SUM(oim.meta_value), 0)
+             FROM {$wpdb->prefix}woocommerce_order_items oi
+             INNER JOIN {$wpdb->prefix}woocommerce_order_itemmeta oim
+                 ON oi.order_item_id = oim.order_item_id AND oim.meta_key = '_qty'
+             WHERE oi.order_id = %d AND oi.order_item_type = 'line_item'",
+            $order_id
+        )));
+
+        // Get seller from meta if not filtering
+        $order_seller = $seller;
+        if (empty($order_seller)) {
+            if ($use_hpos) {
+                $order_seller = $wpdb->get_var($wpdb->prepare(
+                    "SELECT meta_value FROM {$meta_table} WHERE order_id = %d AND meta_key = '_pos_seller'",
+                    $order_id
+                ));
+            } else {
+                $order_seller = get_post_meta($order_id, '_pos_seller', true);
+            }
+        }
+
+        $orders[] = array(
+            'id'     => $order_id,
+            'number' => $order_id,
+            'total'  => round(floatval($row->total), 2),
+            'qty'    => $qty,
+            'method' => $row->payment_method ?: 'pos',
+            'seller' => $order_seller ?: '',
+            'time'   => $row->date_created,
+        );
+    }
+
+    return new \WP_REST_Response($orders, 200);
 }

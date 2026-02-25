@@ -1605,6 +1605,7 @@ const JewdPOS = (function () {
   }
 
   function restoreTodaySales() {
+    // Load from localStorage first as immediate fallback
     try {
       const saved = localStorage.getItem(SALES_KEY);
       if (saved) {
@@ -1614,6 +1615,34 @@ const JewdPOS = (function () {
       }
     } catch (e) {
       todaySales = [];
+    }
+    // Then load from server (async)
+    loadTodaySalesFromServer();
+  }
+
+  async function loadTodaySalesFromServer() {
+    try {
+      const user = window.JewdAuth ? window.JewdAuth.currentUser() : null;
+      const seller = user ? user.user_login || user.username || '' : '';
+      const res = await JewdAPI.getSalesToday({ seller });
+      const orders = Array.isArray(res) ? res : (res && res.data ? res.data : []);
+      if (orders.length > 0 || todaySales.length === 0) {
+        todaySales = orders.map(function (o) {
+          return {
+            id: o.id,
+            number: o.number || o.id,
+            total: parseFloat(o.total || 0),
+            qty: o.qty || 0,
+            method: o.method || 'pos',
+            seller: o.seller || seller,
+            time: o.time || o.date_created || new Date().toISOString(),
+          };
+        });
+        saveTodaySales();
+        renderTodaySummary();
+      }
+    } catch (e) {
+      console.warn('[POS] loadTodaySalesFromServer failed, using localStorage:', e.message);
     }
   }
 

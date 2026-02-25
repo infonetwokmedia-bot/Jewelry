@@ -20,6 +20,12 @@ export function readDashFile(relPath) {
   return readFileSync(full, "utf-8");
 }
 
+export function readDashHtml() {
+  return readDashFile("index.html");
+}
+
+export const containersUp = isContainerRunning("jewelry_dashboard");
+
 export function readMuPlugin(filename) {
   const full = resolve(MU_PLUGINS, filename);
   if (!existsSync(full)) throw new Error(`MU-plugin not found: ${filename}`);

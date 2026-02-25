@@ -434,6 +434,21 @@ const JewdAPI = (function () {
     return request(url);
   }
 
+  /**
+   * GET today's individual orders for POS panel.
+   * @param {Object} [opts]
+   * @param {string} [opts.seller] - Optional seller username filter.
+   */
+  async function getSalesToday({ seller } = {}) {
+    const c = cfg();
+    const params = new URLSearchParams();
+    params.set("consumer_key", c.consumerKey);
+    params.set("consumer_secret", c.consumerSecret);
+    if (seller) params.set("seller", seller);
+    const url = `${c.wpBaseUrl}/jewd/v1/sales/today?${params.toString()}`;
+    return request(url);
+  }
+
   /* ===== SETTINGS (Phase 4) ===== */
 
   /**
@@ -517,6 +532,7 @@ const JewdAPI = (function () {
     getTopSellers,
     getSalesStats,
     getSalesBySeller,
+    getSalesToday,
     getSettings,
     updateSetting,
     getSystemStatus,

@@ -3029,6 +3029,14 @@
       renderReportSummary(salesRes.data);
       renderSalesChart(salesRes.data, dateMin, dateMax, days);
       renderTopSellers(topRes.data || []);
+
+      // Ticket #22: Load seller sales for owner/gerente
+      if (
+        window.JewdAuth &&
+        (window.JewdAuth.can("manage_woocommerce") || window.JewdAuth.can("manage_options"))
+      ) {
+        loadSellerSales(days <= 7 ? "week" : "month");
+      }
     } catch (e) {
       console.error("Reports load error:", e);
       toast("❌ Error cargando reportes");
@@ -3039,24 +3047,12 @@
     const el = $("#reportSummary");
     if (!el) return;
 
-    // WC reports/sales returns an array with one element containing totals.
-    const report = Array.isArray(data) && data.length ? data[0] : {};
-    const totals = report.totals || {};
+    // wc-analytics/reports/revenue/stats returns { totals: {...}, intervals: [...] }
+    const totals = data && data.totals ? data.totals : {};
 
-    // Aggregate from totals object (keyed by date).
-    let totalSales = 0,
-      totalOrders = 0,
-      totalItems = 0;
-    Object.values(totals).forEach((d) => {
-      totalSales += parseFloat(d.sales || 0);
-      totalOrders += parseInt(d.orders || 0);
-      totalItems += parseInt(d.items || 0);
-    });
-
-    // Fallback to report-level data.
-    if (!totalSales && report.total_sales) totalSales = parseFloat(report.total_sales);
-    if (!totalOrders && report.total_orders) totalOrders = parseInt(report.total_orders);
-    if (!totalItems && report.total_items) totalItems = parseInt(report.total_items);
+    const totalSales = parseFloat(totals.total_sales || 0);
+    const totalOrders = parseInt(totals.orders_count || 0);
+    const totalItems = parseInt(totals.num_items_sold || 0);
 
     let html = "";
     html += `<div class="jewd-report-stat"><div class="jewd-report-stat-value">$${fmtN(totalSales)}</div><div class="jewd-report-stat-label">Ventas totales</div></div>`;
@@ -3080,9 +3076,8 @@
     const H = canvas.offsetHeight;
     ctx.clearRect(0, 0, W, H);
 
-    // Extract daily sales from totals.
-    const report = Array.isArray(data) && data.length ? data[0] : {};
-    const totals = report.totals || {};
+    // Extract daily sales from wc-analytics intervals.
+    const intervals = data && data.intervals ? data.intervals : [];
 
     // Build data points for each day.
     const points = [];
@@ -3090,7 +3085,10 @@
     const endDate = new Date(dateMax);
     while (d <= endDate) {
       const key = d.toISOString().split("T")[0];
-      const val = totals[key] ? parseFloat(totals[key].sales || 0) : 0;
+      // Find matching interval from wc-analytics
+      const interval = intervals.find((iv) => iv.interval === key);
+      const val =
+        interval && interval.subtotals ? parseFloat(interval.subtotals.total_sales || 0) : 0;
       points.push({ date: key, sales: val });
       d.setDate(d.getDate() + 1);
     }
@@ -3184,6 +3182,44 @@
       html += `<div class="jewd-top-item">`;
       html += `<span class="jewd-top-rank">${i + 1}</span>`;
       html += `<div class="jewd-top-info"><div class="jewd-top-name">${esc(item.name || "Producto #" + item.product_id)}</div><div class="jewd-top-meta">${item.quantity || 0} vendidos</div></div>`;
+      html += "</div>";
+    });
+    html += "</div>";
+    el.innerHTML = html;
+  }
+
+  /* ===== SELLER SALES (Ticket #22) ===== */
+  async function loadSellerSales(period) {
+    const card = $("#sellerSalesCard");
+    if (card) card.style.display = "";
+    try {
+      const res = await JewdAPI.getSalesBySeller({ period: period || "month" });
+      const sellers = res.data || res.sellers || res || [];
+      renderSellerSales(Array.isArray(sellers) ? sellers : []);
+    } catch (e) {
+      console.error("Seller sales load error:", e);
+      const el = $("#sellerSalesContainer");
+      if (el) el.innerHTML = '<p class="jewd-text-muted">Error cargando datos</p>';
+    }
+  }
+
+  function renderSellerSales(sellers) {
+    const el = $("#sellerSalesContainer");
+    if (!el) return;
+
+    if (!sellers.length) {
+      el.innerHTML = '<p class="jewd-text-muted" style="padding:12px">Sin datos de vendedores</p>';
+      return;
+    }
+
+    let html = '<div class="jewd-top-list">';
+    sellers.forEach((s, i) => {
+      const name = s.display_name || s.username || s.seller || "Vendedor";
+      const total = parseFloat(s.total || 0);
+      const count = parseInt(s.count || s.orders || 0);
+      html += '<div class="jewd-top-item">';
+      html += `<span class="jewd-top-rank">${i + 1}</span>`;
+      html += `<div class="jewd-top-info"><div class="jewd-top-name">${esc(name)}</div><div class="jewd-top-meta">${count} ventas · $${fmtN(total)}</div></div>`;
       html += "</div>";
     });
     html += "</div>";
