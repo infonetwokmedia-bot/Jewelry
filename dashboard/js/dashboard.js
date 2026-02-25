@@ -3030,10 +3030,12 @@
       renderSalesChart(salesRes.data, dateMin, dateMax, days);
       renderTopSellers(topRes.data || []);
 
-      // Ticket #22: Load seller sales for owner/gerente
+      // Ticket #22/#24: Load seller sales for owner/gerente/consultor
       if (
         window.JewdAuth &&
-        (window.JewdAuth.can("manage_woocommerce") || window.JewdAuth.can("manage_options"))
+        (window.JewdAuth.can("manage_woocommerce") ||
+          window.JewdAuth.can("manage_options") ||
+          window.JewdAuth.can("view_reports"))
       ) {
         loadSellerSales(days <= 7 ? "week" : "month");
       }

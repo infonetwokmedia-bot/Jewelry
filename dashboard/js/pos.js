@@ -120,6 +120,12 @@ const JewdPOS = (function () {
     renderCart();
     renderHeldCartsIndicator();
     renderTodaySummary();
+
+    // Ticket #26: Load seller summary for gerente/admin
+    if (window.JewdAuth && (window.JewdAuth.can('manage_woocommerce') || window.JewdAuth.can('manage_options'))) {
+      loadPosSellerSummary();
+    }
+
     console.log("[POS] init() complete");
   }
 
@@ -1701,6 +1707,44 @@ const JewdPOS = (function () {
   function toggleTodaySales() {
     const panel = $("#posTodayPanel");
     if (panel) panel.classList.toggle("open");
+  }
+
+  // ── Seller Summary for Gerente/Admin (Ticket #26) ───────────────────
+  async function loadPosSellerSummary() {
+    const container = $("#posSellerSummary");
+    if (!container) return;
+    try {
+      const res = await JewdAPI.getSalesBySeller({ period: 'today' });
+      const sellers = Array.isArray(res) ? res : (res && res.data ? res.data : []);
+      renderPosSellerSummary(sellers);
+    } catch (e) {
+      console.warn('[POS] loadPosSellerSummary failed:', e.message);
+    }
+  }
+
+  function renderPosSellerSummary(sellers) {
+    const container = $("#posSellerSummary");
+    if (!container) return;
+    if (!sellers.length) {
+      container.style.display = 'none';
+      return;
+    }
+    container.style.display = '';
+    const total = sellers.reduce((s, v) => s + parseFloat(v.total || 0), 0);
+    let html = '<div class="jewd-pos-seller-summary">' +
+      '<div class="jewd-pos-seller-summary-header" style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-top:1px solid var(--jewd-border,#333);margin-top:8px">' +
+      '<strong>👥 Resumen Vendedores</strong>' +
+      '<span>' + fmtCurrency(total) + '</span></div>';
+    sellers.forEach(function (s) {
+      const name = s.display_name || s.username || s.seller || 'Vendedor';
+      const amount = parseFloat(s.total || 0);
+      const count = parseInt(s.count || s.orders || 0);
+      html += '<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px">' +
+        '<span>' + esc(name) + ' <small style="opacity:.6">(' + count + ')</small></span>' +
+        '<span>' + fmtCurrency(amount) + '</span></div>';
+    });
+    html += '</div>';
+    container.innerHTML = html;
   }
 
   // ── Confirm Dialog ──────────────────────────────────────────────────

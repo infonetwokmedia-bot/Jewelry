@@ -892,6 +892,12 @@ function jewelry_get_sales_stats($request)
 
     $seller = sanitize_text_field($request->get_param('seller'));
 
+    // Security: non-admin/manager users can only see their own sales
+    $current_user = wp_get_current_user();
+    if ($current_user->ID && ! current_user_can('manage_options') && ! current_user_can('manage_woocommerce')) {
+        $seller = $current_user->user_login;
+    }
+
     $today_start = gmdate('Y-m-d 00:00:00');
     $week_start  = gmdate('Y-m-d 00:00:00', strtotime('monday this week'));
     $month_start = gmdate('Y-m-01 00:00:00');
@@ -1114,6 +1120,12 @@ function jewelry_get_sales_today($request)
     global $wpdb;
 
     $seller      = sanitize_text_field($request->get_param('seller'));
+
+    // Security: non-admin/manager users can only see their own sales
+    $current_user = wp_get_current_user();
+    if ($current_user->ID && ! current_user_can('manage_options') && ! current_user_can('manage_woocommerce')) {
+        $seller = $current_user->user_login;
+    }
     $today_start = gmdate('Y-m-d 00:00:00');
 
     $orders_table = $wpdb->prefix . 'wc_orders';
