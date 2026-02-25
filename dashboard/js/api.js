@@ -44,12 +44,19 @@ const JewdAPI = (function () {
 
   /**
    * Generic fetch wrapper with error handling.
+   * Automatically includes JWT Authorization header when available.
    */
   async function request(url, options = {}) {
+    // Include JWT token for user identification on custom endpoints
+    const jwtHeaders =
+      window.JewdAuth && typeof window.JewdAuth.authHeaders === "function"
+        ? window.JewdAuth.authHeaders()
+        : {};
     const res = await fetch(url, {
       ...options,
       headers: {
         "Content-Type": "application/json",
+        ...jwtHeaders,
         ...(options.headers || {}),
       },
     });

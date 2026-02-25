@@ -39,7 +39,16 @@ const JewdPOS = (function () {
 
   const TAX_RATE = 0.07;
   const HELD_CARTS_KEY = "jewd_pos_held";
-  const SALES_KEY = "jewd_pos_today";
+
+  /**
+   * Per-user localStorage key for today's sales.
+   * Prevents data leakage when switching users on the same browser.
+   */
+  function salesKey() {
+    const user = window.JewdAuth ? window.JewdAuth.currentUser() : null;
+    const uname = user ? user.username || user.user_login || "" : "";
+    return uname ? "jewd_pos_today_" + uname : "jewd_pos_today";
+  }
 
   // ── Helpers ──────────────────────────────────────────────────────────
   const $ = (sel) => document.querySelector(sel);
@@ -122,7 +131,10 @@ const JewdPOS = (function () {
     renderTodaySummary();
 
     // Ticket #26: Load seller summary for gerente/admin
-    if (window.JewdAuth && (window.JewdAuth.can('manage_woocommerce') || window.JewdAuth.can('manage_options'))) {
+    if (
+      window.JewdAuth &&
+      (window.JewdAuth.can("manage_woocommerce") || window.JewdAuth.can("manage_options"))
+    ) {
       loadPosSellerSummary();
     }
 
@@ -1602,7 +1614,7 @@ const JewdPOS = (function () {
   function saveTodaySales() {
     try {
       localStorage.setItem(
-        SALES_KEY,
+        salesKey(),
         JSON.stringify({ date: new Date().toDateString(), sales: todaySales }),
       );
     } catch (e) {
@@ -1613,11 +1625,11 @@ const JewdPOS = (function () {
   function restoreTodaySales() {
     // Load from localStorage first as immediate fallback
     try {
-      const saved = localStorage.getItem(SALES_KEY);
+      const saved = localStorage.getItem(salesKey());
       if (saved) {
         const data = JSON.parse(saved);
         todaySales = data.date === new Date().toDateString() ? data.sales || [] : [];
-        if (todaySales.length === 0) localStorage.removeItem(SALES_KEY);
+        if (todaySales.length === 0) localStorage.removeItem(salesKey());
       }
     } catch (e) {
       todaySales = [];
@@ -1629,9 +1641,9 @@ const JewdPOS = (function () {
   async function loadTodaySalesFromServer() {
     try {
       const user = window.JewdAuth ? window.JewdAuth.currentUser() : null;
-      const seller = user ? user.user_login || user.username || '' : '';
+      const seller = user ? user.user_login || user.username || "" : "";
       const res = await JewdAPI.getSalesToday({ seller });
-      const orders = Array.isArray(res) ? res : (res && res.data ? res.data : []);
+      const orders = Array.isArray(res) ? res : res && res.data ? res.data : [];
       if (orders.length > 0 || todaySales.length === 0) {
         todaySales = orders.map(function (o) {
           return {
@@ -1639,7 +1651,7 @@ const JewdPOS = (function () {
             number: o.number || o.id,
             total: parseFloat(o.total || 0),
             qty: o.qty || 0,
-            method: o.method || 'pos',
+            method: o.method || "pos",
             seller: o.seller || seller,
             time: o.time || o.date_created || new Date().toISOString(),
           };
@@ -1648,7 +1660,7 @@ const JewdPOS = (function () {
         renderTodaySummary();
       }
     } catch (e) {
-      console.warn('[POS] loadTodaySalesFromServer failed, using localStorage:', e.message);
+      console.warn("[POS] loadTodaySalesFromServer failed, using localStorage:", e.message);
     }
   }
 
@@ -1714,11 +1726,11 @@ const JewdPOS = (function () {
     const container = $("#posSellerSummary");
     if (!container) return;
     try {
-      const res = await JewdAPI.getSalesBySeller({ period: 'today' });
-      const sellers = Array.isArray(res) ? res : (res && res.data ? res.data : []);
+      const res = await JewdAPI.getSalesBySeller({ period: "today" });
+      const sellers = Array.isArray(res) ? res : res && res.data ? res.data : [];
       renderPosSellerSummary(sellers);
     } catch (e) {
-      console.warn('[POS] loadPosSellerSummary failed:', e.message);
+      console.warn("[POS] loadPosSellerSummary failed:", e.message);
     }
   }
 
@@ -1726,24 +1738,34 @@ const JewdPOS = (function () {
     const container = $("#posSellerSummary");
     if (!container) return;
     if (!sellers.length) {
-      container.style.display = 'none';
+      container.style.display = "none";
       return;
     }
-    container.style.display = '';
+    container.style.display = "";
     const total = sellers.reduce((s, v) => s + parseFloat(v.total || 0), 0);
-    let html = '<div class="jewd-pos-seller-summary">' +
+    let html =
+      '<div class="jewd-pos-seller-summary">' +
       '<div class="jewd-pos-seller-summary-header" style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-top:1px solid var(--jewd-border,#333);margin-top:8px">' +
-      '<strong>👥 Resumen Vendedores</strong>' +
-      '<span>' + fmtCurrency(total) + '</span></div>';
+      "<strong>👥 Resumen Vendedores</strong>" +
+      "<span>" +
+      fmtCurrency(total) +
+      "</span></div>";
     sellers.forEach(function (s) {
-      const name = s.display_name || s.username || s.seller || 'Vendedor';
+      const name = s.display_name || s.username || s.seller || "Vendedor";
       const amount = parseFloat(s.total || 0);
       const count = parseInt(s.count || s.orders || 0);
-      html += '<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px">' +
-        '<span>' + esc(name) + ' <small style="opacity:.6">(' + count + ')</small></span>' +
-        '<span>' + fmtCurrency(amount) + '</span></div>';
+      html +=
+        '<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px">' +
+        "<span>" +
+        esc(name) +
+        ' <small style="opacity:.6">(' +
+        count +
+        ")</small></span>" +
+        "<span>" +
+        fmtCurrency(amount) +
+        "</span></div>";
     });
-    html += '</div>';
+    html += "</div>";
     container.innerHTML = html;
   }
 

@@ -62,7 +62,7 @@ describe("PHP — /jewd/v1/sales/today endpoint", () => {
     php = readMuPlugin("jewelry-roles.php");
     const fnStart = php.indexOf("function jewelry_get_sales_today");
     assert.ok(fnStart > 0);
-    const block = php.substring(fnStart, fnStart + 1500);
+    const block = php.substring(fnStart, fnStart + 2500);
     assert.match(block, /_pos_seller/, "Must filter by _pos_seller meta");
   });
 
@@ -70,7 +70,7 @@ describe("PHP — /jewd/v1/sales/today endpoint", () => {
     php = readMuPlugin("jewelry-roles.php");
     const fnStart = php.indexOf("function jewelry_get_sales_today");
     assert.ok(fnStart > 0);
-    const block = php.substring(fnStart, fnStart + 4000);
+    const block = php.substring(fnStart, fnStart + 5000);
     // Must return id, total, and time/date fields
     const hasId = block.includes("'id'") || block.includes('"id"');
     const hasTotal =

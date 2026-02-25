@@ -892,10 +892,16 @@ function jewelry_get_sales_stats($request)
 
     $seller = sanitize_text_field($request->get_param('seller'));
 
-    // Security: non-admin/manager users can only see their own sales
-    $current_user = wp_get_current_user();
-    if ($current_user->ID && ! current_user_can('manage_options') && ! current_user_can('manage_woocommerce')) {
-        $seller = $current_user->user_login;
+    // Security: identify the real user via JWT token (wp_get_current_user
+    // returns ID=0 when authenticated via WC API keys).
+    $auth_user = jewelry_authenticate_dashboard_token();
+    if (! is_wp_error($auth_user) && $auth_user->ID) {
+        if (! user_can($auth_user, 'manage_options') && ! user_can($auth_user, 'manage_woocommerce')) {
+            // Sellers can only see their own sales — override any param
+            $seller = $auth_user->user_login;
+        }
+    } elseif (! empty($_GET['consumer_key'])) {
+        // WC API key fallback: seller param from JS is the only filter.
     }
 
     $today_start = gmdate('Y-m-d 00:00:00');
@@ -1121,10 +1127,17 @@ function jewelry_get_sales_today($request)
 
     $seller      = sanitize_text_field($request->get_param('seller'));
 
-    // Security: non-admin/manager users can only see their own sales
-    $current_user = wp_get_current_user();
-    if ($current_user->ID && ! current_user_can('manage_options') && ! current_user_can('manage_woocommerce')) {
-        $seller = $current_user->user_login;
+    // Security: identify the real user via JWT token (wp_get_current_user
+    // returns ID=0 when authenticated via WC API keys).
+    $auth_user = jewelry_authenticate_dashboard_token();
+    if (! is_wp_error($auth_user) && $auth_user->ID) {
+        if (! user_can($auth_user, 'manage_options') && ! user_can($auth_user, 'manage_woocommerce')) {
+            // Sellers can only see their own sales — override any param
+            $seller = $auth_user->user_login;
+        }
+    } elseif (! empty($_GET['consumer_key'])) {
+        // WC API key fallback: seller param from JS is the only filter.
+        // If empty, return all (backwards-compatible for admin tools).
     }
     $today_start = gmdate('Y-m-d 00:00:00');
 
