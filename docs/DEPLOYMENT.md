@@ -186,11 +186,13 @@ Agregar a `~/.ssh/config`:
 
 ```
 Host tujoyita-prod
-    HostName <IP_VPS>
-    User deploy
-    IdentityFile ~/.ssh/tujoyita_deploy
+    HostName 89.167.101.209
+    User root
+    IdentityFile ~/.ssh/id_ed25519
     Port 22
 ```
+
+> **NOTA:** El usuario SSH es `root`, NO `deploy`. La clave es `id_ed25519`, NO `tujoyita_deploy`.
 
 ---
 

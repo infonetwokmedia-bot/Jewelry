@@ -1,188 +1,251 @@
-# GitHub Copilot Instructions - Jewelry Project
+# GitHub Copilot Instructions - Tu Joyita Miami
 
 ## Contexto del Proyecto
 
-Este es un sitio web **bilingue (Espanol/Ingles)** para **Jewelry Miami** en Miami, Florida. El sitio esta construido con WordPress + WooCommerce y optimizado para venta de joyas de alta calidad.
+Sitio web **bilingue (Espanol/Ingles)** para **Tu Joyita Miami** en Miami, Florida. Ecommerce de joyas de alta calidad con WordPress + WooCommerce.
 
 ### Stack Tecnologico
 
 - **CMS:** WordPress 6.9.1
 - **E-commerce:** WooCommerce 10.5.1
-- **Tema:** Astra 4.12.3 (gratuito)
+- **Tema:** Astra 4.12.3 (gratuito) — **NO Kadence**
 - **Page Builder:** Elementor 3.35.4
-- **Starter Template:** Jewellery Store 04 (Astra Starter Templates)
-- **Multiidioma:** TranslatePress 3.0.9 (NO Bogo, NO Polylang, NO WPML)
+- **Multiidioma:** TranslatePress 3.0.9 — **NO Bogo, NO Polylang, NO WPML**
 - **Infraestructura:** Docker + Traefik
-- **PHP:** 8.1+
-- **MySQL:** 8.0
-- **Servidor Web:** Apache (contenedor WordPress oficial)
+- **PHP:** 8.1+ | **MySQL:** 8.0 | **Apache**
 
-### URLs del Proyecto
+---
 
-- Frontend ES: https://jewelry.local.dev
-- Frontend EN: https://jewelry.local.dev/en/
-- Admin: https://jewelry.local.dev/wp-admin
-- phpMyAdmin: https://phpmyadmin.jewelry.local.dev
+## Arquitectura: DOS Entornos Aislados
 
-### Contenedores Docker
+### Entorno LOCAL (desarrollo)
 
-- `jewelry_wordpress` - WordPress + Apache
-- `jewelry_mysql` - Base de datos MySQL 8.0
-- `jewelry_phpmyadmin` - Gestion de base de datos
+| Componente | Valor |
+|-----------|-------|
+| Servidor | Dell Server, IP 192.168.12.233 |
+| Path | `/srv/stacks/jewelry/` |
+| Compose | `docker-compose.yml` |
+| WordPress | `jewelry_wordpress` → https://tujoyita.local (LAN) |
+| Dashboard | `jewelry_dashboard` → https://dev.tujoyita.com/dashboard/ |
+| MySQL | `jewelry_mysql` → DB: `jewelry_db` / User: `jewelry_user` |
+| phpMyAdmin | `jewelry_phpmyadmin` → https://phpmyadmin.jewelry.local.dev |
+| Acceso remoto | Cloudflare Tunnel → https://dev.tujoyita.com |
+| Red Docker | `jewelry_network` |
 
-### WP-CLI
+### Entorno PRODUCCION
 
-WP-CLI esta disponible como servicio en docker-compose:
+| Componente | Valor |
+|-----------|-------|
+| Servidor | Hetzner VPS, IP 89.167.101.209 |
+| Path | `/srv/stacks/tujoyita/` |
+| Compose | `docker-compose.production.yml` |
+| WordPress | `tujoyita_wordpress` → https://tujoyita.com |
+| Dashboard | `tujoyita_dashboard` → https://tujoyita.com/dashboard/ |
+| MySQL | `tujoyita_mysql` → DB: `tujoyita_db` / User: `tujoyita_user` |
+| DNS | Cloudflare proxy → 89.167.101.209 |
+| SSL | Let's Encrypt (Traefik auto-renewal) |
+| SSH | `ssh tujoyita-prod` (User: root, Key: ~/.ssh/id_ed25519) |
+| Red Docker | `tujoyita_internal` |
 
-```bash
-docker compose run --rm wpcli wp [COMANDO] --allow-root
+### REGLA CRITICA: Aislamiento Total
+
+```
+jewelry_db (local) ≠ tujoyita_db (produccion)
+El deploy SOLO copia codigo. NUNCA toca la DB de produccion.
+NUNCA redirigir DNS de tujoyita.com al servidor local.
 ```
 
-### Repositorios y Cuentas GitHub
+---
 
-- **Produccion (origin):** `tujoyitamiami-cpu/tujoyita` — cuenta Pro + Copilot Pro+
-- **Legacy:** `infonetwokmedia-bot/Jewelry` — repo original (read-only mirror)
-- **Personal:** `ppkapiro/Jewelry` — fork personal para otros proyectos
+## Repositorios GitHub
 
-### Dominio de Produccion
+| Remote | Repo | Proposito |
+|--------|------|-----------|
+| `origin` | `tujoyitamiami-cpu/tujoyita` | Repositorio principal |
+| `infonetwork` | `infonetwokmedia-bot/Jewelry` | Mirror (read-only) |
+| `ppkapiro` | `ppkapiro/Jewelry` | Fork personal |
 
-- **Produccion:** https://tujoyita.com (Hetzner VPS)
-- **Dev local:** https://jewelry.local.dev
+---
 
 ## REGLA FUNDAMENTAL: CONTENIDO BILINGUE
 
-**CRITICO: El contenido se gestiona con TranslatePress**
+**CRITICO: TranslatePress 3.0.9 — NO Bogo**
 
 - **Espanol (es_ES)** - Idioma principal (URL base: `/`)
 - **English (en_US)** - Idioma secundario (URL: `/en/`)
+- **NO se duplican posts/paginas/productos.** UNA sola instancia.
+- Traducciones en tablas `wp_trp_*` (NO `_bogo_translations`).
+- Se traduce visualmente: `?trp-edit-translation=true`.
+- URLs en ingles: `/en/shop/`, `/en/about-us/`.
 
-### Como funciona TranslatePress
+---
 
-- **NO se duplican posts/paginas/productos**. Existe UNA sola instancia de cada contenido.
-- Las traducciones se almacenan en tablas propias de TranslatePress (`wp_trp_*`).
-- Se traduce visualmente desde el frontend: `https://jewelry.local.dev/?trp-edit-translation=true`.
-- El language switcher aparece automaticamente (flotante o como shortcode).
-- Las URLs en ingles llevan el prefijo `/en/`: `/en/shop/`, `/en/about-us/`, etc.
+## Dashboard SPA (Single Page Application)
 
-### Traducir contenido
+El dashboard es una SPA vanilla JS que consume la API REST de WooCommerce.
 
-1. Ir al frontend del sitio
-2. En la admin bar, clic en **"Translate Page"** o ir a `?trp-edit-translation=true`
-3. Clic en cualquier texto para editarlo
-4. Guardar
+### Archivos del Dashboard
 
-### Shortcode del Language Switcher
+| Archivo | Proposito |
+|---------|-----------|
+| `dashboard/index.html` | HTML principal (cache buster en assets) |
+| `dashboard/.env.js` | Config LOCAL (tracked en Git) |
+| `dashboard/.env.production.js` | Config PRODUCCION (NO en Git, solo en VPS) |
+| `dashboard/js/auth.js` | Autenticacion JWT + roles |
+| `dashboard/js/api.js` | Capa API WooCommerce REST |
+| `dashboard/js/dashboard.js` | App principal |
+| `dashboard/js/pos.js` | Punto de Venta v2.0 |
+| `dashboard/js/users.js` | Gestion de usuarios |
+| `dashboard/css/dashboard.css` | Estilos |
 
-```php
-echo do_shortcode( '[language-switcher]' );
+### Roles del Dashboard
+
+- `administrator` — Acceso total
+- `jewelry_manager` — Gestion completa de tienda
+- `jewelry_seller` — Solo vender (POS, sus propios pedidos)
+- `jewelry_viewer` — Solo lectura
+
+### CRITICO: Separacion de .env.js
+
 ```
+LOCAL:      dashboard/.env.js             → ck_c49fbfdf... (jewelry_db)
+PRODUCCION: dashboard/.env.production.js  → ck_28bdb990... (tujoyita_db)
+```
+
+El deploy EXCLUYE ambos archivos. En produccion se usa `cp .env.production.js .env.js`.
+
+---
+
+## Deployment
+
+### Comando principal
+
+```bash
+./scripts/deploy-agent.sh --force    # Deploy completo
+./scripts/deploy-agent.sh --check    # Solo verificar
+./scripts/deploy-agent.sh --status   # Estado produccion
+./scripts/deploy-agent.sh --rollback # Rollback
+```
+
+### Que se despliega
+
+- `mu-plugins/jewelry-*.php` — Plugins custom
+- `dashboard/` — SPA (excluye .env.js y .env.production.js)
+- `docker-compose.production.yml` — Stack config
+- `scripts/` — Automatizacion
+
+### Que NUNCA se toca
+
+- Base de datos de produccion
+- `.env` de produccion
+- `.env.js` / `.env.production.js` en produccion
+- Plugins terceros (WooCommerce, Elementor, TranslatePress)
+- Uploads/media
+- DNS de tujoyita.com
+
+---
+
+## WP-CLI
+
+```bash
+# Local
+docker exec jewelry_wordpress php /var/www/html/wp-cli.phar [COMANDO] --allow-root
+
+# Produccion (via SSH)
+ssh tujoyita-prod "cd /srv/stacks/tujoyita && docker exec tujoyita_wordpress php /var/www/html/wp-cli.phar [COMANDO] --allow-root"
+```
+
+---
 
 ## Reglas de Desarrollo
 
 ### 1. Prefijos y Nomenclatura
 
-- **SIEMPRE** usar prefijo `jewelry_` para todas las funciones custom
-- Usar snake_case para funciones PHP: `jewelry_get_products()`
-- Usar kebab-case para hooks: `jewelry-custom-hook`
-- Usar PascalCase para clases: `Jewelry_Product_Manager`
+- Prefijo `jewelry_` para funciones PHP custom
+- snake_case para funciones: `jewelry_get_products()`
+- kebab-case para hooks: `jewelry-custom-hook`
+- PascalCase para clases: `Jewelry_Product_Manager`
 
 ### 2. WordPress Coding Standards
 
-- Seguir WordPress Coding Standards
-- Usar espacios (no tabs) - 4 espacios para PHP
-- Usar comillas simples para strings en PHP
-- Documentar funciones con PHPDoc
+- 4 espacios (no tabs) para PHP
+- Comillas simples para strings PHP
+- PHPDoc en funciones
 
 ### 3. Seguridad
 
-SIEMPRE sanitizar y validar datos. Usar nonces en formularios. Escapar salida.
+SIEMPRE sanitizar, validar, usar nonces, escapar salida.
 
 ### 4. Base de Datos
 
-NUNCA usar SQL directo - Usar WP_Query, get_posts(), o WP database abstraction.
+NUNCA SQL directo — usar WP_Query, get_posts(), WPDB abstraction.
 
-### 5. Hooks y Filtros
+### 5. Funciones Custom
 
-Usar acciones y filtros de WordPress apropiadamente.
+Usar mu-plugins (prefijo `jewelry-`):
+- `data/wordpress/wp-content/mu-plugins/jewelry-roles.php`
+- `data/wordpress/wp-content/mu-plugins/jewelry-api-proxy.php`
 
-## Personalizacion del Tema
+NO modificar archivos core de Astra, Elementor, WooCommerce.
 
-### Elementor
-
-El diseno del sitio se edita con **Elementor**:
-
-- Editar paginas: Admin > Paginas > Editar con Elementor
-- NO editar templates PHP directamente a menos que sea necesario
-
-### Funciones Custom
-
-Para personalizaciones usar **child theme** o **plugin custom**:
-
-- **Child theme:** `data/wordpress/wp-content/themes/astra-child/functions.php`
-- **Plugin custom:** `data/wordpress/wp-content/plugins/jewelry-custom/jewelry-custom.php`
-
-NO modificar archivos de Astra directamente.
+---
 
 ## Formato de Commits
 
-Usar Conventional Commits: feat, fix, docs, style, refactor, test, chore
+Conventional Commits: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`
 
-## Prioridades Actuales
-
-1. **Produccion:** Preparar deploy a Hetzner VPS con dominio tujoyita.com
-2. **Contenido:** Completar paginas pendientes (Materials, Contact, Blog)
-3. **Traduccion:** Traducir todo el contenido al ingles con TranslatePress
-4. **SEO:** Instalar y configurar Rank Math SEO
-5. **Performance:** Cache, CDN, optimizacion de imagenes
-6. **CI/CD:** Automatizar deploy y backups
-
-## Archivos Importantes
-
-### Estructura del Proyecto
+## Estructura del Proyecto
 
 ```
 /srv/stacks/jewelry/
-├── docker-compose.yml
-├── .env
+├── docker-compose.yml              # Stack local
+├── docker-compose.production.yml   # Stack produccion
+├── .env                            # Variables locales
+├── dashboard/                      # SPA Dashboard
+│   ├── index.html
+│   ├── .env.js                     # Config local (tracked)
+│   ├── .env.production.js          # Config prod (NO en Git)
+│   ├── js/                         # auth.js, api.js, dashboard.js, pos.js, users.js
+│   ├── css/
+│   └── nginx/                      # default.conf, production.conf
 ├── data/
-│   ├── mysql/
-│   └── wordpress/
-│       └── wp-content/
-│           ├── themes/astra/
-│           ├── plugins/
-│           │   ├── elementor/
-│           │   ├── woocommerce/
-│           │   ├── translatepress-multilingual/
-│           │   ├── astra-sites/
-│           │   └── contact-form-7/
-│           └── uploads/
-├── backups/
-├── docs/
+│   ├── mysql/                      # DB local (gitignored)
+│   └── wordpress/wp-content/
+│       ├── mu-plugins/jewelry-*.php
+│       ├── themes/astra/
+│       ├── plugins/
+│       └── uploads/
 ├── scripts/
+│   ├── deploy-agent.sh             # Deploy principal
+│   └── backup-database.sh
+├── docs/
+│   └── DEPLOYMENT.md
+├── tests/
+│   └── dashboard/                  # Test suite (574+ tests)
+├── backups/
+├── .github/
+│   ├── agents/                     # 8 agentes Copilot
+│   ├── copilot-instructions.md     # Este archivo
+│   └── workflows/
+├── .ai-tools/
+│   └── shared-context.md
 └── README.md
 ```
 
-### Archivos a NO Modificar
+## Agentes Copilot Disponibles
 
-- Core de WordPress: `data/wordpress/wp-admin/`, `data/wordpress/wp-includes/`
-- Core de plugins/temas: No modificar Astra, Elementor, WooCommerce, TranslatePress
-- Base de datos: `data/mysql/`
-
-## Workflow de Desarrollo
-
-1. **Crear contenido en espanol** (idioma principal)
-2. **Traducir al ingles** usando TranslatePress (visual, desde el frontend)
-3. **Revisar traducciones** en ambos idiomas
-4. **Commit con mensaje convencional**
+Ver `.github/agents/README.md` para la lista completa de 8 agentes:
+product-creator, page-builder, translatepress-expert, woocommerce-expert,
+security-reviewer, database-manager, project-manager, **deployment-specialist**.
 
 ## Referencias
 
 - [TranslatePress Docs](https://translatepress.com/docs/translatepress/)
 - [Astra Theme Docs](https://wpastra.com/docs/)
 - [Elementor Docs](https://developers.elementor.com/)
-- [WooCommerce Docs](https://woocommerce.github.io/code-reference/)
+- [WooCommerce REST API](https://woocommerce.github.io/code-reference/)
 - [WordPress Coding Standards](https://developer.wordpress.org/coding-standards/)
 
 ---
 
-**Recuerda:** El contenido se traduce con TranslatePress (NO duplicar posts). Usa prefijo `jewelry_` para funciones custom. Sanitiza todas las entradas. El diseno se edita con Elementor.
+**Recuerda:** TranslatePress (NO Bogo). Prefijo `jewelry_`. Sanitizar inputs. jewelry_db ≠ tujoyita_db. Deploy con deploy-agent.sh.

@@ -12,7 +12,7 @@ assignees: []
 
 ## Donde Ocurre
 
-- **URL:** <!-- https://jewelry.local.dev/... -->
+- **URL:** <!-- https://tujoyita.local/... o https://dev.tujoyita.com/... -->
 - **Idioma afectado:** <!-- Espanol / Ingles / Ambos -->
 - **Navegador:** <!-- Chrome, Firefox, etc. -->
 

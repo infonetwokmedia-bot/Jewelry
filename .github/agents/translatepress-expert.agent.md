@@ -42,9 +42,9 @@ Gestionar traducciones, verificar contenido bilingüe y resolver problemas de id
 
 ### Método Visual (Recomendado)
 
-1. Ir al frontend: `https://jewelry.local.dev`
+1. Ir al frontend: `https://tujoyita.local` (LAN) o `https://dev.tujoyita.com` (remoto)
 2. En la admin bar, clic en **"Translate Page"**
-3. O ir directamente a: `https://jewelry.local.dev/?trp-edit-translation=true`
+3. O ir directamente a: `https://tujoyita.local/?trp-edit-translation=true`
 4. Clic en cualquier texto para editarlo en inglés
 5. Guardar
 

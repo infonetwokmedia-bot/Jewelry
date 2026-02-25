@@ -40,9 +40,11 @@ Configurar y personalizar WooCommerce para soportar contenido bilingüe (Españo
 
 ### URLs
 
-- **Frontend ES:** `https://jewelry.local.dev`
-- **Frontend EN:** `https://jewelry.local.dev/en/`
-- **Admin:** `https://jewelry.local.dev/wp-admin`
+- **Frontend ES (local):** `https://tujoyita.local`
+- **Frontend EN (local):** `https://tujoyita.local/en/`
+- **Admin (local):** `https://tujoyita.local/wp-admin`
+- **Producción:** `https://tujoyita.com`
+- **Dashboard:** `https://tujoyita.com/dashboard/`
 
 ## ⚡ REGLA FUNDAMENTAL: TranslatePress (NO Bogo)
 
