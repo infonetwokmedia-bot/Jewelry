@@ -1588,6 +1588,7 @@ const JewdPOS = (function () {
 
   // ── Today's Sales ───────────────────────────────────────────────────
   function addTodaySale(sale) {
+    // sale object must include seller field for per-seller tracking
     todaySales.push(sale);
     saveTodaySales();
   }

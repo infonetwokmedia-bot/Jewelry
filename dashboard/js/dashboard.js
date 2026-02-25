@@ -91,6 +91,7 @@
     await testConnection();
     loadCategories();
     loadStats();
+    loadSalesStats();
     loadProducts();
     state.sectionLoaded.products = true;
 
@@ -427,6 +428,32 @@
     );
 
     $("#statsContainer").innerHTML = html;
+  }
+
+  /* ===== LOAD SALES STATS (Ticket #15) ===== */
+
+  /**
+   * Fetch sales stats from jewd/v1/sales/stats and render cards.
+   * Shows today, week, and month totals in the salesStatsContainer.
+   */
+  async function loadSalesStats() {
+    try {
+      const res = await JewdAPI.getSalesStats();
+      const d = res.data || {};
+      const container = $("#salesStatsContainer");
+      if (!container) return;
+
+      let html = '<h3 class="jewd-sales-title">💰 Ventas</h3><div class="jewd-stats">';
+      html += statCard("Hoy", "$" + fmtN(d.today?.total || 0), (d.today?.count || 0) + " pedidos");
+      html += statCard("Semana", "$" + fmtN(d.week?.total || 0), (d.week?.count || 0) + " pedidos");
+      html += statCard("Mes", "$" + fmtN(d.month?.total || 0), (d.month?.count || 0) + " pedidos");
+      html += "</div>";
+      container.innerHTML = html;
+    } catch (e) {
+      console.error("Error loading sales stats:", e);
+      const container = $("#salesStatsContainer");
+      if (container) container.innerHTML = "";
+    }
   }
 
   function statCard(label, value, sub, extraClass) {

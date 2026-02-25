@@ -117,10 +117,39 @@ function jewelry_register_custom_roles()
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
+// ORDER STATS AUTO-SYNC (Ticket #15)
+// Ensures wp_wc_order_stats is populated when orders are created via REST API.
+// ═══════════════════════════════════════════════════════════════════════════════
+
+add_action('woocommerce_new_order', 'jewelry_sync_order_stats', 20, 1);
+add_action('woocommerce_order_status_changed', 'jewelry_sync_order_stats', 20, 1);
+
+/**
+ * Sync a WC order into the wp_wc_order_stats table used by WC Analytics.
+ *
+ * HPOS + REST API orders don't always auto-populate this table,
+ * causing WC Analytics reports to show $0.
+ *
+ * @param int $order_id The order ID.
+ */
+function jewelry_sync_order_stats($order_id)
+{
+    if (! class_exists('\Automattic\WooCommerce\Admin\API\Reports\Orders\Stats\DataStore')) {
+        return;
+    }
+    try {
+        \Automattic\WooCommerce\Admin\API\Reports\Orders\Stats\DataStore::sync_order($order_id);
+    } catch (\Exception $e) {
+        error_log('jewelry_sync_order_stats error for order ' . $order_id . ': ' . $e->getMessage());
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
 // REST API — GESTIÓN DE USUARIOS DESDE DASHBOARD
 // ═══════════════════════════════════════════════════════════════════════════════
 
 add_action('rest_api_init', 'jewelry_register_user_api');
+add_action('rest_api_init', 'jewelry_register_sales_api');
 
 function jewelry_register_user_api()
 {
@@ -771,4 +800,291 @@ function jewelry_get_client_ip()
         }
     }
     return '0.0.0.0';
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// REST API — SALES REPORTING (Ticket #15)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/**
+ * Register sales REST routes.
+ */
+function jewelry_register_sales_api()
+{
+    // GET /jewd/v1/sales/stats — Sales totals (today, week, month)
+    register_rest_route(
+        'jewd/v1',
+        '/sales/stats',
+        array(
+            'methods'             => 'GET',
+            'callback'            => 'jewelry_get_sales_stats',
+            'permission_callback' => 'jewelry_api_can_view_sales',
+        )
+    );
+
+    // GET /jewd/v1/sales/by-seller — Sales grouped by seller (admin/manager)
+    // Requires manage_woocommerce or manage_options capability
+    register_rest_route(
+        'jewd/v1',
+        '/sales/by-seller',
+        array(
+            'methods'             => 'GET',
+            'callback'            => 'jewelry_get_sales_by_seller',
+            'permission_callback' => 'jewelry_api_can_manage_sales', // checks manage_woocommerce / manage_options
+        )
+    );
+}
+
+/**
+ * Permission: any authenticated dashboard user can view sales stats.
+ */
+function jewelry_api_can_view_sales()
+{
+    $user = jewelry_authenticate_dashboard_token();
+    if (is_wp_error($user)) {
+        // Fallback to WC API keys
+        if (! empty($_GET['consumer_key'])) {
+            return true;
+        }
+        return false;
+    }
+    return user_can($user, 'jewelry_dashboard_access') || user_can($user, 'manage_options');
+}
+
+/**
+ * Permission: only admin/manager can view sales by seller.
+ */
+function jewelry_api_can_manage_sales()
+{
+    $user = jewelry_authenticate_dashboard_token();
+    if (is_wp_error($user)) {
+        if (! empty($_GET['consumer_key'])) {
+            return true;
+        }
+        return false;
+    }
+    return user_can($user, 'manage_options') || user_can($user, 'manage_woocommerce');
+}
+
+/**
+ * GET /jewd/v1/sales/stats
+ *
+ * Returns sales totals for today, week, and month.
+ * Accepts optional ?seller=username to filter by _pos_seller.
+ *
+ * @param WP_REST_Request $request
+ * @return WP_REST_Response
+ */
+function jewelry_get_sales_stats($request)
+{
+    global $wpdb;
+
+    $seller = sanitize_text_field($request->get_param('seller'));
+
+    $today_start = gmdate('Y-m-d 00:00:00');
+    $week_start  = gmdate('Y-m-d 00:00:00', strtotime('monday this week'));
+    $month_start = gmdate('Y-m-01 00:00:00');
+
+    $periods = array(
+        'today' => $today_start,
+        'week'  => $week_start,
+        'month' => $month_start,
+    );
+
+    $results = array();
+
+    foreach ($periods as $key => $since) {
+        $results[$key] = jewelry_query_sales_period($since, $seller);
+    }
+
+    return new \WP_REST_Response($results, 200);
+}
+
+/**
+ * Query sales for a given period, optionally filtered by _pos_seller.
+ *
+ * @param string $since     Date string (Y-m-d H:i:s).
+ * @param string $seller    Optional seller username.
+ * @return array { total, count, items }
+ */
+function jewelry_query_sales_period($since, $seller = '')
+{
+    global $wpdb;
+
+    // Use HPOS tables (wp_wc_orders) if available, else wp_posts
+    $orders_table = $wpdb->prefix . 'wc_orders';
+    $meta_table   = $wpdb->prefix . 'wc_orders_meta';
+
+    $use_hpos = $wpdb->get_var("SHOW TABLES LIKE '{$orders_table}'") === $orders_table;
+
+    if ($use_hpos) {
+        // HPOS path
+        $sql = "SELECT COALESCE(SUM(o.total_amount), 0) as total,
+                       COUNT(o.id) as count
+                FROM {$orders_table} o";
+
+        $where = array(
+            $wpdb->prepare("o.date_created_gmt >= %s", $since),
+            "o.status IN ('wc-completed', 'wc-processing')",
+            "o.type = 'shop_order'",
+        );
+
+        if (! empty($seller)) {
+            $sql .= " INNER JOIN {$meta_table} om ON o.id = om.order_id";
+            $where[] = "om.meta_key = '_pos_seller'";
+            $where[] = $wpdb->prepare("om.meta_value = %s", $seller);
+        }
+
+        $sql .= ' WHERE ' . implode(' AND ', $where);
+    } else {
+        // Legacy path (wp_posts + wp_postmeta)
+        $sql = "SELECT COALESCE(SUM(pm_total.meta_value), 0) as total,
+                       COUNT(p.ID) as count
+                FROM {$wpdb->posts} p
+                INNER JOIN {$wpdb->postmeta} pm_total ON p.ID = pm_total.post_id AND pm_total.meta_key = '_order_total'";
+
+        $where = array(
+            $wpdb->prepare("p.post_date_gmt >= %s", $since),
+            "p.post_status IN ('wc-completed', 'wc-processing')",
+            "p.post_type = 'shop_order'",
+        );
+
+        if (! empty($seller)) {
+            $sql .= " INNER JOIN {$wpdb->postmeta} pm_seller ON p.ID = pm_seller.post_id";
+            $where[] = "pm_seller.meta_key = '_pos_seller'";
+            $where[] = $wpdb->prepare("pm_seller.meta_value = %s", $seller);
+        }
+
+        $sql .= ' WHERE ' . implode(' AND ', $where);
+    }
+
+    // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+    $row = $wpdb->get_row($sql);
+
+    // Count line items (items sold)
+    $items = 0;
+    if ($row && $row->count > 0) {
+        $items_sql = "SELECT COALESCE(SUM(oim.meta_value), 0) as items
+                      FROM {$wpdb->prefix}woocommerce_order_items oi
+                      INNER JOIN {$wpdb->prefix}woocommerce_order_itemmeta oim
+                          ON oi.order_item_id = oim.order_item_id AND oim.meta_key = '_qty'
+                      WHERE oi.order_item_type = 'line_item'";
+
+        if ($use_hpos) {
+            $items_sql .= " AND oi.order_id IN (
+                SELECT o.id FROM {$orders_table} o";
+            $items_where = array(
+                $wpdb->prepare("o.date_created_gmt >= %s", $since),
+                "o.status IN ('wc-completed', 'wc-processing')",
+                "o.type = 'shop_order'",
+            );
+            if (! empty($seller)) {
+                $items_sql .= " INNER JOIN {$meta_table} om ON o.id = om.order_id";
+                $items_where[] = "om.meta_key = '_pos_seller'";
+                $items_where[] = $wpdb->prepare("om.meta_value = %s", $seller);
+            }
+            $items_sql .= ' WHERE ' . implode(' AND ', $items_where) . ')';
+        } else {
+            $items_sql .= " AND oi.order_id IN (
+                SELECT p.ID FROM {$wpdb->posts} p";
+            $items_where = array(
+                $wpdb->prepare("p.post_date_gmt >= %s", $since),
+                "p.post_status IN ('wc-completed', 'wc-processing')",
+                "p.post_type = 'shop_order'",
+            );
+            if (! empty($seller)) {
+                $items_sql .= " INNER JOIN {$wpdb->postmeta} pm_seller ON p.ID = pm_seller.post_id";
+                $items_where[] = "pm_seller.meta_key = '_pos_seller'";
+                $items_where[] = $wpdb->prepare("pm_seller.meta_value = %s", $seller);
+            }
+            $items_sql .= ' WHERE ' . implode(' AND ', $items_where) . ')';
+        }
+
+        // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+        $items_row = $wpdb->get_row($items_sql);
+        $items = $items_row ? intval($items_row->items) : 0;
+    }
+
+    return array(
+        'total' => round(floatval($row->total), 2),
+        'count' => intval($row->count),
+        'items' => $items,
+    );
+}
+
+/**
+ * GET /jewd/v1/sales/by-seller
+ *
+ * Returns sales totals grouped by seller (admin/manager only).
+ *
+ * @param WP_REST_Request $request
+ * @return WP_REST_Response
+ */
+function jewelry_get_sales_by_seller($request)
+{
+    global $wpdb;
+
+    $period = sanitize_text_field($request->get_param('period')) ?: 'month';
+
+    switch ($period) {
+        case 'today':
+            $since = gmdate('Y-m-d 00:00:00');
+            break;
+        case 'week':
+            $since = gmdate('Y-m-d 00:00:00', strtotime('monday this week'));
+            break;
+        case 'month':
+        default:
+            $since = gmdate('Y-m-01 00:00:00');
+            break;
+    }
+
+    $orders_table = $wpdb->prefix . 'wc_orders';
+    $meta_table   = $wpdb->prefix . 'wc_orders_meta';
+    $use_hpos     = $wpdb->get_var("SHOW TABLES LIKE '{$orders_table}'") === $orders_table;
+
+    if ($use_hpos) {
+        $sql = $wpdb->prepare(
+            "SELECT om.meta_value as seller,
+                    COALESCE(SUM(o.total_amount), 0) as total,
+                    COUNT(o.id) as count
+             FROM {$orders_table} o
+             INNER JOIN {$meta_table} om ON o.id = om.order_id AND om.meta_key = '_pos_seller'
+             WHERE o.date_created_gmt >= %s
+               AND o.status IN ('wc-completed', 'wc-processing')
+               AND o.type = 'shop_order'
+             GROUP BY om.meta_value
+             ORDER BY total DESC",
+            $since
+        );
+    } else {
+        $sql = $wpdb->prepare(
+            "SELECT pm_seller.meta_value as seller,
+                    COALESCE(SUM(pm_total.meta_value), 0) as total,
+                    COUNT(p.ID) as count
+             FROM {$wpdb->posts} p
+             INNER JOIN {$wpdb->postmeta} pm_seller ON p.ID = pm_seller.post_id AND pm_seller.meta_key = '_pos_seller'
+             INNER JOIN {$wpdb->postmeta} pm_total ON p.ID = pm_total.post_id AND pm_total.meta_key = '_order_total'
+             WHERE p.post_date_gmt >= %s
+               AND p.post_status IN ('wc-completed', 'wc-processing')
+               AND p.post_type = 'shop_order'
+             GROUP BY pm_seller.meta_value
+             ORDER BY total DESC",
+            $since
+        );
+    }
+
+    // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+    $rows = $wpdb->get_results($sql);
+
+    $sellers = array();
+    foreach ($rows as $row) {
+        $sellers[] = array(
+            'username' => $row->seller,
+            'total'    => round(floatval($row->total), 2),
+            'count'    => intval($row->count),
+        );
+    }
+
+    return new \WP_REST_Response($sellers, 200);
 }

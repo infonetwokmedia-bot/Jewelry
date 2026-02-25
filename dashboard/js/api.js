@@ -375,16 +375,16 @@ const JewdAPI = (function () {
   /* ===== REPORTS (Phase 4) ===== */
 
   /**
-   * GET sales report.
+   * GET sales report (uses wc-analytics endpoint for HPOS compatibility).
    */
   async function getReportSales({ dateMin, dateMax } = {}) {
     const c = cfg();
     const params = new URLSearchParams();
     params.set("consumer_key", c.consumerKey);
     params.set("consumer_secret", c.consumerSecret);
-    if (dateMin) params.set("date_min", dateMin);
-    if (dateMax) params.set("date_max", dateMax);
-    const url = `${c.wcBaseUrl}/reports/sales?${params.toString()}`;
+    if (dateMin) params.set("after", dateMin + "T00:00:00");
+    if (dateMax) params.set("before", dateMax + "T23:59:59");
+    const url = `${c.wpBaseUrl}/wc-analytics/reports/revenue/stats?${params.toString()}`;
     return request(url);
   }
 
@@ -398,6 +398,39 @@ const JewdAPI = (function () {
     params.set("consumer_secret", c.consumerSecret);
     params.set("period", period || "month");
     const url = `${c.wcBaseUrl}/reports/top_sellers?${params.toString()}`;
+    return request(url);
+  }
+
+  /* ===== SALES STATS (Ticket #15) ===== */
+
+  /**
+   * GET sales stats from custom jewd endpoint.
+   * Returns { today, week, month } each with { total, count, items }.
+   * @param {Object} [opts]
+   * @param {string} [opts.seller] - Optional seller username to filter.
+   */
+  async function getSalesStats({ seller } = {}) {
+    const c = cfg();
+    const params = new URLSearchParams();
+    params.set("consumer_key", c.consumerKey);
+    params.set("consumer_secret", c.consumerSecret);
+    if (seller) params.set("seller", seller);
+    const url = `${c.wpBaseUrl}/jewd/v1/sales/stats?${params.toString()}`;
+    return request(url);
+  }
+
+  /**
+   * GET sales grouped by seller (admin/manager only).
+   * @param {Object} [opts]
+   * @param {string} [opts.period] - 'today', 'week', or 'month'.
+   */
+  async function getSalesBySeller({ period } = {}) {
+    const c = cfg();
+    const params = new URLSearchParams();
+    params.set("consumer_key", c.consumerKey);
+    params.set("consumer_secret", c.consumerSecret);
+    if (period) params.set("period", period);
+    const url = `${c.wpBaseUrl}/jewd/v1/sales/by-seller?${params.toString()}`;
     return request(url);
   }
 
@@ -482,6 +515,8 @@ const JewdAPI = (function () {
     searchProducts,
     getReportSales,
     getTopSellers,
+    getSalesStats,
+    getSalesBySeller,
     getSettings,
     updateSetting,
     getSystemStatus,
