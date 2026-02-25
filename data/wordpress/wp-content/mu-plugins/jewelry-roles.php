@@ -904,14 +904,10 @@ function jewelry_get_sales_stats($request)
         // WC API key fallback: seller param from JS is the only filter.
     }
 
-    $today_start = gmdate('Y-m-d 00:00:00');
-    $week_start  = gmdate('Y-m-d 00:00:00', strtotime('monday this week'));
-    $month_start = gmdate('Y-m-01 00:00:00');
-
     $periods = array(
-        'today' => $today_start,
-        'week'  => $week_start,
-        'month' => $month_start,
+        'today' => jewelry_period_boundary_utc('today'),
+        'week'  => jewelry_period_boundary_utc('week'),
+        'month' => jewelry_period_boundary_utc('month'),
     );
 
     $results = array();
@@ -924,9 +920,46 @@ function jewelry_get_sales_stats($request)
 }
 
 /**
+ * Convert a period boundary to UTC for database queries against date_created_gmt.
+ *
+ * WordPress stores order dates in UTC (date_created_gmt). To find "today"
+ * in the store's local timezone (America/New_York), we calculate midnight
+ * in that timezone and convert to UTC. Without this, after 7-8 PM Miami
+ * time UTC already rolls over to the next day.
+ *
+ * @param string $period 'today', 'week', or 'month'.
+ * @return string UTC datetime string (Y-m-d H:i:s).
+ */
+function jewelry_period_boundary_utc($period = 'today')
+{
+    $tz  = wp_timezone();
+    $utc = new DateTimeZone('UTC');
+    $now = new DateTimeImmutable('now', $tz);
+
+    switch ($period) {
+        case 'today':
+            $local = new DateTimeImmutable($now->format('Y-m-d') . ' 00:00:00', $tz);
+            break;
+        case 'week':
+            // Monday of current week in local time.
+            $monday = new DateTimeImmutable('monday this week', $tz);
+            $local  = new DateTimeImmutable($monday->format('Y-m-d') . ' 00:00:00', $tz);
+            break;
+        case 'month':
+            $local = new DateTimeImmutable($now->format('Y-m-01') . ' 00:00:00', $tz);
+            break;
+        default:
+            $local = new DateTimeImmutable($now->format('Y-m-d') . ' 00:00:00', $tz);
+            break;
+    }
+
+    return $local->setTimezone($utc)->format('Y-m-d H:i:s');
+}
+
+/**
  * Query sales for a given period, optionally filtered by _pos_seller.
  *
- * @param string $since     Date string (Y-m-d H:i:s).
+ * @param string $since     Date string (Y-m-d H:i:s) in UTC.
  * @param string $seller    Optional seller username.
  * @return array { total, count, items }
  */
@@ -1050,18 +1083,7 @@ function jewelry_get_sales_by_seller($request)
 
     $period = sanitize_text_field($request->get_param('period')) ?: 'month';
 
-    switch ($period) {
-        case 'today':
-            $since = gmdate('Y-m-d 00:00:00');
-            break;
-        case 'week':
-            $since = gmdate('Y-m-d 00:00:00', strtotime('monday this week'));
-            break;
-        case 'month':
-        default:
-            $since = gmdate('Y-m-01 00:00:00');
-            break;
-    }
+    $since = jewelry_period_boundary_utc($period);
 
     $orders_table = $wpdb->prefix . 'wc_orders';
     $meta_table   = $wpdb->prefix . 'wc_orders_meta';
@@ -1209,7 +1231,7 @@ function jewelry_get_sales_today($request)
         // WC API key fallback: seller param from JS is the only filter.
         // If empty, return all (backwards-compatible for admin tools).
     }
-    $today_start = gmdate('Y-m-d 00:00:00');
+    $today_start = jewelry_period_boundary_utc('today');
 
     $orders_table = $wpdb->prefix . 'wc_orders';
     $meta_table   = $wpdb->prefix . 'wc_orders_meta';
