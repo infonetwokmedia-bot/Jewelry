@@ -344,6 +344,34 @@ const JewdAPI = (function () {
     return request(url, { method: "POST", body: JSON.stringify({ note }) });
   }
 
+  /**
+   * CREATE a new order (POS / local sale).
+   * @param {Object} data WooCommerce order data
+   */
+  async function createOrder(data) {
+    const c = cfg();
+    const url = `${c.wcBaseUrl}/orders?${authParams()}`;
+    return request(url, { method: "POST", body: JSON.stringify(data) });
+  }
+
+  /**
+   * SEARCH products for POS (lightweight, limited fields).
+   */
+  async function searchProducts({ search, category, page, perPage } = {}) {
+    const c = cfg();
+    const params = new URLSearchParams();
+    params.set("consumer_key", c.consumerKey);
+    params.set("consumer_secret", c.consumerSecret);
+    params.set("per_page", perPage || 20);
+    params.set("page", page || 1);
+    params.set("status", "publish");
+    params.set("stock_status", "instock");
+    if (search) params.set("search", search);
+    if (category) params.set("category", category);
+    const url = `${c.wcBaseUrl}/products?${params.toString()}`;
+    return request(url);
+  }
+
   /* ===== REPORTS (Phase 4) ===== */
 
   /**
@@ -450,6 +478,8 @@ const JewdAPI = (function () {
     updateOrder,
     getOrderNotes,
     createOrderNote,
+    createOrder,
+    searchProducts,
     getReportSales,
     getTopSellers,
     getSettings,
