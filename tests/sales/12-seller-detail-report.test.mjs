@@ -53,10 +53,7 @@ describe("PHP — /jewd/v1/sales/by-seller returns detailed data", () => {
       block.includes("'methods'") || block.includes('"methods"'),
       "Must include methods array in response",
     );
-    assert.ok(
-      block.includes("payment_method"),
-      "Must group by payment_method",
-    );
+    assert.ok(block.includes("payment_method"), "Must group by payment_method");
   });
 
   it("includes individual orders list", () => {
@@ -88,7 +85,10 @@ describe("Integration — by-seller endpoint shape", function () {
   it("each seller has display_name field", () => {
     if (!data || !data.length) return;
     data.forEach((s) => {
-      assert.ok("display_name" in s, `Seller ${s.username} must have display_name`);
+      assert.ok(
+        "display_name" in s,
+        `Seller ${s.username} must have display_name`,
+      );
     });
   });
 
@@ -96,7 +96,10 @@ describe("Integration — by-seller endpoint shape", function () {
     if (!data || !data.length) return;
     data.forEach((s) => {
       assert.ok("avg_ticket" in s, `Seller ${s.username} must have avg_ticket`);
-      assert.ok(typeof s.avg_ticket === "number", "avg_ticket must be a number");
+      assert.ok(
+        typeof s.avg_ticket === "number",
+        "avg_ticket must be a number",
+      );
     });
   });
 
@@ -110,7 +113,10 @@ describe("Integration — by-seller endpoint shape", function () {
   it("each seller has methods array with method/total/count", () => {
     if (!data || !data.length) return;
     data.forEach((s) => {
-      assert.ok(Array.isArray(s.methods), `Seller ${s.username} must have methods array`);
+      assert.ok(
+        Array.isArray(s.methods),
+        `Seller ${s.username} must have methods array`,
+      );
       s.methods.forEach((m) => {
         assert.ok("method" in m, "Each method must have method name");
         assert.ok("total" in m, "Each method must have total");
@@ -122,7 +128,10 @@ describe("Integration — by-seller endpoint shape", function () {
   it("each seller has orders array with id/total/time", () => {
     if (!data || !data.length) return;
     data.forEach((s) => {
-      assert.ok(Array.isArray(s.orders), `Seller ${s.username} must have orders array`);
+      assert.ok(
+        Array.isArray(s.orders),
+        `Seller ${s.username} must have orders array`,
+      );
       s.orders.forEach((o) => {
         assert.ok("id" in o, "Each order must have id");
         assert.ok("total" in o, "Each order must have total");
@@ -136,7 +145,11 @@ describe("Integration — by-seller endpoint shape", function () {
     data.forEach((s) => {
       if (s.count > 0) {
         const expected = Math.round((s.total / s.count) * 100) / 100;
-        assert.strictEqual(s.avg_ticket, expected, `avg_ticket for ${s.username}`);
+        assert.strictEqual(
+          s.avg_ticket,
+          expected,
+          `avg_ticket for ${s.username}`,
+        );
       }
     });
   });
@@ -185,14 +198,18 @@ describe("JS — renderSellerSales detailed UI", () => {
 
   it("renders expandable/collapsible detail cards", () => {
     assert.ok(
-      block.includes("toggle") || block.includes("hidden") || block.includes("classList"),
+      block.includes("toggle") ||
+        block.includes("hidden") ||
+        block.includes("classList"),
       "Must have expand/collapse functionality",
     );
   });
 
   it("shows percentage bar per seller", () => {
     assert.ok(
-      block.includes("pct") || block.includes("bar-fill") || block.includes("width"),
+      block.includes("pct") ||
+        block.includes("bar-fill") ||
+        block.includes("width"),
       "Must show percentage bar for each seller",
     );
   });
@@ -209,18 +226,30 @@ describe("CSS — Seller detail styles", () => {
   });
 
   it("has .jewd-seller-card class", () => {
-    assert.ok(css.includes(".jewd-seller-card"), "Must define .jewd-seller-card");
+    assert.ok(
+      css.includes(".jewd-seller-card"),
+      "Must define .jewd-seller-card",
+    );
   });
 
   it("has .jewd-seller-stats class", () => {
-    assert.ok(css.includes(".jewd-seller-stats"), "Must define .jewd-seller-stats");
+    assert.ok(
+      css.includes(".jewd-seller-stats"),
+      "Must define .jewd-seller-stats",
+    );
   });
 
   it("has .jewd-seller-table class", () => {
-    assert.ok(css.includes(".jewd-seller-table"), "Must define .jewd-seller-table");
+    assert.ok(
+      css.includes(".jewd-seller-table"),
+      "Must define .jewd-seller-table",
+    );
   });
 
   it("has .jewd-seller-bar-fill class", () => {
-    assert.ok(css.includes(".jewd-seller-bar-fill"), "Must define .jewd-seller-bar-fill");
+    assert.ok(
+      css.includes(".jewd-seller-bar-fill"),
+      "Must define .jewd-seller-bar-fill",
+    );
   });
 });

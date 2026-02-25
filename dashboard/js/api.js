@@ -389,6 +389,7 @@ const JewdAPI = (function () {
     const params = new URLSearchParams();
     params.set("consumer_key", c.consumerKey);
     params.set("consumer_secret", c.consumerSecret);
+    params.set("interval", "day");
     if (dateMin) params.set("after", dateMin + "T00:00:00");
     if (dateMax) params.set("before", dateMax + "T23:59:59");
     const url = `${c.wpBaseUrl}/wc-analytics/reports/revenue/stats?${params.toString()}`;

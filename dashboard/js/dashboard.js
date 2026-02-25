@@ -213,10 +213,12 @@
     $("#sidebar").classList.remove("open");
 
     // Lazy-load section data on first visit.
-    if (!state.sectionLoaded[section]) {
+    // Reports always reloads (sales change throughout the day).
+    if (section === "reports") {
+      loadReports();
+    } else if (!state.sectionLoaded[section]) {
       state.sectionLoaded[section] = true;
       if (section === "orders") loadOrders();
-      if (section === "reports") loadReports();
       if (section === "settings") loadSettingsPage();
       if (section === "users" && typeof JewdUsers !== "undefined") JewdUsers.init();
       if (section === "pos" && typeof JewdPOS !== "undefined") JewdPOS.init();
