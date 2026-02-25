@@ -25,7 +25,13 @@
     connected: false,
     // Routing
     activeSection: "products",
-    sectionLoaded: { products: false, orders: false, reports: false, settings: false },
+    sectionLoaded: {
+      products: false,
+      orders: false,
+      reports: false,
+      settings: false,
+      users: false,
+    },
     // Orders
     orders: [],
     ordersPage: 1,
@@ -52,6 +58,31 @@
     $("#btnWPAdmin").href = normalizePermalink(cfg.adminUrl || "#");
 
     initTheme();
+
+    // ── Auth: login form handler ──
+    const loginForm = $("#loginForm");
+    if (loginForm) {
+      loginForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const user = $("#loginUsername").value.trim();
+        const pass = $("#loginPassword").value;
+        if (user && pass) await JewdAuth.login(user, pass);
+        // If login succeeded, continue init
+        if (JewdAuth.isAuthenticated()) initAfterAuth();
+      });
+    }
+    const logoutBtn = $("#btnLogout");
+    if (logoutBtn) {
+      logoutBtn.addEventListener("click", () => JewdAuth.logout());
+    }
+
+    // ── Auth: check existing session ──
+    const authed = await JewdAuth.init();
+    if (authed) initAfterAuth();
+  });
+
+  /** Run after successful authentication. */
+  async function initAfterAuth() {
     initRouter();
     initAccessibility();
     bindEvents();
@@ -62,7 +93,12 @@
     loadStats();
     loadProducts();
     state.sectionLoaded.products = true;
-  });
+
+    // Init user management module
+    if (typeof JewdUsers !== "undefined") {
+      JewdUsers.bindEvents();
+    }
+  }
 
   /* ===== CONNECTION TEST ===== */
   async function testConnection() {
@@ -140,14 +176,18 @@
   function handleRoute() {
     const hash = window.location.hash || "#/products";
     const section = hash.replace("#/", "") || "products";
-    const validSections = ["products", "orders", "reports", "settings"];
+    const validSections = ["products", "orders", "pos", "reports", "settings", "users"];
     const target = validSections.includes(section) ? section : "products";
+    console.log("[JEWD Router] hash=" + hash + " section=" + section + " target=" + target);
 
     navigateTo(target);
   }
 
   function navigateTo(section) {
     state.activeSection = section;
+    console.log(
+      "[JEWD Nav] navigateTo('" + section + "') -> target id: section" + capitalize(section),
+    );
 
     // Update sidebar active state.
     $$(".jewd-nav-item").forEach((item) => {
@@ -155,8 +195,12 @@
     });
 
     // Show/hide sections.
-    $$(".jewd-section").forEach((sec) => {
-      sec.classList.toggle("active", sec.id === "section" + capitalize(section));
+    const sectionEls = $$(".jewd-section");
+    console.log("[JEWD Nav] Found " + sectionEls.length + " section elements");
+    sectionEls.forEach((sec) => {
+      const isTarget = sec.id === "section" + capitalize(section);
+      sec.classList.toggle("active", isTarget);
+      if (isTarget) console.log("[JEWD Nav] ACTIVATED: " + sec.id);
     });
 
     // Show/hide section-specific topbar actions.
@@ -173,6 +217,8 @@
       if (section === "orders") loadOrders();
       if (section === "reports") loadReports();
       if (section === "settings") loadSettingsPage();
+      if (section === "users" && typeof JewdUsers !== "undefined") JewdUsers.init();
+      if (section === "pos" && typeof JewdPOS !== "undefined") JewdPOS.init();
     }
   }
 
@@ -577,14 +623,20 @@
       html += `<td class="jewd-right">${stockHtml}</td>`;
       html += `<td class="jewd-right">${esc(p.weight || "—")}</td>`;
       html += '<td class="jewd-center">';
+      const canEdit = window.JewdAuth && window.JewdAuth.can("edit_products");
       if (p.status === "trash") {
-        html += `<button class="jewd-action-btn jewd-action-restore" data-action="restore" data-idx="${idx}" title="Restaurar">♻️</button>`;
-        html += `<button class="jewd-action-btn jewd-action-danger" data-action="permadelete" data-idx="${idx}" title="Eliminar permanentemente">💀</button>`;
+        if (canEdit)
+          html += `<button class="jewd-action-btn jewd-action-restore" data-action="restore" data-idx="${idx}" title="Restaurar">♻️</button>`;
+        if (canEdit)
+          html += `<button class="jewd-action-btn jewd-action-danger" data-action="permadelete" data-idx="${idx}" title="Eliminar permanentemente">💀</button>`;
       } else {
         html += `<button class="jewd-action-btn" data-action="detail" data-idx="${idx}" title="Ver detalle">👁</button>`;
-        html += `<button class="jewd-action-btn" data-action="edit" data-idx="${idx}" title="Editar producto">✏️</button>`;
-        html += `<button class="jewd-action-btn" data-action="duplicate" data-idx="${idx}" title="Duplicar producto">📋</button>`;
-        html += `<button class="jewd-action-btn jewd-action-danger" data-action="delete" data-idx="${idx}" title="Eliminar producto">🗑</button>`;
+        if (canEdit)
+          html += `<button class="jewd-action-btn" data-action="edit" data-idx="${idx}" title="Editar producto">✏️</button>`;
+        if (canEdit)
+          html += `<button class="jewd-action-btn" data-action="duplicate" data-idx="${idx}" title="Duplicar producto">📋</button>`;
+        if (canEdit)
+          html += `<button class="jewd-action-btn jewd-action-danger" data-action="delete" data-idx="${idx}" title="Eliminar producto">🗑</button>`;
         html += `<a class="jewd-action-btn" href="${esc(normalizePermalink(p.permalink || "#"))}" title="Ver en tienda" target="_blank">🔗</a>`;
       }
       html += "</td>";
@@ -755,9 +807,13 @@
     const vs = state.variations[p.id] || [];
 
     $("#modalTitle").textContent = p.name;
-    $("#modalEditLink").href = normalizePermalink(
-      `${cfg.adminUrl}/post.php?post=${p.id}&action=edit`,
-    );
+    const editLink = $("#modalEditLink");
+    if (window.JewdAuth && window.JewdAuth.can("edit_products")) {
+      editLink.href = normalizePermalink(`${cfg.adminUrl}/post.php?post=${p.id}&action=edit`);
+      editLink.style.display = "";
+    } else {
+      editLink.style.display = "none";
+    }
     $("#modalViewLink").href = normalizePermalink(p.permalink || "#");
 
     let html = '<div class="jewd-detail-grid">';
@@ -867,6 +923,10 @@
 
   function showEditModal(p) {
     if (!p) return;
+    if (!window.JewdAuth || !window.JewdAuth.can("edit_products")) {
+      toast("🚫 No tienes permiso para editar productos");
+      return;
+    }
     editingProduct = p;
     editTags = (p.tags || []).map((t) => ({ id: t.id, name: t.name }));
     const vs = state.variations[p.id] || [];
@@ -1622,6 +1682,10 @@
 
   async function saveProduct() {
     if (!editingProduct) return;
+    if (!window.JewdAuth || !window.JewdAuth.can("edit_products")) {
+      toast("🚫 No tienes permiso para guardar cambios");
+      return;
+    }
     const form = $("#editForm");
     if (!form) return;
 
@@ -2332,6 +2396,10 @@
 
   /* ===== DUPLICATE PRODUCT ===== */
   async function duplicateProduct(p) {
+    if (!window.JewdAuth || !window.JewdAuth.can("edit_products")) {
+      toast("🚫 No tienes permiso para duplicar productos");
+      return;
+    }
     const ok = await showConfirm({
       title: "📋 Duplicar producto",
       html: `<span>¿Duplicar <strong>${esc(p.name)}</strong>?<br>Se creará una copia en borrador.</span>`,
@@ -2385,6 +2453,10 @@
   /* ===== DELETE / TRASH / RESTORE ===== */
   async function deleteProductAction(p) {
     if (!p) return;
+    if (!window.JewdAuth || !window.JewdAuth.can("edit_products")) {
+      toast("🚫 No tienes permiso para eliminar productos");
+      return;
+    }
     const action = await showDeleteConfirm(p);
     if (!action) return;
 
@@ -2408,6 +2480,10 @@
 
   async function restoreProduct(p) {
     if (!p) return;
+    if (!window.JewdAuth || !window.JewdAuth.can("edit_products")) {
+      toast("🚫 No tienes permiso para restaurar productos");
+      return;
+    }
     const ok = await showConfirm({
       title: "♻️ Restaurar producto",
       html: `<span>¿Restaurar <strong>${esc(p.name)}</strong>?<br>Volverá a estado borrador.</span>`,
@@ -2429,6 +2505,10 @@
 
   async function permanentDeleteProduct(p) {
     if (!p) return;
+    if (!window.JewdAuth || !window.JewdAuth.can("edit_products")) {
+      toast("🚫 No tienes permiso para eliminar productos");
+      return;
+    }
     const ok = await showConfirm({
       title: "⚠️ Eliminar permanentemente",
       html: `<span>¿Eliminar permanentemente <strong>${esc(p.name)}</strong>?<br><strong style="color:var(--jewd-danger)">Esta acción NO se puede deshacer.</strong></span>`,
