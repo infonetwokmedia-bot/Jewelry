@@ -114,7 +114,6 @@ const JewdPOS = (function () {
   async function init() {
     if (initialized) return;
     initialized = true;
-    console.log("[POS] init() starting...");
 
     restoreHeldCarts();
     restoreTodaySales();
@@ -122,7 +121,6 @@ const JewdPOS = (function () {
     resetPayments();
     try {
       await loadCategories();
-      console.log("[POS] Categories loaded OK, allCategories:", allCategories.length);
     } catch (e) {
       console.error("[POS] init loadCategories failed:", e);
     }
@@ -137,8 +135,6 @@ const JewdPOS = (function () {
     ) {
       loadPosSellerSummary();
     }
-
-    console.log("[POS] init() complete");
   }
 
   function bindEvents() {
@@ -212,13 +208,10 @@ const JewdPOS = (function () {
 
   // ── Categories ──────────────────────────────────────────────────────
   async function loadCategories() {
-    console.log("[POS] loadCategories() called");
     try {
       const res = await JewdAPI.getCategories();
       const cats = res && res.data ? res.data : Array.isArray(res) ? res : [];
-      console.log("[POS] getCategories returned:", cats.length, "items");
       allCategories = cats.filter((c) => c.count > 0).sort((a, b) => b.count - a.count);
-      console.log("[POS] Filtered categories:", allCategories.length);
       renderCategories();
       loadCategoryProducts("");
     } catch (e) {
@@ -261,7 +254,6 @@ const JewdPOS = (function () {
       console.warn("[POS] #posGrid not found!");
       return;
     }
-    console.log("[POS] loadCategoryProducts catId:", catId);
     grid.innerHTML =
       '<div class="jewd-pos-grid-loading"><div class="jewd-spinner"></div><span>Cargando productos...</span></div>';
 
@@ -271,7 +263,6 @@ const JewdPOS = (function () {
         perPage: 50,
       });
       const products = res && res.data ? res.data : Array.isArray(res) ? res : [];
-      console.log("[POS] searchProducts returned:", products.length, "items");
       cacheProducts(products);
       renderProductGrid(products);
     } catch (e) {

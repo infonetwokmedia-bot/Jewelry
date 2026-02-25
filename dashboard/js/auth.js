@@ -29,7 +29,6 @@ const JewdAuth = (function () {
     // Verify token with server
     try {
       const verifyUrl = _apiUrl("/jewd/v1/auth/verify");
-      console.log("[JEWD Auth] Verify", verifyUrl);
       const res = await fetch(verifyUrl, {
         headers: { Authorization: "Bearer " + _token },
       });
@@ -75,7 +74,6 @@ const JewdAuth = (function () {
 
     try {
       const url = _apiUrl("/jewd/v1/auth/login");
-      console.log("[JEWD Auth] POST", url);
       const res = await fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -234,21 +232,9 @@ const JewdAuth = (function () {
       console.warn("[JEWD Auth] applyPermissions: no user or permissions!", _currentUser);
       return;
     }
-    console.log("[JEWD Auth] applyPermissions:", JSON.stringify(_currentUser.permissions));
-
     document.querySelectorAll("[data-permission]").forEach((el) => {
       const perm = el.getAttribute("data-permission");
       const allowed = can(perm);
-      console.log(
-        "[JEWD Auth] data-permission='" +
-          perm +
-          "' allowed=" +
-          allowed +
-          " tag=" +
-          el.tagName +
-          " section=" +
-          (el.dataset.section || "n/a"),
-      );
       if (allowed) {
         el.style.display = "";
         el.removeAttribute("aria-hidden");

@@ -179,16 +179,12 @@
     const section = hash.replace("#/", "") || "products";
     const validSections = ["products", "orders", "pos", "reports", "settings", "users"];
     const target = validSections.includes(section) ? section : "products";
-    console.log("[JEWD Router] hash=" + hash + " section=" + section + " target=" + target);
 
     navigateTo(target);
   }
 
   function navigateTo(section) {
     state.activeSection = section;
-    console.log(
-      "[JEWD Nav] navigateTo('" + section + "') -> target id: section" + capitalize(section),
-    );
 
     // Update sidebar active state.
     $$(".jewd-nav-item").forEach((item) => {
@@ -197,11 +193,9 @@
 
     // Show/hide sections.
     const sectionEls = $$(".jewd-section");
-    console.log("[JEWD Nav] Found " + sectionEls.length + " section elements");
     sectionEls.forEach((sec) => {
       const isTarget = sec.id === "section" + capitalize(section);
       sec.classList.toggle("active", isTarget);
-      if (isTarget) console.log("[JEWD Nav] ACTIVATED: " + sec.id);
     });
 
     // Show/hide section-specific topbar actions.
