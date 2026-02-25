@@ -3214,15 +3214,85 @@
       return;
     }
 
-    let html = '<div class="jewd-top-list">';
+    // Compute grand total for percentage bars
+    const grandTotal = sellers.reduce((s, v) => s + parseFloat(v.total || 0), 0);
+
+    const methodLabels = {
+      cash: "💵 Efectivo",
+      card: "💳 Tarjeta",
+      zelle: "⚡ Zelle",
+      pos: "🏪 POS",
+      other: "📋 Otro",
+    };
+
+    let html = '<div class="jewd-seller-detail-list">';
     sellers.forEach((s, i) => {
       const name = s.display_name || s.username || s.seller || "Vendedor";
       const total = parseFloat(s.total || 0);
       const count = parseInt(s.count || s.orders || 0);
-      html += '<div class="jewd-top-item">';
-      html += `<span class="jewd-top-rank">${i + 1}</span>`;
-      html += `<div class="jewd-top-info"><div class="jewd-top-name">${esc(name)}</div><div class="jewd-top-meta">${count} ventas · $${fmtN(total)}</div></div>`;
+      const avgTicket = parseFloat(s.avg_ticket || (count > 0 ? total / count : 0));
+      const items = parseInt(s.items || 0);
+      const pct = grandTotal > 0 ? ((total / grandTotal) * 100).toFixed(1) : 0;
+      const methods = Array.isArray(s.methods) ? s.methods : [];
+      const orders = Array.isArray(s.orders) ? s.orders : [];
+      const uid = "seller_" + i;
+
+      html += '<div class="jewd-seller-card">';
+
+      // Header row (clickable to expand)
+      html += `<div class="jewd-seller-header" onclick="document.getElementById('${uid}').classList.toggle('jewd-hidden')">`;
+      html += `<span class="jewd-seller-rank">${i + 1}</span>`;
+      html += '<div class="jewd-seller-info">';
+      html += `<div class="jewd-seller-name">${esc(name)} <span class="jewd-seller-user">@${esc(s.username || "")}</span></div>`;
+      html += `<div class="jewd-seller-bar"><div class="jewd-seller-bar-fill" style="width:${pct}%"></div></div>`;
       html += "</div>";
+      html += `<div class="jewd-seller-total">$${fmtN(total)}<div class="jewd-seller-pct">${pct}%</div></div>`;
+      html += '<span class="jewd-seller-toggle">▼</span>';
+      html += "</div>";
+
+      // Detail panel (collapsed by default)
+      html += `<div id="${uid}" class="jewd-seller-detail jewd-hidden">`;
+
+      // Stats row
+      html += '<div class="jewd-seller-stats">';
+      html += `<div class="jewd-seller-stat"><span class="jewd-stat-val">${count}</span><span class="jewd-stat-lbl">Ventas</span></div>`;
+      html += `<div class="jewd-seller-stat"><span class="jewd-stat-val">${items}</span><span class="jewd-stat-lbl">Artículos</span></div>`;
+      html += `<div class="jewd-seller-stat"><span class="jewd-stat-val">$${fmtN(avgTicket)}</span><span class="jewd-stat-lbl">Ticket Prom.</span></div>`;
+      html += "</div>";
+
+      // Payment methods breakdown
+      if (methods.length) {
+        html += '<div class="jewd-seller-methods">';
+        html += '<div class="jewd-seller-subtitle">Métodos de pago</div>';
+        methods.forEach((m) => {
+          const label = methodLabels[m.method] || m.method;
+          html += `<div class="jewd-method-row"><span>${label}</span><span>${m.count} · $${fmtN(m.total)}</span></div>`;
+        });
+        html += "</div>";
+      }
+
+      // Individual orders table
+      if (orders.length) {
+        html += '<div class="jewd-seller-orders">';
+        html += '<div class="jewd-seller-subtitle">Órdenes</div>';
+        html +=
+          '<table class="jewd-seller-table"><thead><tr><th>#</th><th>Total</th><th>Items</th><th>Método</th><th>Hora</th></tr></thead><tbody>';
+        orders.forEach((o) => {
+          const mLabel = methodLabels[o.method] || o.method;
+          const time = o.time
+            ? new Date(o.time + "Z").toLocaleTimeString("es", {
+                hour: "2-digit",
+                minute: "2-digit",
+              })
+            : "";
+          html += `<tr><td>${o.id}</td><td>$${fmtN(o.total)}</td><td>${o.qty || 0}</td><td>${mLabel}</td><td>${time}</td></tr>`;
+        });
+        html += "</tbody></table>";
+        html += "</div>";
+      }
+
+      html += "</div>"; // .jewd-seller-detail
+      html += "</div>"; // .jewd-seller-card
     });
     html += "</div>";
     el.innerHTML = html;

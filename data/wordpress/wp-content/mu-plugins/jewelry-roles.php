@@ -1038,7 +1038,8 @@ function jewelry_query_sales_period($since, $seller = '')
 /**
  * GET /jewd/v1/sales/by-seller
  *
- * Returns sales totals grouped by seller (admin/manager only).
+ * Returns detailed sales data grouped by seller (admin/manager only).
+ * Includes display_name, avg ticket, payment method breakdown, and individual orders.
  *
  * @param WP_REST_Request $request
  * @return WP_REST_Response
@@ -1066,33 +1067,34 @@ function jewelry_get_sales_by_seller($request)
     $meta_table   = $wpdb->prefix . 'wc_orders_meta';
     $use_hpos     = $wpdb->get_var("SHOW TABLES LIKE '{$orders_table}'") === $orders_table;
 
+    // Fetch individual orders with seller info for detailed breakdown
     if ($use_hpos) {
         $sql = $wpdb->prepare(
-            "SELECT om.meta_value as seller,
-                    COALESCE(SUM(o.total_amount), 0) as total,
-                    COUNT(o.id) as count
+            "SELECT o.id, o.total_amount as total, o.payment_method,
+                    o.date_created_gmt as date_created, o.status,
+                    om.meta_value as seller
              FROM {$orders_table} o
              INNER JOIN {$meta_table} om ON o.id = om.order_id AND om.meta_key = '_pos_seller'
              WHERE o.date_created_gmt >= %s
                AND o.status IN ('wc-completed', 'wc-processing')
                AND o.type = 'shop_order'
-             GROUP BY om.meta_value
-             ORDER BY total DESC",
+             ORDER BY o.date_created_gmt DESC",
             $since
         );
     } else {
         $sql = $wpdb->prepare(
-            "SELECT pm_seller.meta_value as seller,
-                    COALESCE(SUM(pm_total.meta_value), 0) as total,
-                    COUNT(p.ID) as count
+            "SELECT p.ID as id, pm_total.meta_value as total,
+                    pm_method.meta_value as payment_method,
+                    p.post_date_gmt as date_created, p.post_status as status,
+                    pm_seller.meta_value as seller
              FROM {$wpdb->posts} p
              INNER JOIN {$wpdb->postmeta} pm_seller ON p.ID = pm_seller.post_id AND pm_seller.meta_key = '_pos_seller'
              INNER JOIN {$wpdb->postmeta} pm_total ON p.ID = pm_total.post_id AND pm_total.meta_key = '_order_total'
+             LEFT JOIN {$wpdb->postmeta} pm_method ON p.ID = pm_method.post_id AND pm_method.meta_key = '_payment_method'
              WHERE p.post_date_gmt >= %s
                AND p.post_status IN ('wc-completed', 'wc-processing')
                AND p.post_type = 'shop_order'
-             GROUP BY pm_seller.meta_value
-             ORDER BY total DESC",
+             ORDER BY p.post_date_gmt DESC",
             $since
         );
     }
@@ -1100,14 +1102,82 @@ function jewelry_get_sales_by_seller($request)
     // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
     $rows = $wpdb->get_results($sql);
 
-    $sellers = array();
+    // Group by seller with detailed breakdown
+    $grouped = array();
     foreach ($rows as $row) {
+        $seller = $row->seller;
+        if (! isset($grouped[$seller])) {
+            $grouped[$seller] = array(
+                'orders'  => array(),
+                'methods' => array(),
+            );
+        }
+        $total  = round(floatval($row->total), 2);
+        $method = $row->payment_method ?: 'pos';
+
+        // Get line items count
+        $qty = intval($wpdb->get_var($wpdb->prepare(
+            "SELECT COALESCE(SUM(oim.meta_value), 0)
+             FROM {$wpdb->prefix}woocommerce_order_items oi
+             INNER JOIN {$wpdb->prefix}woocommerce_order_itemmeta oim
+                 ON oi.order_item_id = oim.order_item_id AND oim.meta_key = '_qty'
+             WHERE oi.order_id = %d AND oi.order_item_type = 'line_item'",
+            intval($row->id)
+        )));
+
+        $grouped[$seller]['orders'][] = array(
+            'id'     => intval($row->id),
+            'total'  => $total,
+            'qty'    => $qty,
+            'method' => $method,
+            'time'   => $row->date_created,
+        );
+
+        if (! isset($grouped[$seller]['methods'][$method])) {
+            $grouped[$seller]['methods'][$method] = array('total' => 0, 'count' => 0);
+        }
+        $grouped[$seller]['methods'][$method]['total'] += $total;
+        $grouped[$seller]['methods'][$method]['count']++;
+    }
+
+    // Build response with enriched data
+    $sellers = array();
+    foreach ($grouped as $username => $data) {
+        $order_count = count($data['orders']);
+        $total       = array_sum(array_column($data['orders'], 'total'));
+        $avg_ticket  = $order_count > 0 ? round($total / $order_count, 2) : 0;
+        $total_items = array_sum(array_column($data['orders'], 'qty'));
+
+        // Resolve display_name from WP user
+        $wp_user      = get_user_by('login', $username);
+        $display_name = $wp_user ? $wp_user->display_name : $username;
+
+        // Payment methods breakdown
+        $methods = array();
+        foreach ($data['methods'] as $method_name => $method_data) {
+            $methods[] = array(
+                'method' => $method_name,
+                'total'  => round($method_data['total'], 2),
+                'count'  => $method_data['count'],
+            );
+        }
+
         $sellers[] = array(
-            'username' => $row->seller,
-            'total'    => round(floatval($row->total), 2),
-            'count'    => intval($row->count),
+            'username'     => $username,
+            'display_name' => $display_name,
+            'total'        => round($total, 2),
+            'count'        => $order_count,
+            'items'        => $total_items,
+            'avg_ticket'   => $avg_ticket,
+            'methods'      => $methods,
+            'orders'       => $data['orders'],
         );
     }
+
+    // Sort by total descending
+    usort($sellers, function ($a, $b) {
+        return $b['total'] <=> $a['total'];
+    });
 
     return new \WP_REST_Response($sellers, 200);
 }
