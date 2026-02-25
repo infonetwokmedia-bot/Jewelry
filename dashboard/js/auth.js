@@ -123,7 +123,9 @@ const JewdAuth = (function () {
   }
 
   /**
-   * Logout — clear session and show login.
+   * Logout — clear session and reload page for a clean slate.
+   * Full reload ensures zero in-memory state leakage between users
+   * (dashboard state, POS cart, cached products, event listeners, etc.).
    */
   async function logout() {
     try {
@@ -137,7 +139,10 @@ const JewdAuth = (function () {
       // Ignore — we're logging out anyway
     }
     clearSession();
-    showLogin();
+    // Reset to default section and reload — ensures all modules
+    // start from scratch with no stale data from previous user.
+    window.location.hash = "#/products";
+    window.location.reload();
   }
 
   /**
@@ -200,10 +205,16 @@ const JewdAuth = (function () {
     const app = document.querySelector("#jewd-app");
     if (overlay) overlay.classList.add("active");
     if (app) app.classList.add("jewd-locked");
+    // Clear previous credentials
+    const userInput = document.querySelector("#loginUsername");
+    const passInput = document.querySelector("#loginPassword");
+    const errEl = document.querySelector("#loginError");
+    if (userInput) userInput.value = "";
+    if (passInput) passInput.value = "";
+    if (errEl) errEl.textContent = "";
     // Focus username field
     setTimeout(() => {
-      const input = document.querySelector("#loginUsername");
-      if (input) input.focus();
+      if (userInput) userInput.focus();
     }, 100);
   }
 
