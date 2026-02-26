@@ -56,7 +56,7 @@ Configurar en `.vscode/settings.json`:
 ### 1. Generación de Contenido Bilingüe
 
 ```
-Contexto: Proyecto Jewelry - WordPress + WooCommerce bilingüe (ES/EN) con Bogo
+Contexto: Proyecto Jewelry - WordPress + WooCommerce bilingüe (ES/EN) con TranslatePress
 
 Tarea: Crear descripción de producto bilingüe para:
 - Producto: Anillo de compromiso en oro blanco 18k con diamante central 1ct
@@ -80,7 +80,7 @@ Revisa esta función custom de WordPress y sugiere mejoras:
 - Seguridad: ¿Está sanitizando inputs?
 - Performance: ¿Consultas optimizadas?
 - WordPress Standards: ¿Sigue convenciones?
-- Bogo: ¿Maneja correctamente multiidioma?
+- TranslatePress: ¿Maneja correctamente multiidioma?
 
 Código a revisar:
 [pegar código aquí]
@@ -97,12 +97,12 @@ Proporciona:
 Contexto: Proyecto Jewelry (ver .ai-tools/shared-context.md)
 
 Problema: Los productos en inglés no muestran la imagen destacada, 
-pero en español sí funcionan. Bogo está activo.
+pero en español sí funcionan. TranslatePress está activo.
 
 Información adicional:
 - Error logs: [pegar logs si hay]
 - Código relevante: [pegar código]
-- Plugins activos: WooCommerce, Bogo, Kadence
+- Plugins activos: WooCommerce, TranslatePress, Astra
 
 Necesito:
 1. Posibles causas del problema
@@ -123,13 +123,13 @@ Requisitos:
 - Página dedicada "Mi Wishlist" (ES/EN)
 - Persistir en base de datos (usuario logueado)
 - Almacenar en localStorage (visitante)
-- Compatible con Bogo para productos multiidioma
+- Compatible con TranslatePress para productos multiidioma
 
 Necesito:
 1. Arquitectura de la solución (tablas DB, hooks, etc.)
 2. Código PHP para backend
 3. JavaScript para frontend
-4. Integración con tema Kadence
+4. Integración con tema Astra
 5. Plan de testing bilingüe
 ```
 
@@ -155,7 +155,7 @@ Necesito:
    
    Incluir:
    1. Script WP-CLI completo
-   2. Vinculación Bogo
+   2. Traducción TranslatePress
    3. Meta datos WooCommerce
    4. Descripciones completas bilingües
    ```
@@ -202,7 +202,7 @@ Necesito:
    - PHPDoc completo
    - Ejemplos de uso
    - Notas de seguridad
-   - Consideraciones bilingües (Bogo)
+   - Consideraciones bilingües (TranslatePress)
    ```
 
 ## 💰 Costos
@@ -236,7 +236,7 @@ Antes de consultar a Claude:
 - [ ] Identificar caso de uso (contenido, debug, arquitectura, etc.)
 - [ ] Preparar información relevante (código, logs, requirements)
 - [ ] Formular prompt claro con contexto específico
-- [ ] Especificar que es proyecto **bilingüe con Bogo**
+- [ ] Especificar que es proyecto **bilingüe con TranslatePress**
 - [ ] Solicitar validación de WordPress Standards
 - [ ] Pedir versión en **AMBOS idiomas** si aplica
 
@@ -244,7 +244,7 @@ Después de recibir respuesta:
 
 - [ ] Validar que usa prefijo `jewelry_` en funciones
 - [ ] Verificar sanitización de inputs
-- [ ] Confirmar vinculación Bogo si es contenido
+- [ ] Confirmar traducción TranslatePress si es contenido
 - [ ] Probar en ambos idiomas (ES y EN)
 - [ ] Documentar solución si es reutilizable
 

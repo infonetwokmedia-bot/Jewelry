@@ -513,7 +513,7 @@ tar -czf "$BACKUP_DIR/uploads_backup_$TIMESTAMP.tar.gz" \
 
 echo "Backing up theme customizations..."
 tar -czf "$BACKUP_DIR/theme_custom_$TIMESTAMP.tar.gz" \
-  data/wordpress/wp-content/themes/kadence/functions-custom.php
+  data/wordpress/wp-content/mu-plugins/jewelry-*.php
 
 echo "Backup completed: $BACKUP_DIR"
 ls -lh $BACKUP_DIR/*$TIMESTAMP*

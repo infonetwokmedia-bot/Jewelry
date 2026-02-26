@@ -2,7 +2,7 @@
 
 ## 🎯 Objetivo
 
-Importar 10+ productos simultáneamente desde CSV o spreadsheet, con vinculación Bogo automática y validación completa.
+Importar 10+ productos simultáneamente desde CSV o spreadsheet, con traducción TranslatePress automática y validación completa.
 
 ## 🔧 Herramientas Recomendadas
 

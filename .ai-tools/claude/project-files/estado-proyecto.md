@@ -14,12 +14,12 @@ Progreso actual y tareas pendientes.
 ### Infraestructura
 - ✅ Docker Compose configurado
 - ✅ WordPress instalado y funcionando
-- ✅ Tema Kadence activado
+- ✅ Tema Astra activado
 - ✅ WooCommerce configurado
 - ✅ Traefik configurado para acceso local HTTPS
 
 ### Idiomas
-- ✅ Plugin Bogo instalado y configurado
+- ✅ Plugin TranslatePress instalado y configurado
 - ✅ Español (es_ES) instalado y como idioma por defecto
 - ✅ Inglés (en_US) instalado
 - ✅ Sistema de traducción funcionando
@@ -35,7 +35,7 @@ Progreso actual y tareas pendientes.
 - Mi Cuenta, Carrito, Finalizar Compra
 - Política de Privacidad, Términos y Condiciones, Política de Devoluciones
 
-**Vinculaciones:** ✅ Todas las páginas vinculadas EN ↔ ES con Bogo
+**Vinculaciones:** ✅ Todas las páginas vinculadas EN ↔ ES con TranslatePress
 
 ### Productos (5 parejas EN/ES = 10 productos)
 1. Miami Cuban Link 10k 6mm (EN/ES)
@@ -44,7 +44,7 @@ Progreso actual y tareas pendientes.
 4. Monaco Bracelet with Panther Head (EN/ES)
 5. Custom ID Bracelet for Children (EN/ES)
 
-**Vinculaciones:** ✅ Todos los productos vinculados EN ↔ ES con Bogo
+**Vinculaciones:** ✅ Todos los productos vinculados EN ↔ ES con TranslatePress
 
 ### Categorías (4 parejas EN/ES = 8 categorías)
 1. Gold Chains / Cadenas de Oro (2 productos cada una)
@@ -52,7 +52,7 @@ Progreso actual y tareas pendientes.
 3. Bracelets / Pulseras y Manillas (2 productos cada una)
 4. Luxury Watches / Relojes de Lujo (0 productos - preparada para futuro)
 
-**Vinculaciones:** ✅ Todas las categorías vinculadas EN ↔ ES con Bogo
+**Vinculaciones:** ✅ Todas las categorías vinculadas EN ↔ ES con TranslatePress
 
 ### Menús
 - ✅ Menú principal EN (primary_navigation_en) - 10 items

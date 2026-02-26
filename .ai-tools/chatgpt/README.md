@@ -67,8 +67,8 @@ Siempre estructurar con encabezados claros:
 
 Contexto del proyecto:
 - WordPress + WooCommerce
-- Plugin Bogo para multiidioma
-- Tema Kadence
+- Plugin TranslatePress para multiidioma
+- Tema Astra
 - Target: clientes de Miami y LATAM
 - Productos: anillos, collares, aretes, pulseras
 - Rango de precios: $300-$5000 USD
@@ -312,7 +312,7 @@ Con base en el análisis anterior, genera:
 Iniciar cada sesión con:
 ```
 Contexto: Soy desarrollador de "Remedio Joyería", un ecommerce bilingüe 
-(ES/EN) de joyería de lujo en Miami. WordPress + WooCommerce + Bogo.
+(ES/EN) de joyería de lujo en Miami. WordPress + WooCommerce + TranslatePress.
 Target: clientes latinos y americanos en Florida y LATAM.
 
 Siempre genera contenido en AMBOS idiomas.

@@ -10,7 +10,7 @@ En lugar de depender de una sola herramienta, usamos un **ecosistema de IAs espe
 
 - **GitHub Copilot** → Código WordPress/WooCommerce específico del proyecto
 - **Claude** → Análisis profundo, refactoring, documentación técnica
-- **Codeium** → Autocompletado general gratuito, búsqueda codebase
+- **GitHub Copilot** → Autocompletado general gratuito, búsqueda codebase
 - **ChatGPT-4** → Contenido marketing, SEO, copy bilingüe
 
 ## 📁 Estructura
@@ -24,8 +24,8 @@ En lugar de depender de una sola herramienta, usamos un **ecosistema de IAs espe
 ├── claude/
 │   └── README.md                  # Guía de uso de Claude
 │
-├── codeium/
-│   └── README.md                  # Guía de uso de Codeium
+├── copilot/
+│   └── README.md                  # Guía de uso de GitHub Copilot
 │
 ├── chatgpt/
 │   ├── README.md                  # Guía de uso de ChatGPT
@@ -35,7 +35,7 @@ En lugar de depender de una sola herramienta, usamos un **ecosistema de IAs espe
     ├── product-creation.md        # Workflow completo de creación de productos
     ├── bulk-import.md             # Importación masiva de productos
     ├── email-customization.md     # Personalización de emails WooCommerce
-    └── troubleshooting-bogo.md    # Resolución de problemas Bogo
+    └── troubleshooting-translatepress.md    # Resolución de problemas TranslatePress
 ```
 
 ## 🚀 Quick Start
@@ -51,7 +51,7 @@ Este script verifica:
 - ✅ Estructura del proyecto
 - ✅ Contenedores Docker corriendo
 - ✅ WordPress y plugins activos
-- ✅ Configuración multiidioma (Bogo)
+- ✅ Configuración multiidioma (TranslatePress)
 - ✅ Extensiones VS Code (opcional)
 
 ### 2. Configurar VS Code
@@ -68,7 +68,7 @@ cp .vscode/settings-ai-tools.json .vscode/settings.json
 **Esenciales:**
 ```bash
 code --install-extension github.copilot
-code --install-extension codeium.codeium
+code --install-extension github.copilot
 code --install-extension bmewburn.vscode-intelephense-client
 ```
 
@@ -96,12 +96,12 @@ Este archivo contiene toda la información del proyecto que necesitan las IAs.
 - Escribir código PHP WordPress/WooCommerce
 - Generar scripts WP-CLI
 - Implementar features específicas del proyecto
-- Usar custom agents (@product-creator, @bogo-expert, etc.)
+- Usar custom agents (@product-creator, @translatepress-expert, etc.)
 
 **Ejemplo:**
 ```php
 // Escribe comentario descriptivo y Copilot genera código
-// Crear función para obtener productos destacados por idioma con Bogo
+// Crear función para obtener productos destacados por idioma con TranslatePress
 function jewelry_get_featured_products( $locale = 'es_ES' ) {
     // Copilot completa automáticamente
 }
@@ -129,7 +129,7 @@ function jewelry_get_featured_products( $locale = 'es_ES' ) {
 Contexto: [copiar shared-context.md]
 
 Tarea: Refactoriza esta función para seguir WordPress Coding Standards
-y añadir soporte completo Bogo para multiidioma.
+y añadir soporte completo TranslatePress para multiidioma.
 
 [Código aquí]
 ```
@@ -138,7 +138,7 @@ y añadir soporte completo Bogo para multiidioma.
 
 ---
 
-### Codeium (Autocompletado Gratuito)
+### GitHub Copilot (Autocompletado Gratuito)
 
 **Cuándo usar:**
 - Autocompletado en tiempo real (complemento a Copilot)
@@ -148,16 +148,16 @@ y añadir soporte completo Bogo para multiidioma.
 
 **Setup:**
 ```bash
-code --install-extension codeium.codeium
-# Login en VS Code: Ctrl+Shift+P > "Codeium: Sign In"
+code --install-extension github.copilot
+# Login en VS Code: Ctrl+Shift+P > "GitHub Copilot: Sign In"
 ```
 
 **Shortcuts:**
 - `Ctrl+Alt+Space` - Aceptar sugerencia
 - `Ctrl+I` - Abrir chat inline
-- `Ctrl+Shift+P` > "Codeium: Search Codebase"
+- `Ctrl+Shift+P` > "GitHub Copilot: Search Codebase"
 
-**Ver:** [codeium/README.md](./codeium/README.md)
+**Ver:** [copilot/README.md](./copilot/README.md)
 
 ---
 
@@ -188,7 +188,7 @@ Workflow completo para crear un producto WooCommerce en ambos idiomas:
 - Preparación de información
 - Generación de descripciones con Claude
 - Script automatizado con Copilot
-- Vinculación Bogo
+- Vinculación TranslatePress
 - Añadir imágenes y categorías
 
 **Tiempo:** ~40-60 min/producto
@@ -200,7 +200,7 @@ Workflow completo para crear un producto WooCommerce en ambos idiomas:
 Para importar 10+ productos desde CSV o catálogo:
 - Preparar archivo CSV bilingüe
 - Script de importación automatizada
-- Validación de vinculación Bogo
+- Validación de vinculación TranslatePress
 - Testing en ambos idiomas
 
 **Tiempo:** ~2-3 horas para 50 productos
@@ -219,9 +219,9 @@ Customizar templates de WooCommerce:
 
 ---
 
-### 4. [Troubleshooting Bogo](./workflows/troubleshooting-bogo.md)
+### 4. [Troubleshooting TranslatePress](./workflows/troubleshooting-translatepress.md)
 
-Resolver problemas comunes con Bogo:
+Resolver problemas comunes con TranslatePress:
 - Productos no vinculados
 - Idioma incorrecto en frontend
 - Menús no cambian de idioma
@@ -234,15 +234,15 @@ Resolver problemas comunes con Bogo:
 | Herramienta        | Costo   | Valor                          |
 | ------------------ | ------- | ------------------------------ |
 | **GitHub Copilot** | $10/mes | ⭐⭐⭐⭐⭐ Esencial                 |
-| **Codeium**        | GRATIS  | ⭐⭐⭐⭐ Excelente complemento     |
+| **GitHub Copilot**        | GRATIS  | ⭐⭐⭐⭐ Excelente complemento     |
 | **Claude Free**    | GRATIS  | ⭐⭐⭐ Para consultas ocasionales |
 | **Claude Pro**     | $20/mes | ⭐⭐⭐⭐ Si usas mucho             |
 | **ChatGPT Plus**   | $20/mes | ⭐⭐⭐⭐⭐ Para marketing/copy      |
 
 **Setup Recomendado:**
-- **Mínimo:** Copilot ($10) + Codeium (free) = **$10/mes**
-- **Óptimo:** Copilot + Codeium + ChatGPT Plus = **$30/mes**
-- **Premium:** Copilot + Codeium + Claude Pro + ChatGPT Plus = **$50/mes**
+- **Mínimo:** Copilot ($10) + GitHub Copilot (free) = **$10/mes**
+- **Óptimo:** Copilot + GitHub Copilot + ChatGPT Plus = **$30/mes**
+- **Premium:** Copilot + GitHub Copilot + Claude Pro + ChatGPT Plus = **$50/mes**
 
 ## 🎯 Casos de Uso por Herramienta
 
@@ -250,7 +250,7 @@ Resolver problemas comunes con Bogo:
 
 **Flujo recomendado:**
 1. **Copilot** - Generar código base con custom agents
-2. **Codeium** - Autocompletado durante escritura
+2. **GitHub Copilot** - Autocompletado durante escritura
 3. **Claude** - Code review y optimización
 4. **ChatGPT** - Documentación usuario final
 
@@ -260,14 +260,14 @@ Resolver problemas comunes con Bogo:
 1. **ChatGPT** - Generar copy y descripciones bilingües
 2. **Claude** - Refinar y optimizar para SEO
 3. **Copilot** - Integrar en scripts WP-CLI
-4. **Codeium** - Autocompletar en PHP
+4. **GitHub Copilot** - Autocompletar en PHP
 
 ### Debugging
 
 **Flujo recomendado:**
 1. **Copilot Chat** - Primera consulta con contexto del proyecto
 2. **Claude** - Análisis profundo si es complejo
-3. **Codeium Search** - Buscar código similar en codebase
+3. **GitHub Copilot Search** - Buscar código similar en codebase
 4. **ChatGPT** - Explicaciones y documentación
 
 ## 📋 Checklist de Implementación
@@ -276,18 +276,18 @@ Resolver problemas comunes con Bogo:
 - [ ] Ejecutar `.ai-tools/test-ai-tools.sh`
 - [ ] Verificar que Docker está corriendo
 - [ ] Leer `shared-context.md`
-- [ ] Instalar Copilot y Codeium en VS Code
+- [ ] Instalar Copilot y GitHub Copilot en VS Code
 
 ### Fase 2: Configuración (30 min)
 - [ ] Copiar `settings-ai-tools.json` a `.vscode/settings.json`
-- [ ] Login en Codeium
+- [ ] Login en GitHub Copilot
 - [ ] Crear cuenta ChatGPT Plus (opcional pero recomendado)
 - [ ] Probar Copilot con custom agents (@product-creator)
 
 ### Fase 3: Testing (20 min)
 - [ ] Crear un producto de prueba usando workflow
 - [ ] Generar descripción con ChatGPT
-- [ ] Usar Codeium para búsqueda en codebase
+- [ ] Usar GitHub Copilot para búsqueda en codebase
 - [ ] Pedir code review a Claude
 
 ### Fase 4: Producción
@@ -308,13 +308,13 @@ Ctrl+Shift+P > "GitHub Copilot: Sign In"
 Ctrl+Shift+P > "Developer: Reload Window"
 ```
 
-### Codeium conflictúa con Copilot
+### GitHub Copilot conflictúa con Copilot
 
 Ambos pueden coexistir. Si hay problemas, ajustar en `settings.json`:
 ```json
 {
   "editor.inlineSuggest.enabled": true,
-  "codeium.enableCodeLens": true
+  "copilot.enableCodeLens": true
 }
 ```
 
@@ -324,7 +324,7 @@ Siempre incluir contexto del proyecto:
 ```
 Contexto: Ver archivo .ai-tools/shared-context.md
 
-Proyecto Jewelry - WordPress + WooCommerce bilingüe (ES/EN) con Bogo...
+Proyecto Jewelry - WordPress + WooCommerce bilingüe (ES/EN) con TranslatePress...
 [resto de tu prompt]
 ```
 
@@ -345,7 +345,7 @@ docker compose up -d
 
 - [GitHub Copilot Docs](https://docs.github.com/en/copilot)
 - [Claude Documentation](https://docs.anthropic.com/)
-- [Codeium Docs](https://codeium.com/docs)
+- [GitHub Copilot Docs](https://copilot.com/docs)
 - [ChatGPT Help](https://help.openai.com/)
 - [WordPress Coding Standards](https://developer.wordpress.org/coding-standards/)
 - [WooCommerce Docs](https://woocommerce.github.io/code-reference/)
@@ -356,7 +356,7 @@ docker compose up -d
 2. **Especialización:** Usa cada herramienta para lo que hace mejor
 3. **Iteración:** No aceptes primera respuesta, refina con follow-ups
 4. **Documentación:** Guarda prompts efectivos para reutilizar
-5. **Testing:** Siempre probar en ambos idiomas (ES y EN) con Bogo
+5. **Testing:** Siempre probar en ambos idiomas (ES y EN) con TranslatePress
 6. **Seguridad:** Validar que IAs sanitizan inputs y escapan outputs
 7. **WordPress Standards:** Verificar que código sigue convenciones WP
 8. **Prefijos:** Todas las funciones custom deben usar `jewelry_`

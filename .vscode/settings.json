@@ -3,7 +3,6 @@
   // CONFIGURACIÓN DE VS CODE PARA MÚLTIPLES IAs
   // Proyecto: Jewelry Miami
   // ══════════════════════════════════════════════════════════════
-
   // ────────────────────────────────────────────────────────────
   // EDITOR GENERAL
   // ────────────────────────────────────────────────────────────
@@ -22,7 +21,6 @@
     "source.fixAll": "explicit",
     "source.organizeImports": "explicit"
   },
-
   // ────────────────────────────────────────────────────────────
   // GITHUB COPILOT (Principal)
   // ────────────────────────────────────────────────────────────
@@ -41,17 +39,14 @@
   },
   "github.copilot.editor.enableAutoCompletions": true,
   "github.copilot.editor.enableCodeActions": true,
-
   // Agentes personalizados habilitados
   "github.copilot.chat.agents.enabled": true,
   "github.copilot.chat.useProjectTemplates": true,
-
   // Habilitar prompt files (.prompt.md) y chat modes (.chatmode.md)
   "chat.promptFiles": true,
   "chat.promptFilesLocations": {
     ".github/prompts": true
   },
-
   // Configuración de inline suggestions
   "editor.inlineSuggest.enabled": true,
   "editor.quickSuggestions": {
@@ -59,73 +54,19 @@
     "comments": "on",
     "strings": "on"
   },
-
-  // ────────────────────────────────────────────────────────────
-  // CODEIUM (Complementario - Gratuito)
-  // ────────────────────────────────────────────────────────────
-  "codeium.enableCodeLens": true,
-  "codeium.enableSearch": true,
-  "codeium.enableConfig": {
-    "*": true
-  },
-
-  // Paths del workspace
-  "codeium.workspaceRootPaths": ["/srv/stacks/jewelry"],
-
-  // Ignorar archivos innecesarios
-  "codeium.ignorePaths": [
-    "**/node_modules/**",
-    "**/vendor/**",
-    "**/data/mysql/**",
-    "**/data/wordpress/wp-admin/**",
-    "**/data/wordpress/wp-includes/**",
-    "**/.git/**",
-    "**/data/wordpress/wp-content/uploads/**"
-  ],
-
-  // Lenguajes soportados
-  "codeium.languages": {
-    "php": true,
-    "javascript": true,
-    "typescript": true,
-    "css": true,
-    "scss": true,
-    "sql": true,
-    "markdown": true,
-    "shellscript": true,
-    "json": true,
-    "yaml": true
-  },
-
-  // ────────────────────────────────────────────────────────────
-  // CONTINUE.DEV (Para Claude API - Opcional)
-  // ────────────────────────────────────────────────────────────
-  // Descomentar si instalas Continue.dev con Claude API
-  /*
-  "continue.telemetryEnabled": false,
-  "continue.enableTabAutocomplete": false, // Dejar a Copilot/Codeium
-  "continue.models": [
-    {
-      "title": "Claude 3.5 Sonnet",
-      "provider": "anthropic",
-      "model": "claude-3-5-sonnet-20241022",
-      "apiKey": "${ANTHROPIC_API_KEY}",
-      "contextLength": 200000
-    }
-  ],
-  */
-
   // ────────────────────────────────────────────────────────────
   // PHP (WordPress)
   // ────────────────────────────────────────────────────────────
   "php.suggest.basic": true,
   "php.validate.enable": true,
   "php.validate.run": "onType",
-
   // Intelephense (recomendado para PHP)
   "intelephense.environment.phpVersion": "8.1.0",
   "intelephense.files.maxSize": 5000000,
-  "intelephense.files.associations": ["*.php", "*.phtml"],
+  "intelephense.files.associations": [
+    "*.php",
+    "*.phtml"
+  ],
   "intelephense.files.exclude": [
     "**/.git/**",
     "**/.svn/**",
@@ -138,7 +79,6 @@
     "**/data/wordpress/wp-admin/**",
     "**/data/wordpress/wp-includes/**"
   ],
-
   // WordPress hints
   "intelephense.stubs": [
     "wordpress",
@@ -177,7 +117,6 @@
     "zip",
     "zlib"
   ],
-
   // ────────────────────────────────────────────────────────────
   // FORMATTERS
   // ────────────────────────────────────────────────────────────
@@ -186,38 +125,31 @@
     "editor.tabSize": 4,
     "editor.insertSpaces": true
   },
-
   "[javascript]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode",
     "editor.tabSize": 2,
     "editor.insertSpaces": true
   },
-
   "[typescript]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode",
     "editor.tabSize": 2
   },
-
   "[css]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode",
     "editor.tabSize": 2
   },
-
   "[scss]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode",
     "editor.tabSize": 2
   },
-
   "[json]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode",
     "editor.tabSize": 2
   },
-
   "[markdown]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode",
     "editor.wordWrap": "on"
   },
-
   // ────────────────────────────────────────────────────────────
   // FILES & SEARCH
   // ────────────────────────────────────────────────────────────
@@ -232,7 +164,6 @@
     "*.test": "php",
     "*.phtml": "php"
   },
-
   "files.exclude": {
     "**/.git": true,
     "**/.svn": true,
@@ -244,7 +175,6 @@
     "**/vendor": true,
     "data/mysql": true
   },
-
   "search.exclude": {
     "**/node_modules": true,
     "**/vendor": true,
@@ -254,7 +184,6 @@
     "**/.git": true,
     "**/data/wordpress/wp-content/uploads": true
   },
-
   "files.watcherExclude": {
     "**/.git/objects/**": true,
     "**/.git/subtree-cache/**": true,
@@ -262,7 +191,6 @@
     "**/vendor/**": true,
     "data/mysql/**": true
   },
-
   // ────────────────────────────────────────────────────────────
   // GIT
   // ────────────────────────────────────────────────────────────
@@ -270,7 +198,6 @@
   "git.confirmSync": false,
   "git.autofetch": true,
   "git.enableStatusBarSync": true,
-
   // ────────────────────────────────────────────────────────────
   // TERMINAL
   // ────────────────────────────────────────────────────────────
@@ -284,11 +211,13 @@
     },
     "docker": {
       "path": "/bin/bash",
-      "args": ["-c", "docker exec -it jewelry_wordpress bash"],
+      "args": [
+        "-c",
+        "docker exec -it jewelry_wordpress bash"
+      ],
       "icon": "vm"
     }
   },
-
   // ────────────────────────────────────────────────────────────
   // DOCKER
   // ────────────────────────────────────────────────────────────
@@ -296,30 +225,24 @@
   "docker.commands.build": "docker compose build",
   "docker.commands.up": "docker compose up -d",
   "docker.commands.down": "docker compose down",
-
   // ────────────────────────────────────────────────────────────
   // WORKSPACE ESPECÍFICO
   // ────────────────────────────────────────────────────────────
   "workbench.colorTheme": "Default Dark Modern",
   "workbench.iconTheme": "vs-seti",
   "workbench.startupEditor": "none",
-
   // Status bar customization
   "workbench.statusBar.visible": true,
-
   // Breadcrumbs
   "breadcrumbs.enabled": true,
   "breadcrumbs.filePath": "on",
   "breadcrumbs.symbolPath": "on",
-
   // ────────────────────────────────────────────────────────────
   // PRIORIDAD DE AUTOCOMPLETADO
   // ────────────────────────────────────────────────────────────
   // Orden de prioridad para suggestions:
   // 1. GitHub Copilot (contexto del proyecto + custom agents)
-  // 2. Codeium (autocompletado general)
-  // 3. IntelliSense nativo (PHP, JS)
-
+  // 2. IntelliSense nativo (PHP, JS)
   "editor.suggest.preview": true,
   "editor.suggest.showMethods": true,
   "editor.suggest.showFunctions": true,
@@ -332,41 +255,21 @@
   "editor.suggest.showModules": true,
   "editor.suggest.showProperties": true,
   "editor.suggest.localityBonus": true,
-
   // ────────────────────────────────────────────────────────────
   // SNIPPETS PERSONALIZADOS
   // ────────────────────────────────────────────────────────────
   "editor.snippetSuggestions": "top",
   "containers.commands.build": "docker compose build"
-
-  // ────────────────────────────────────────────────────────────
-  // EXTENSIONES RECOMENDADAS
-  // ────────────────────────────────────────────────────────────
-  // Estas extensiones optimizan el desarrollo con múltiples IAs:
-  // - GitHub Copilot (github.copilot)
-  // - Codeium (codeium.codeium)
-  // - Continue.dev (continue.continue) [Opcional para Claude API]
-  // - PHP Intelephense (bmewburn.vscode-intelephense-client)
-  // - WordPress Snippets (wordpresstoolbox.wordpress-toolbox)
-  // - Docker (ms-azuretools.vscode-docker)
-  // - GitLens (eamodio.gitlens)
-  // - Prettier (esbenp.prettier-vscode)
-  // - ESLint (dbaeumer.vscode-eslint)
-
   // ────────────────────────────────────────────────────────────
   // NOTAS
   // ────────────────────────────────────────────────────────────
-  // 1. Copilot tiene prioridad por custom agents del proyecto
-  // 2. Codeium complementa con búsqueda semántica y chat
-  // 3. Continue.dev es opcional solo si quieres Claude API en editor
-  // 4. Claude Desktop App es recomendado para contenido largo
-  // 5. ChatGPT se usa en navegador para marketing/copy
-
+  // 1. GitHub Copilot es la IA principal (agents + prompts + chat modes)
+  // 2. 8 agentes custom en .github/agents/
+  // 3. 5 prompt files en .github/prompts/
+  // 4. 1 chat mode (deploy) en .vscode/chat/
   // ────────────────────────────────────────────────────────────
   // TROUBLESHOOTING
   // ────────────────────────────────────────────────────────────
-  // Si hay conflictos entre IAs:
-  // - Deshabilitar autocompletado de una: "continue.enableTabAutocomplete": false
-  // - Ajustar prioridad: cambiar orden en "editor.suggest"
   // - Verificar logs: View > Output > seleccionar extensión
+  // - Reiniciar Copilot: Ctrl+Shift+P > "GitHub Copilot: Restart"
 }

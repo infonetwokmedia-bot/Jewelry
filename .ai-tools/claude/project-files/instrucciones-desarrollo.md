@@ -14,8 +14,8 @@ Este es un sitio web **bilingüe (Español/Inglés)** para **Remedio Joyería** 
 
 - **CMS:** WordPress 6.x
 - **E-commerce:** WooCommerce 10.5.0
-- **Tema:** Kadence 1.4.3
-- **Multiidioma:** Bogo 3.9.1 (NO Polylang, NO WPML)
+- **Tema:** Astra 4.12.3 1.4.3
+- **Multiidioma:** TranslatePress 3.0.9 3.9.1 (NO Polylang, NO WPML)
 - **Infraestructura:** Docker + Traefik
 - **PHP:** 8.1+
 - **MySQL:** 8.0
@@ -46,24 +46,24 @@ Este es un sitio web **bilingüe (Español/Inglés)** para **Remedio Joyería** 
 - Español: `es_ES`
 - Inglés: `en_US`
 
-### Plugin Bogo para Vinculación
+### Plugin TranslatePress para Traducción
 
-Usamos **Bogo 3.9.1** (NO Polylang, NO WPML) para gestionar contenido multiidioma.
+Usamos **TranslatePress 3.0.9** (NO Polylang, NO WPML) para gestionar contenido multiidioma.
 
-**SIEMPRE vincular páginas/productos/categorías entre idiomas con Bogo:**
+**SIEMPRE vincular páginas/productos/categorías entre idiomas con TranslatePress:**
 
 ```php
 // Vincular post/página con su traducción
-update_post_meta($post_id_es, '_locale', 'es_ES');
-update_post_meta($post_id_en, '_locale', 'en_US');
+update_post_meta($post_id_es, 'trp_language', 'es_ES');
+update_post_meta($post_id_en, 'trp_language', 'en_US');
 
 // Vincular ambos posts
-$bogo_translations = array(
+$trp_translations = array(
     'es_ES' => $post_id_es,
     'en_US' => $post_id_en
 );
-update_post_meta($post_id_es, '_bogo_translations', $bogo_translations);
-update_post_meta($post_id_en, '_bogo_translations', $bogo_translations);
+update_post_meta($post_id_es, 'wp_trp_*', $trp_translations);
+update_post_meta($post_id_en, 'wp_trp_*', $trp_translations);
 ```
 
 ## ⚡ Reglas de Desarrollo
@@ -131,7 +131,7 @@ $args = array(
     'posts_per_page' => 10,
     'meta_query' => array(
         array(
-            'key' => '_locale',
+            'key' => 'trp_language',
             'value' => 'es_ES',
         ),
     ),
@@ -162,7 +162,7 @@ add_filter( 'woocommerce_product_title', 'jewelry_custom_product_title' );
 
 ```php
 /**
- * Crea un producto WooCommerce bilingüe con Bogo.
+ * Crea un producto WooCommerce bilingüe con TranslatePress.
  *
  * @param array $data_es Datos del producto en español.
  * @param array $data_en Datos del producto en inglés.
@@ -179,7 +179,7 @@ function jewelry_create_bilingual_product( $data_es, $data_en ) {
     $product_id_es = $product_es->save();
     
     // Marcar como español
-    update_post_meta( $product_id_es, '_locale', 'es_ES' );
+    update_post_meta( $product_id_es, 'trp_language', 'es_ES' );
     
     // Crear producto en inglés
     $product_en = new WC_Product_Simple();
@@ -191,15 +191,15 @@ function jewelry_create_bilingual_product( $data_es, $data_en ) {
     $product_id_en = $product_en->save();
     
     // Marcar como inglés
-    update_post_meta( $product_id_en, '_locale', 'en_US' );
+    update_post_meta( $product_id_en, 'trp_language', 'en_US' );
     
-    // Vincular con Bogo
+    // Vincular con TranslatePress
     $translations = array(
         'es_ES' => $product_id_es,
         'en_US' => $product_id_en
     );
-    update_post_meta( $product_id_es, '_bogo_translations', $translations );
-    update_post_meta( $product_id_en, '_bogo_translations', $translations );
+    update_post_meta( $product_id_es, 'wp_trp_*', $translations );
+    update_post_meta( $product_id_en, 'wp_trp_*', $translations );
     
     return array(
         'es' => $product_id_es,
@@ -212,7 +212,7 @@ function jewelry_create_bilingual_product( $data_es, $data_en ) {
 
 ```php
 /**
- * Crea una página bilingüe con Bogo.
+ * Crea una página bilingüe con TranslatePress.
  */
 function jewelry_create_bilingual_page( $title_es, $title_en, $content_es, $content_en ) {
     // Crear página en español
@@ -223,7 +223,7 @@ function jewelry_create_bilingual_page( $title_es, $title_en, $content_es, $cont
         'post_type'    => 'page',
     );
     $page_id_es = wp_insert_post( $page_es );
-    update_post_meta( $page_id_es, '_locale', 'es_ES' );
+    update_post_meta( $page_id_es, 'trp_language', 'es_ES' );
     
     // Crear página en inglés
     $page_en = array(
@@ -233,15 +233,15 @@ function jewelry_create_bilingual_page( $title_es, $title_en, $content_es, $cont
         'post_type'    => 'page',
     );
     $page_id_en = wp_insert_post( $page_en );
-    update_post_meta( $page_id_en, '_locale', 'en_US' );
+    update_post_meta( $page_id_en, 'trp_language', 'en_US' );
     
     // Vincular páginas
     $translations = array(
         'es_ES' => $page_id_es,
         'en_US' => $page_id_en
     );
-    update_post_meta( $page_id_es, '_bogo_translations', $translations );
-    update_post_meta( $page_id_en, '_bogo_translations', $translations );
+    update_post_meta( $page_id_es, 'wp_trp_*', $translations );
+    update_post_meta( $page_id_en, 'wp_trp_*', $translations );
     
     return array( 'es' => $page_id_es, 'en' => $page_id_en );
 }
@@ -249,12 +249,12 @@ function jewelry_create_bilingual_page( $title_es, $title_en, $content_es, $cont
 
 ### Funciones Custom en functions-custom.php
 
-Ubicación: `data/wordpress/wp-content/themes/kadence/functions-custom.php`
+Ubicación: `data/wordpress/wp-content/themes/astra/functions-custom.php`
 
 ```php
 <?php
 /**
- * Funciones personalizadas del tema Kadence
+ * Funciones personalizadas del tema Astra
  * Archivo: functions-custom.php
  */
 
@@ -264,10 +264,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Cambiar menú según idioma usando Bogo.
+ * Cambiar menú según idioma usando TranslatePress.
  */
 function jewelry_switch_menu_by_language( $args ) {
-    $locale = get_locale();
+    $locale = gettrp_language();
     
     if ( 'es_ES' === $locale && 'primary' === $args['theme_location'] ) {
         $args['menu'] = 'primary_navigation_es';
@@ -280,21 +280,21 @@ function jewelry_switch_menu_by_language( $args ) {
 add_filter( 'wp_nav_menu_args', 'jewelry_switch_menu_by_language' );
 
 /**
- * Obtener idioma actual de Bogo.
+ * Obtener idioma actual de TranslatePress.
  */
-function jewelry_get_current_locale() {
-    if ( function_exists( 'bogo_get_current_locale' ) ) {
-        return bogo_get_current_locale();
+function jewelry_get_currenttrp_language() {
+    if ( function_exists( 'trp_translate' ) ) {
+        return trp_translate();
     }
-    return get_locale();
+    return gettrp_language();
 }
 
 /**
  * Verificar si un post tiene traducción.
  */
-function jewelry_has_translation( $post_id, $target_locale ) {
-    $translations = get_post_meta( $post_id, '_bogo_translations', true );
-    return isset( $translations[ $target_locale ] );
+function jewelry_has_translation( $post_id, $targettrp_language ) {
+    $translations = get_post_meta( $post_id, 'wp_trp_*', true );
+    return isset( $translations[ $targettrp_language ] );
 }
 ```
 
@@ -367,7 +367,7 @@ Usar **Conventional Commits**:
 
 ```
 feat: añadir filtro de productos por precio
-fix: corregir vinculación de productos con Bogo
+fix: corregir vinculación de productos con TranslatePress
 docs: actualizar documentación de instalación
 style: ajustar espaciado en archivo CSS
 refactor: optimizar función jewelry_get_products
@@ -456,7 +456,7 @@ Ver `PROYECTO-ESTADO.md` para el estado actualizado. Prioridades principales:
 │   └── wordpress/                    # Archivos WordPress
 │       └── wp-content/
 │           ├── themes/
-│           │   └── kadence/
+│           │   └── astra/
 │           │       └── functions-custom.php    # Personalizaciones
 │           ├── plugins/              # Plugins instalados
 │           └── uploads/              # Media (ignorar en git)
@@ -466,7 +466,7 @@ Ver `PROYECTO-ESTADO.md` para el estado actualizado. Prioridades principales:
 
 ### Archivos a Modificar
 
-- **Personalizaciones del tema:** `data/wordpress/wp-content/themes/kadence/functions-custom.php`
+- **Personalizaciones del tema:** `data/wordpress/wp-content/themes/astra/functions-custom.php`
 - **Plugins custom:** `data/wordpress/wp-content/plugins/jewelry-custom/`
 - **Uploads:** `data/wordpress/wp-content/uploads/` (no versionar)
 
@@ -480,7 +480,7 @@ Ver `PROYECTO-ESTADO.md` para el estado actualizado. Prioridades principales:
 
 1. **Crear funcionalidad en español primero**
 2. **Inmediatamente crear la versión en inglés**
-3. **Vincular ambas versiones con Bogo**
+3. **Vincular ambas versiones con TranslatePress**
 4. **Probar en ambos idiomas**
 5. **Commit con mensaje convencional**
 
@@ -488,10 +488,10 @@ Ver `PROYECTO-ESTADO.md` para el estado actualizado. Prioridades principales:
 
 - [WordPress Developer Docs](https://developer.wordpress.org/)
 - [WooCommerce Docs](https://woocommerce.github.io/code-reference/)
-- [Bogo Plugin](https://wordpress.org/plugins/bogo/)
-- [Kadence Theme Docs](https://www.kadencewp.com/documentation/)
+- [TranslatePress Plugin](https://wordpress.org/plugins/translatepress-multilingual/)
+- [Astra Theme Docs](https://www.astrawp.com/documentation/)
 - [WordPress Coding Standards](https://developer.wordpress.org/coding-standards/)
 
 ---
 
-**Recuerda:** SIEMPRE crear contenido en AMBOS idiomas y vincular con Bogo. Usa prefijo `jewelry_` para funciones custom. Sanitiza todas las entradas. Usa WP_Query en lugar de SQL directo.
+**Recuerda:** SIEMPRE crear contenido en AMBOS idiomas y vincular con TranslatePress. Usa prefijo `jewelry_` para funciones custom. Sanitiza todas las entradas. Usa WP_Query en lugar de SQL directo.

@@ -27,10 +27,10 @@
 |                                      | - Prompts efectivos                     |
 |                                      | - Workflows recomendados                |
 
-### Codeium (Gratuito)
+### Copilot (Gratuito)
 | Documento                              | Descripción                 |
 | -------------------------------------- | --------------------------- |
-| [codeium/README.md](codeium/README.md) | Guía completa de setup      |
+| [copilot/README.md](copilot/README.md) | Guía completa de setup      |
 |                                        | - Instalación extensión     |
 |                                        | - Configuración keybindings |
 |                                        | - Uso efectivo              |
@@ -58,7 +58,7 @@
 - Preparación de información
 - Generación de descripciones (ChatGPT)
 - Script automatizado (Copilot)
-- Vinculación Bogo
+- Traducción TranslatePress
 - Imágenes y categorías
 - Checklist completo
 
@@ -77,7 +77,7 @@
 
 ### Desarrollo de Código
 1. **Copilot** - Código base con custom agents
-2. **Codeium** - Autocompletado durante escritura
+2. **Copilot** - Autocompletado durante escritura
 3. **Claude** - Code review y refactoring
 
 ### Generación de Contenido
@@ -88,7 +88,7 @@
 ### Debugging
 1. **Copilot Chat** - Primera consulta con contexto
 2. **Claude** - Análisis profundo si es complejo
-3. **Codeium Search** - Buscar código similar
+3. **Copilot Search** - Buscar código similar
 
 ### Marketing & SEO
 1. **ChatGPT** - Usar prompts de [prompts-library.md](chatgpt/prompts-library.md)
@@ -100,13 +100,13 @@
 ### Documentación Externa
 - [GitHub Copilot Docs](https://docs.github.com/en/copilot)
 - [Claude Documentation](https://docs.anthropic.com/)
-- [Codeium Docs](https://codeium.com/docs)
+- [Copilot Docs](https://copilot.com/docs)
 - [ChatGPT Help](https://help.openai.com/)
 
 ### WordPress Específico
 - [WordPress Coding Standards](https://developer.wordpress.org/coding-standards/)
 - [WooCommerce Docs](https://woocommerce.github.io/code-reference/)
-- [Bogo Plugin](https://wordpress.org/plugins/bogo/)
+- [TranslatePress Plugin](https://wordpress.org/plugins/translatepress-multilingual/)
 
 ## 🚀 Quick Start
 
@@ -121,8 +121,8 @@ cat .ai-tools/shared-context.md
 # 3. Copiar settings VS Code
 cp .vscode/settings-ai-tools.json .vscode/settings.json
 
-# 4. Instalar Codeium
-code --install-extension codeium.codeium
+# 4. Instalar Copilot
+code --install-extension github.copilot
 ```
 
 ### 2. Para Crear Producto
@@ -155,8 +155,8 @@ cat .ai-tools/workflows/bulk-import.md
 
 **Buscar por palabra clave:**
 ```bash
-# Buscar "Bogo" en todas las guías
-grep -r "Bogo" .ai-tools/
+# Buscar "TranslatePress" en todas las guías
+grep -r "TranslatePress" .ai-tools/
 
 # Buscar prompts de email
 grep -r "email" .ai-tools/chatgpt/
@@ -182,7 +182,7 @@ grep -r "email" .ai-tools/chatgpt/
 ├── 🤖 Por Herramienta
 │   ├── claude/
 │   │   └── README.md
-│   ├── codeium/
+│   ├── copilot/
 │   │   └── README.md
 │   └── chatgpt/
 │       ├── README.md
@@ -231,7 +231,7 @@ grep -r "email" .ai-tools/chatgpt/
 
 **Opción C - Setup Completo:**
 1. Instalar extensiones VS Code
-2. Configurar Codeium (gratis)
+2. Configurar Copilot (gratis)
 3. Suscribirse ChatGPT Plus ($20)
 4. Crear proyecto Claude (opcional)
 

@@ -10,8 +10,8 @@ Este archivo contiene toda la información relevante del proyecto para Claude.
 
 **Proyecto:** Sitio Web de Joyería - Remedio Joyería Miami
 **Stack:** WordPress 6.x + WooCommerce 10.5.0 + Docker + Traefik
-**Idiomas:** Bilingüe (Español/Inglés) con Bogo 3.9.1
-**Tema:** Kadence 1.4.3
+**Idiomas:** Bilingüe (Español/Inglés) con TranslatePress 3.9.1
+**Tema:** Astra 4.12.3 1.4.3
 **Repositorio:** infonetwokmedia-bot/Jewelry
 
 ## 🌐 URLs del Proyecto
@@ -42,8 +42,8 @@ Crear un ecommerce bilingüe profesional para venta de joyas de alta calidad con
 ### Plugins Principales
 
 - **WooCommerce 10.5.0** - Ecommerce
-- **Bogo 3.9.1** - Multiidioma (NO Polylang, NO WPML)
-- **Kadence Blocks** - Constructor de páginas
+- **TranslatePress 3.0.9** - Multiidioma (NO Polylang, NO WPML)
+- **Astra Blocks** - Constructor de páginas
 - **WooCommerce Stripe Gateway** - Pagos
 
 ### Contenedores Docker
@@ -64,7 +64,7 @@ Crear un ecommerce bilingüe profesional para venta de joyas de alta calidad con
 │   └── wordpress/              # Archivos WordPress
 │       └── wp-content/
 │           ├── themes/
-│           │   └── kadence/
+│           │   └── astra/
 │           │       └── functions-custom.php  # ⚠️ Personalizaciones aquí
 │           ├── plugins/        # Plugins instalados
 │           └── uploads/        # Media (gitignore)
@@ -87,19 +87,19 @@ Crear un ecommerce bilingüe profesional para venta de joyas de alta calidad con
 - **Español (es_ES)** - Idioma principal
 - **English (en_US)** - Idioma secundario
 
-### Plugin Bogo para Vinculación
+### Plugin TranslatePress para Traducción
 
 ```php
 // SIEMPRE vincular entidades entre idiomas
-update_post_meta($post_id_es, '_locale', 'es_ES');
-update_post_meta($post_id_en, '_locale', 'en_US');
+update_post_meta($post_id_es, 'trp_language', 'es_ES');
+update_post_meta($post_id_en, 'trp_language', 'en_US');
 
-$bogo_translations = array(
+$trp_translations = array(
     'es_ES' => $post_id_es,
     'en_US' => $post_id_en
 );
-update_post_meta($post_id_es, '_bogo_translations', $bogo_translations);
-update_post_meta($post_id_en, '_bogo_translations', $bogo_translations);
+update_post_meta($post_id_es, 'wp_trp_*', $trp_translations);
+update_post_meta($post_id_en, 'wp_trp_*', $trp_translations);
 ```
 
 ## 🔒 Reglas de Seguridad
@@ -152,7 +152,7 @@ echo esc_url( $url );
 
 ### ⚠️ MODIFICAR AQUÍ
 
-- `data/wordpress/wp-content/themes/kadence/functions-custom.php` - Personalizaciones del tema
+- `data/wordpress/wp-content/themes/astra/functions-custom.php` - Personalizaciones del tema
 - `data/wordpress/wp-content/plugins/jewelry-custom/` - Plugins custom (si se crea)
 
 ### ❌ NO MODIFICAR
@@ -204,8 +204,8 @@ Ver archivo `PROYECTO-ESTADO.md` en la raíz para el estado actualizado.
 
 - [WordPress Developer Docs](https://developer.wordpress.org/)
 - [WooCommerce Docs](https://woocommerce.github.io/code-reference/)
-- [Bogo Plugin](https://wordpress.org/plugins/bogo/)
-- [Kadence Theme Docs](https://www.kadencewp.com/documentation/)
+- [TranslatePress Plugin](https://wordpress.org/plugins/translatepress-multilingual/)
+- [Astra Theme Docs](https://www.astrawp.com/documentation/)
 - [WordPress Coding Standards](https://developer.wordpress.org/coding-standards/)
 
 ## 💡 Tips para IAs
@@ -214,7 +214,7 @@ Ver archivo `PROYECTO-ESTADO.md` en la raíz para el estado actualizado.
 2. **Prefijos:** Verificar que todas las funciones custom usen `jewelry_` como prefijo
 3. **Seguridad:** Validar que todo input esté sanitizado y todo output escapado
 4. **WP Standards:** Seguir WordPress Coding Standards en todo momento
-5. **Bogo:** Siempre vincular entidades con `_bogo_translations` meta
+5. **TranslatePress:** Traducciones en tablas `wp_trp_*`
 6. **Testing:** Probar en ambos idiomas antes de considerar completa una tarea
 7. **Documentación:** Usar PHPDoc para todas las funciones custom
 

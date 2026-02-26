@@ -74,7 +74,7 @@ else
 - Setup de entorno completado
 - Docker containers corriendo
 - WordPress + WooCommerce configurados
-- Bogo multiidioma activo
+- TranslatePress multiidioma activo
 
 ## Próximas Tareas
 

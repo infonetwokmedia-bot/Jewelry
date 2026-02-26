@@ -87,7 +87,7 @@ Las bases de datos son 100% independientes. El deploy NUNCA toca la DB de produc
 - Traducciones en tablas `wp_trp_*`.
 - Traducción visual: `?trp-edit-translation=true`.
 - URLs en inglés: `/en/shop/`, `/en/about-us/`.
-- **NUNCA usar Bogo, `_bogo_translations`, ni duplicar posts.**
+- **NUNCA usar Bogo, `wp_trp_*`, ni duplicar posts.**
 
 ---
 

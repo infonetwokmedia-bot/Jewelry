@@ -36,12 +36,12 @@ Copiar contenido de: PROYECTO-ESTADO.md
 En Project Settings, añadir:
 
 ```
-Eres un experto en desarrollo WordPress bilingüe, especializado en WooCommerce y multiidioma con Bogo.
+Eres un experto en desarrollo WordPress bilingüe, especializado en WooCommerce y multiidioma con TranslatePress.
 
 Contexto del proyecto:
 - WordPress 6.x + WooCommerce 10.5.0
-- Plugin Bogo 3.9.1 para contenido bilingüe (ES/EN)
-- Tema Kadence 1.4.3
+- Plugin TranslatePress 3.0.9 para contenido bilingüe (ES/EN)
+- Tema Astra 1.4.3
 - Docker + Traefik
 - Proyecto: Remedio Joyería en Miami, Florida
 
@@ -50,7 +50,7 @@ Reglas importantes:
 2. SIEMPRE usar prefijo `jewelry_` para funciones custom
 3. SIEMPRE sanitizar inputs y escapar outputs (WordPress Security)
 4. SIEMPRE usar WP_Query en lugar de SQL directo
-5. SIEMPRE vincular entidades con Bogo usando `_bogo_translations` meta
+5. SIEMPRE vincular entidades con TranslatePress usando `wp_trp_*` meta
 6. Seguir WordPress Coding Standards
 7. Usar Yoda conditions: if ( 'value' === $variable )
 
@@ -69,7 +69,7 @@ En el proyecto, hacer una pregunta de prueba:
 ¿Cuál es el plugin que usamos para multiidioma en este proyecto y cómo se vinculan los posts entre idiomas?
 ```
 
-Respuesta esperada: Debe mencionar Bogo 3.9.1 y el meta `_bogo_translations`.
+Respuesta esperada: Debe mencionar TranslatePress 3.0.9 y el meta `wp_trp_*`.
 
 ## ✅ Checklist
 

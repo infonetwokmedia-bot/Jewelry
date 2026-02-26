@@ -81,7 +81,6 @@
         "panel": "new"
       }
     },
-
     // ============================================
     // WP-CLI Tasks
     // ============================================
@@ -175,7 +174,6 @@
         "panel": "new"
       }
     },
-
     // ============================================
     // Database Tasks
     // ============================================
@@ -199,7 +197,6 @@
         "panel": "new"
       }
     },
-
     // ============================================
     // Browser Tasks
     // ============================================
@@ -233,7 +230,6 @@
         "panel": "new"
       }
     },
-
     // ============================================
     // Development Tasks
     // ============================================
@@ -280,7 +276,7 @@
     {
       "label": "Dev: Watch Theme Files",
       "type": "shell",
-      "command": "watch -n 2 'ls -lh data/wordpress/wp-content/themes/kadence/functions-custom.php'",
+      "command": "watch -n 2 'ls -lh data/wordpress/wp-content/themes/astra/ data/wordpress/wp-content/mu-plugins/jewelry-*.php'",
       "problemMatcher": [],
       "isBackground": true,
       "presentation": {
@@ -289,7 +285,6 @@
       }
     }
   ],
-
   // ============================================
   // Input Definitions
   // ============================================
@@ -311,7 +306,11 @@
       "id": "browser",
       "type": "pickString",
       "description": "Select browser to open",
-      "options": ["xdg-open", "open", "start"],
+      "options": [
+        "xdg-open",
+        "open",
+        "start"
+      ],
       "default": "xdg-open"
     },
     {
@@ -330,7 +329,10 @@
       "id": "syncStrategy",
       "type": "pickString",
       "description": "Sync strategy",
-      "options": ["rebase", "merge"],
+      "options": [
+        "rebase",
+        "merge"
+      ],
       "default": "rebase"
     },
     {

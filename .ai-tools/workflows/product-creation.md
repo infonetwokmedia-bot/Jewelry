@@ -1,7 +1,7 @@
 # Workflow: Creación de Producto Bilingüe
 
 ## 🎯 Objetivo
-Crear un producto WooCommerce completo en ambos idiomas (ES/EN) con vinculación Bogo correcta.
+Crear un producto WooCommerce completo en ambos idiomas (ES/EN) con traducción TranslatePress.
 
 ## 🔧 Herramientas Recomendadas
 
@@ -82,7 +82,7 @@ Formato de salida: Primero ES, luego EN con separadores claros
 2. Usar Copilot con comentario:
 ```bash
 #!/bin/bash
-# Crear producto bilingüe WooCommerce con vinculación Bogo
+# Crear producto bilingüe WooCommerce con traducción TranslatePress
 # Producto: [Nombre del producto]
 # SKU: [SKU]
 # Usa funciones jewelry_create_bilingual_product_cli()
@@ -129,7 +129,7 @@ docker exec jewelry_wordpress wp post meta update $PRODUCT_ID_ES _regular_price 
 docker exec jewelry_wordpress wp post meta update $PRODUCT_ID_ES _price "$PRICE" --allow-root
 
 # Marcar como español
-docker exec jewelry_wordpress wp post meta update $PRODUCT_ID_ES _locale "es_ES" --allow-root
+docker exec jewelry_wordpress wp post meta update $PRODUCT_ID_ES trp_language "es_ES" --allow-root
 
 # Crear producto en inglés
 echo "📦 Creando versión en inglés..."
@@ -150,14 +150,14 @@ docker exec jewelry_wordpress wp post meta update $PRODUCT_ID_EN _regular_price 
 docker exec jewelry_wordpress wp post meta update $PRODUCT_ID_EN _price "$PRICE" --allow-root
 
 # Marcar como inglés
-docker exec jewelry_wordpress wp post meta update $PRODUCT_ID_EN _locale "en_US" --allow-root
+docker exec jewelry_wordpress wp post meta update $PRODUCT_ID_EN trp_language "en_US" --allow-root
 
-# Vincular con Bogo
-echo "🔗 Vinculando productos con Bogo..."
-docker exec jewelry_wordpress wp post meta update $PRODUCT_ID_ES _bogo_translations \
+# Vincular con TranslatePress
+echo "🔗 Vinculando productos con TranslatePress..."
+docker exec jewelry_wordpress wp post meta update $PRODUCT_ID_ES wp_trp_* \
     "{\"es_ES\":$PRODUCT_ID_ES,\"en_US\":$PRODUCT_ID_EN}" --format=json --allow-root
 
-docker exec jewelry_wordpress wp post meta update $PRODUCT_ID_EN _bogo_translations \
+docker exec jewelry_wordpress wp post meta update $PRODUCT_ID_EN wp_trp_* \
     "{\"es_ES\":$PRODUCT_ID_ES,\"en_US\":$PRODUCT_ID_EN}" --format=json --allow-root
 
 echo ""
@@ -189,8 +189,8 @@ docker exec jewelry_wordpress wp post list \
     --order=DESC \
     --allow-root
 
-# Verificar vinculación Bogo
-docker exec jewelry_wordpress wp post meta get [PRODUCT_ID_ES] _bogo_translations --allow-root
+# Verificar traducción TranslatePress
+docker exec jewelry_wordpress wp post meta get [PRODUCT_ID_ES] wp_trp_* --allow-root
 ```
 
 4. **Probar en navegador:**
@@ -230,7 +230,7 @@ CAT_ID_ES=$(docker exec jewelry_wordpress wp term create product_cat "Anillos" \
     --porcelain \
     --allow-root)
 
-docker exec jewelry_wordpress wp post meta update $CAT_ID_ES _locale "es_ES" --allow-root
+docker exec jewelry_wordpress wp post meta update $CAT_ID_ES trp_language "es_ES" --allow-root
 
 # Categoría en inglés
 CAT_ID_EN=$(docker exec jewelry_wordpress wp term create product_cat "Rings" \
@@ -238,10 +238,10 @@ CAT_ID_EN=$(docker exec jewelry_wordpress wp term create product_cat "Rings" \
     --porcelain \
     --allow-root)
 
-docker exec jewelry_wordpress wp post meta update $CAT_ID_EN _locale "en_US" --allow-root
+docker exec jewelry_wordpress wp post meta update $CAT_ID_EN trp_language "en_US" --allow-root
 
-# Vincular categorías con Bogo
-docker exec jewelry_wordpress wp term meta update $CAT_ID_ES _bogo_translations \
+# Vincular categorías con TranslatePress
+docker exec jewelry_wordpress wp term meta update $CAT_ID_ES wp_trp_* \
     "{\"es_ES\":$CAT_ID_ES,\"en_US\":$CAT_ID_EN}" --format=json --allow-root
 ```
 
@@ -261,8 +261,8 @@ docker exec jewelry_wordpress wp post term add $PRODUCT_ID_EN product_cat $CAT_I
 - [ ] Galería de imágenes añadida
 - [ ] Categorías asignadas correctamente
 - [ ] Descripciones completas y atractivas
-- [ ] Meta vinculada con Bogo (`_bogo_translations`)
-- [ ] Locale correcto (`_locale` = es_ES o en_US)
+- [ ] Meta vinculada con TranslatePress (`wp_trp_*`)
+- [ ] Locale correcto (`trp_language` = es_ES o en_US)
 - [ ] Botón "Añadir al carrito" funcional
 - [ ] Cambio de idioma funciona correctamente
 
@@ -277,13 +277,13 @@ docker exec jewelry_wordpress wp rewrite flush --allow-root
 docker exec jewelry_wordpress wp post get [PRODUCT_ID] --field=post_status --allow-root
 ```
 
-### Problema: Vinculación Bogo no funciona
+### Problema: Traducción TranslatePress no funciona
 ```bash
 # Verificar meta
-docker exec jewelry_wordpress wp post meta list [PRODUCT_ID] --allow-root | grep -E "_locale|_bogo"
+docker exec jewelry_wordpress wp post meta list [PRODUCT_ID] --allow-root | grep -E "trp_language|trp_translations"
 
 # Revincular manualmente
-docker exec jewelry_wordpress wp post meta update [PRODUCT_ID_ES] _bogo_translations \
+docker exec jewelry_wordpress wp post meta update [PRODUCT_ID_ES] wp_trp_* \
     "{\"es_ES\":[PRODUCT_ID_ES],\"en_US\":[PRODUCT_ID_EN]}" --format=json --allow-root
 ```
 
@@ -321,4 +321,4 @@ docker exec jewelry_wordpress wp post meta update [PRODUCT_ID] _regular_price "2
 **Ver también:**
 - [Workflow: Importación Masiva](./bulk-import.md)
 - [Workflow: Email Customization](./email-customization.md)
-- [Troubleshooting: Bogo Issues](./troubleshooting-bogo.md)
+- [Troubleshooting: TranslatePress Issues](./troubleshooting-translatepress.md)
