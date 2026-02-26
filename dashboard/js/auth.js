@@ -50,14 +50,10 @@ const JewdAuth = (function () {
       updateUserUI();
       return true;
     } catch (e) {
-      // Network error — try cached user
-      if (cached) {
-        _currentUser = JSON.parse(cached);
-        hideLogin();
-        applyPermissions();
-        updateUserUI();
-        return true;
-      }
+      // Network error — require re-login for security.
+      // Never fall back to cached data as sessionStorage can be tampered with.
+      console.warn("[JEWD Auth] Network error verifying token:", e.message);
+      clearSession();
       showLogin();
       return false;
     }

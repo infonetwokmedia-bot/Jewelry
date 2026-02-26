@@ -29,6 +29,8 @@ data/wordpress/wp-content/mu-plugins/*
 # ===== DASHBOARD SPA (tracked in git) =====
 # dashboard/ folder is tracked; only exclude secrets
 dashboard/.env.js
+dashboard/nginx/wc-auth.conf
+dashboard/nginx/wc-auth.production.conf
 
 # ===== ENVIRONMENT & CREDENTIALS =====
 .env

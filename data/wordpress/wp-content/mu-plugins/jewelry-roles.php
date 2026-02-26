@@ -268,24 +268,46 @@ function jewelry_api_can_manage_users()
 }
 
 /**
- * Autenticar request usando WC API keys (consumer_key/consumer_secret en query params).
+ * Autenticar request usando WC API keys.
+ * Acepta Authorization: Basic header (preferido) o consumer_key/consumer_secret en query params (legacy).
  */
 function jewelry_authenticate_api_request()
 {
-    // phpcs:disable WordPress.Security.NonceVerification.Recommended
-    $consumer_key = isset($_GET['consumer_key'])
-        ? sanitize_text_field(wp_unslash($_GET['consumer_key']))
-        : '';
-    // phpcs:enable
+    $consumer_key = '';
+
+    // 1. Intentar Authorization: Basic header (preferido — no expone keys en logs)
+    $auth_header = '';
+    if (isset($_SERVER['HTTP_AUTHORIZATION'])) {
+        $auth_header = sanitize_text_field(wp_unslash($_SERVER['HTTP_AUTHORIZATION']));
+    } elseif (isset($_SERVER['REDIRECT_HTTP_AUTHORIZATION'])) {
+        $auth_header = sanitize_text_field(wp_unslash($_SERVER['REDIRECT_HTTP_AUTHORIZATION']));
+    } elseif (function_exists('apache_request_headers')) {
+        $headers = apache_request_headers();
+        if (isset($headers['Authorization'])) {
+            $auth_header = sanitize_text_field($headers['Authorization']);
+        }
+    }
+
+    if (! empty($auth_header) && preg_match('/^Basic\s+(.+)$/i', $auth_header, $matches)) {
+        // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode
+        $decoded = base64_decode($matches[1], true);
+        if ($decoded && strpos($decoded, ':') !== false) {
+            list($consumer_key) = explode(':', $decoded, 2);
+            $consumer_key = sanitize_text_field($consumer_key);
+        }
+    }
+
+    // 2. Fallback: query params (legacy support)
+    if (empty($consumer_key)) {
+        // phpcs:disable WordPress.Security.NonceVerification.Recommended
+        $consumer_key = isset($_GET['consumer_key'])
+            ? sanitize_text_field(wp_unslash($_GET['consumer_key']))
+            : '';
+        // phpcs:enable
+    }
 
     if (empty($consumer_key)) {
-        // Intentar con header Authorization Basic
-        $auth_header = isset($_SERVER['HTTP_AUTHORIZATION'])
-            ? sanitize_text_field(wp_unslash($_SERVER['HTTP_AUTHORIZATION']))
-            : '';
-        if (empty($auth_header)) {
-            return new WP_Error('no_auth', 'Authentication required', array('status' => 401));
-        }
+        return new WP_Error('no_auth', 'Authentication required', array('status' => 401));
     }
 
     // Buscar el API key en la BD de WooCommerce
@@ -706,12 +728,16 @@ function jewelry_api_logout($request)
 }
 
 /**
- * Extraer Bearer token del header Authorization.
+ * Extraer Bearer token del header Authorization o X-Dashboard-JWT.
+ *
+ * When the Nginx proxy injects WC Basic auth, the original JWT is
+ * forwarded via X-Dashboard-JWT header instead of Authorization.
  */
 function jewelry_extract_bearer_token()
 {
     $auth_header = '';
 
+    // 1. Try standard Authorization header first
     if (isset($_SERVER['HTTP_AUTHORIZATION'])) {
         $auth_header = sanitize_text_field(wp_unslash($_SERVER['HTTP_AUTHORIZATION']));
     } elseif (isset($_SERVER['REDIRECT_HTTP_AUTHORIZATION'])) {
@@ -727,12 +753,18 @@ function jewelry_extract_bearer_token()
         return $matches[1];
     }
 
-    // Fallback: query param (para compatibilidad)
-    // phpcs:disable WordPress.Security.NonceVerification.Recommended
-    return isset($_GET['auth_token'])
-        ? sanitize_text_field(wp_unslash($_GET['auth_token']))
-        : '';
-    // phpcs:enable
+    // 2. Try X-Dashboard-JWT header (set by Nginx proxy when Authorization
+    //    is overwritten with WC Basic auth for WooCommerce endpoints).
+    if (isset($_SERVER['HTTP_X_DASHBOARD_JWT'])) {
+        $jwt_header = sanitize_text_field(wp_unslash($_SERVER['HTTP_X_DASHBOARD_JWT']));
+        if (preg_match('/^Bearer\s+(.+)$/i', $jwt_header, $matches)) {
+            return $matches[1];
+        }
+    }
+
+    // Security: query param fallback removed — tokens must be sent via
+    // Authorization header to avoid exposure in logs and browser history.
+    return '';
 }
 
 /**
@@ -853,11 +885,12 @@ function jewelry_api_can_view_sales()
 {
     $user = jewelry_authenticate_dashboard_token();
     if (is_wp_error($user)) {
-        // Fallback to WC API keys
-        if (! empty($_GET['consumer_key'])) {
-            return true;
+        // Fallback: validate WC API keys against database
+        $user = jewelry_authenticate_api_request();
+        if (is_wp_error($user)) {
+            return false;
         }
-        return false;
+        return user_can($user, 'jewelry_dashboard_access') || user_can($user, 'manage_options');
     }
     return user_can($user, 'jewelry_dashboard_access') || user_can($user, 'manage_options');
 }
@@ -869,10 +902,12 @@ function jewelry_api_can_manage_sales()
 {
     $user = jewelry_authenticate_dashboard_token();
     if (is_wp_error($user)) {
-        if (! empty($_GET['consumer_key'])) {
-            return true;
+        // Fallback: validate WC API keys against database
+        $user = jewelry_authenticate_api_request();
+        if (is_wp_error($user)) {
+            return false;
         }
-        return false;
+        return user_can($user, 'manage_options') || user_can($user, 'manage_woocommerce');
     }
     return user_can($user, 'manage_options') || user_can($user, 'manage_woocommerce');
 }
@@ -900,8 +935,15 @@ function jewelry_get_sales_stats($request)
             // Sellers can only see their own sales — override any param
             $seller = $auth_user->user_login;
         }
-    } elseif (! empty($_GET['consumer_key'])) {
-        // WC API key fallback: seller param from JS is the only filter.
+    } else {
+        // WC API key auth — permission_callback already validated the key.
+        // Resolve the user from the validated key for seller filtering.
+        $api_user = jewelry_authenticate_api_request();
+        if (! is_wp_error($api_user) && $api_user->ID) {
+            if (! user_can($api_user, 'manage_options') && ! user_can($api_user, 'manage_woocommerce')) {
+                $seller = $api_user->user_login;
+            }
+        }
     }
 
     $periods = array(
@@ -1227,9 +1269,15 @@ function jewelry_get_sales_today($request)
             // Sellers can only see their own sales — override any param
             $seller = $auth_user->user_login;
         }
-    } elseif (! empty($_GET['consumer_key'])) {
-        // WC API key fallback: seller param from JS is the only filter.
-        // If empty, return all (backwards-compatible for admin tools).
+    } else {
+        // WC API key auth — permission_callback already validated the key.
+        // Resolve the user from the validated key for seller filtering.
+        $api_user = jewelry_authenticate_api_request();
+        if (! is_wp_error($api_user) && $api_user->ID) {
+            if (! user_can($api_user, 'manage_options') && ! user_can($api_user, 'manage_woocommerce')) {
+                $seller = $api_user->user_login;
+            }
+        }
     }
     $today_start = jewelry_period_boundary_utc('today');
 

@@ -119,15 +119,21 @@ add_action('rest_api_init', function () {
         'methods'             => 'GET',
         'callback'            => 'jewd_get_catalog_stats',
         'permission_callback' => function () {
-            // WC REST API keys handle auth via consumer_key/consumer_secret params.
-            // Validate the request has valid WC API credentials.
+            // 1. WC REST API keys via query params
             if (! empty($_GET['consumer_key']) && ! empty($_GET['consumer_secret'])) {
                 return jewd_validate_wc_keys(
                     sanitize_text_field(wp_unslash($_GET['consumer_key'])),
                     sanitize_text_field(wp_unslash($_GET['consumer_secret']))
                 );
             }
-            // Fallback: require manage_woocommerce capability (logged-in admin).
+            // 2. Dashboard JWT token (from jewelry-roles.php)
+            if (function_exists('jewelry_authenticate_dashboard_token')) {
+                $user = jewelry_authenticate_dashboard_token();
+                if (! is_wp_error($user)) {
+                    return user_can($user, 'jewelry_dashboard_access') || user_can($user, 'manage_options');
+                }
+            }
+            // 3. Fallback: logged-in admin with cookie session
             return current_user_can('manage_woocommerce');
         },
     ));

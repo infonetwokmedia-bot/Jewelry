@@ -35,28 +35,26 @@ const JewdAPI = (function () {
   }
 
   /**
-   * Build auth query params for WC REST API.
+   * Build JWT auth headers for API requests.
+   * WC API keys are injected server-side by the Nginx proxy —
+   * the browser only sends the JWT token for user identification.
    */
-  function authParams() {
-    const c = cfg();
-    return `consumer_key=${encodeURIComponent(c.consumerKey)}&consumer_secret=${encodeURIComponent(c.consumerSecret)}`;
+  function jwtAuthHeaders() {
+    return window.JewdAuth && typeof window.JewdAuth.authHeaders === "function"
+      ? window.JewdAuth.authHeaders()
+      : {};
   }
 
   /**
    * Generic fetch wrapper with error handling.
-   * Automatically includes JWT Authorization header when available.
+   * Sends JWT Authorization header. WC keys are added server-side by Nginx.
    */
   async function request(url, options = {}) {
-    // Include JWT token for user identification on custom endpoints
-    const jwtHeaders =
-      window.JewdAuth && typeof window.JewdAuth.authHeaders === "function"
-        ? window.JewdAuth.authHeaders()
-        : {};
     const res = await fetch(url, {
       ...options,
       headers: {
         "Content-Type": "application/json",
-        ...jwtHeaders,
+        ...jwtAuthHeaders(),
         ...(options.headers || {}),
       },
     });
@@ -84,8 +82,6 @@ const JewdAPI = (function () {
   async function getProducts({ search, category, type, stock, status, page, perPage } = {}) {
     const c = cfg();
     const params = new URLSearchParams();
-    params.set("consumer_key", c.consumerKey);
-    params.set("consumer_secret", c.consumerSecret);
     params.set("per_page", perPage || c.perPage || 50);
     params.set("page", page || 1);
     params.set("orderby", "date");
@@ -106,7 +102,7 @@ const JewdAPI = (function () {
    */
   async function getProduct(id) {
     const c = cfg();
-    const url = `${c.wcBaseUrl}/products/${id}?${authParams()}`;
+    const url = `${c.wcBaseUrl}/products/${id}`;
     return request(url);
   }
 
@@ -115,7 +111,7 @@ const JewdAPI = (function () {
    */
   async function getVariations(productId) {
     const c = cfg();
-    const url = `${c.wcBaseUrl}/products/${productId}/variations?${authParams()}&per_page=100&orderby=id&order=asc`;
+    const url = `${c.wcBaseUrl}/products/${productId}/variations?per_page=100&orderby=id&order=asc`;
     return request(url);
   }
 
@@ -124,7 +120,7 @@ const JewdAPI = (function () {
    */
   async function getCategories() {
     const c = cfg();
-    const url = `${c.wcBaseUrl}/products/categories?${authParams()}&per_page=100&hide_empty=true`;
+    const url = `${c.wcBaseUrl}/products/categories?per_page=100&hide_empty=true`;
     return request(url);
   }
 
@@ -133,7 +129,7 @@ const JewdAPI = (function () {
    */
   async function getTags() {
     const c = cfg();
-    const url = `${c.wcBaseUrl}/products/tags?${authParams()}&per_page=100&orderby=count&order=desc`;
+    const url = `${c.wcBaseUrl}/products/tags?per_page=100&orderby=count&order=desc`;
     return request(url);
   }
 
@@ -142,17 +138,18 @@ const JewdAPI = (function () {
    */
   async function getStats() {
     const c = cfg();
-    const url = `${c.wpBaseUrl}${c.statsEndpoint}?${authParams()}`;
+    const url = `${c.wpBaseUrl}${c.statsEndpoint}`;
     return request(url);
   }
 
   /**
    * Test connection to WooCommerce.
+   * WC auth is injected by Nginx proxy; we just send JWT for identification.
    */
   async function testConnection() {
     const c = cfg();
-    const url = `${c.wcBaseUrl}/system_status?${authParams()}`;
-    const res = await fetch(url, { method: "GET" });
+    const url = `${c.wcBaseUrl}/system_status`;
+    const res = await fetch(url, { method: "GET", headers: jwtAuthHeaders() });
     return res.ok;
   }
 
@@ -161,7 +158,7 @@ const JewdAPI = (function () {
    */
   async function updateProduct(id, data) {
     const c = cfg();
-    const url = `${c.wcBaseUrl}/products/${id}?${authParams()}`;
+    const url = `${c.wcBaseUrl}/products/${id}`;
     return request(url, {
       method: "PUT",
       body: JSON.stringify(data),
@@ -173,7 +170,7 @@ const JewdAPI = (function () {
    */
   async function createProduct(data) {
     const c = cfg();
-    const url = `${c.wcBaseUrl}/products?${authParams()}`;
+    const url = `${c.wcBaseUrl}/products`;
     return request(url, {
       method: "POST",
       body: JSON.stringify(data),
@@ -185,7 +182,7 @@ const JewdAPI = (function () {
    */
   async function updateVariation(productId, variationId, data) {
     const c = cfg();
-    const url = `${c.wcBaseUrl}/products/${productId}/variations/${variationId}?${authParams()}`;
+    const url = `${c.wcBaseUrl}/products/${productId}/variations/${variationId}`;
     return request(url, {
       method: "PUT",
       body: JSON.stringify(data),
@@ -197,7 +194,7 @@ const JewdAPI = (function () {
    */
   async function createVariation(productId, data) {
     const c = cfg();
-    const url = `${c.wcBaseUrl}/products/${productId}/variations?${authParams()}`;
+    const url = `${c.wcBaseUrl}/products/${productId}/variations`;
     return request(url, {
       method: "POST",
       body: JSON.stringify(data),
@@ -211,7 +208,7 @@ const JewdAPI = (function () {
    */
   async function deleteProduct(id, force = false) {
     const c = cfg();
-    const url = `${c.wcBaseUrl}/products/${id}?${authParams()}&force=${force}`;
+    const url = `${c.wcBaseUrl}/products/${id}?force=${force}`;
     return request(url, { method: "DELETE" });
   }
 
@@ -228,7 +225,7 @@ const JewdAPI = (function () {
    */
   async function batchProducts(data) {
     const c = cfg();
-    const url = `${c.wcBaseUrl}/products/batch?${authParams()}`;
+    const url = `${c.wcBaseUrl}/products/batch`;
     return request(url, {
       method: "POST",
       body: JSON.stringify(data),
@@ -240,7 +237,7 @@ const JewdAPI = (function () {
    */
   async function deleteVariation(productId, variationId) {
     const c = cfg();
-    const url = `${c.wcBaseUrl}/products/${productId}/variations/${variationId}?${authParams()}&force=true`;
+    const url = `${c.wcBaseUrl}/products/${productId}/variations/${variationId}?force=true`;
     return request(url, {
       method: "DELETE",
     });
@@ -255,12 +252,13 @@ const JewdAPI = (function () {
    */
   async function uploadImage(file) {
     const c = cfg();
-    const url = `${c.wpBaseUrl}/jewd/v1/media?${authParams()}`;
+    const url = `${c.wpBaseUrl}/jewd/v1/media`;
     const formData = new FormData();
     formData.append("file", file);
 
     const res = await fetch(url, {
       method: "POST",
+      headers: jwtAuthHeaders(),
       body: formData,
       // NOTE: Do NOT set Content-Type — browser sets it with boundary for multipart.
     });
@@ -281,10 +279,10 @@ const JewdAPI = (function () {
    */
   async function deleteImage(id) {
     const c = cfg();
-    const url = `${c.wpBaseUrl}/jewd/v1/media/${id}?${authParams()}`;
+    const url = `${c.wpBaseUrl}/jewd/v1/media/${id}`;
     const res = await fetch(url, {
       method: "DELETE",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", ...jwtAuthHeaders() },
     });
 
     if (!res.ok) {
@@ -303,8 +301,6 @@ const JewdAPI = (function () {
   async function getOrders({ search, status, page, perPage } = {}) {
     const c = cfg();
     const params = new URLSearchParams();
-    params.set("consumer_key", c.consumerKey);
-    params.set("consumer_secret", c.consumerSecret);
     params.set("per_page", perPage || 20);
     params.set("page", page || 1);
     params.set("orderby", "date");
@@ -320,7 +316,7 @@ const JewdAPI = (function () {
    */
   async function getOrder(id) {
     const c = cfg();
-    const url = `${c.wcBaseUrl}/orders/${id}?${authParams()}`;
+    const url = `${c.wcBaseUrl}/orders/${id}`;
     return request(url);
   }
 
@@ -329,7 +325,7 @@ const JewdAPI = (function () {
    */
   async function updateOrder(id, data) {
     const c = cfg();
-    const url = `${c.wcBaseUrl}/orders/${id}?${authParams()}`;
+    const url = `${c.wcBaseUrl}/orders/${id}`;
     return request(url, { method: "PUT", body: JSON.stringify(data) });
   }
 
@@ -338,7 +334,7 @@ const JewdAPI = (function () {
    */
   async function getOrderNotes(orderId) {
     const c = cfg();
-    const url = `${c.wcBaseUrl}/orders/${orderId}/notes?${authParams()}`;
+    const url = `${c.wcBaseUrl}/orders/${orderId}/notes`;
     return request(url);
   }
 
@@ -347,7 +343,7 @@ const JewdAPI = (function () {
    */
   async function createOrderNote(orderId, note) {
     const c = cfg();
-    const url = `${c.wcBaseUrl}/orders/${orderId}/notes?${authParams()}`;
+    const url = `${c.wcBaseUrl}/orders/${orderId}/notes`;
     return request(url, { method: "POST", body: JSON.stringify({ note }) });
   }
 
@@ -357,7 +353,7 @@ const JewdAPI = (function () {
    */
   async function createOrder(data) {
     const c = cfg();
-    const url = `${c.wcBaseUrl}/orders?${authParams()}`;
+    const url = `${c.wcBaseUrl}/orders`;
     return request(url, { method: "POST", body: JSON.stringify(data) });
   }
 
@@ -367,8 +363,6 @@ const JewdAPI = (function () {
   async function searchProducts({ search, category, page, perPage } = {}) {
     const c = cfg();
     const params = new URLSearchParams();
-    params.set("consumer_key", c.consumerKey);
-    params.set("consumer_secret", c.consumerSecret);
     params.set("per_page", perPage || 20);
     params.set("page", page || 1);
     params.set("status", "publish");
@@ -387,8 +381,6 @@ const JewdAPI = (function () {
   async function getReportSales({ dateMin, dateMax } = {}) {
     const c = cfg();
     const params = new URLSearchParams();
-    params.set("consumer_key", c.consumerKey);
-    params.set("consumer_secret", c.consumerSecret);
     params.set("interval", "day");
     if (dateMin) params.set("after", dateMin + "T00:00:00");
     if (dateMax) params.set("before", dateMax + "T23:59:59");
@@ -402,8 +394,6 @@ const JewdAPI = (function () {
   async function getTopSellers({ period } = {}) {
     const c = cfg();
     const params = new URLSearchParams();
-    params.set("consumer_key", c.consumerKey);
-    params.set("consumer_secret", c.consumerSecret);
     params.set("period", period || "month");
     const url = `${c.wcBaseUrl}/reports/top_sellers?${params.toString()}`;
     return request(url);
@@ -420,8 +410,6 @@ const JewdAPI = (function () {
   async function getSalesStats({ seller } = {}) {
     const c = cfg();
     const params = new URLSearchParams();
-    params.set("consumer_key", c.consumerKey);
-    params.set("consumer_secret", c.consumerSecret);
     if (seller) params.set("seller", seller);
     const url = `${c.wpBaseUrl}/jewd/v1/sales/stats?${params.toString()}`;
     return request(url);
@@ -435,8 +423,6 @@ const JewdAPI = (function () {
   async function getSalesBySeller({ period } = {}) {
     const c = cfg();
     const params = new URLSearchParams();
-    params.set("consumer_key", c.consumerKey);
-    params.set("consumer_secret", c.consumerSecret);
     if (period) params.set("period", period);
     const url = `${c.wpBaseUrl}/jewd/v1/sales/by-seller?${params.toString()}`;
     return request(url);
@@ -450,8 +436,6 @@ const JewdAPI = (function () {
   async function getSalesToday({ seller } = {}) {
     const c = cfg();
     const params = new URLSearchParams();
-    params.set("consumer_key", c.consumerKey);
-    params.set("consumer_secret", c.consumerSecret);
     if (seller) params.set("seller", seller);
     const url = `${c.wpBaseUrl}/jewd/v1/sales/today?${params.toString()}`;
     return request(url);
@@ -464,7 +448,7 @@ const JewdAPI = (function () {
    */
   async function getSettings(group) {
     const c = cfg();
-    const url = `${c.wcBaseUrl}/settings/${group}?${authParams()}`;
+    const url = `${c.wcBaseUrl}/settings/${group}`;
     return request(url);
   }
 
@@ -473,7 +457,7 @@ const JewdAPI = (function () {
    */
   async function updateSetting(group, id, value) {
     const c = cfg();
-    const url = `${c.wcBaseUrl}/settings/${group}/${id}?${authParams()}`;
+    const url = `${c.wcBaseUrl}/settings/${group}/${id}`;
     return request(url, { method: "PUT", body: JSON.stringify({ value }) });
   }
 
@@ -482,7 +466,7 @@ const JewdAPI = (function () {
    */
   async function getSystemStatus() {
     const c = cfg();
-    const url = `${c.wcBaseUrl}/system_status?${authParams()}`;
+    const url = `${c.wcBaseUrl}/system_status`;
     return request(url);
   }
 
@@ -493,7 +477,7 @@ const JewdAPI = (function () {
    */
   async function getOrigins() {
     const c = cfg();
-    const url = `${c.wpBaseUrl}/jewd/v1/origins?${authParams()}`;
+    const url = `${c.wpBaseUrl}/jewd/v1/origins`;
     return request(url);
   }
 
@@ -503,11 +487,34 @@ const JewdAPI = (function () {
    */
   async function updateOrigins(origins) {
     const c = cfg();
-    const url = `${c.wpBaseUrl}/jewd/v1/origins?${authParams()}`;
+    const url = `${c.wpBaseUrl}/jewd/v1/origins`;
     return request(url, {
       method: "PUT",
       body: JSON.stringify({ origins }),
     });
+  }
+
+  // ── Gold & Silver Prices ────────────────────────────────────────────
+
+  /**
+   * GET current gold & silver spot prices (cached server-side).
+   * @returns {Promise<{data: Object}>} Metal prices with karat breakdowns.
+   */
+  async function getGoldPrices() {
+    const c = cfg();
+    const url = `${c.wpBaseUrl}/jewd/v1/gold/prices`;
+    return request(url);
+  }
+
+  /**
+   * POST force-refresh gold prices from external API.
+   * Requires admin/manager role.
+   * @returns {Promise<{data: Object}>} Fresh metal prices.
+   */
+  async function refreshGoldPrices() {
+    const c = cfg();
+    const url = `${c.wpBaseUrl}/jewd/v1/gold/refresh`;
+    return request(url, { method: "POST" });
   }
 
   // Public API
@@ -546,5 +553,7 @@ const JewdAPI = (function () {
     getSystemStatus,
     getOrigins,
     updateOrigins,
+    getGoldPrices,
+    refreshGoldPrices,
   };
 })();

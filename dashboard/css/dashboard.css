@@ -21,15 +21,16 @@
   --jewd-surface: #1a1a1a;
   --jewd-surface2: #242424;
   --jewd-surface3: #2e2e2e;
-  --jewd-border: #333;
+  --jewd-border: #555;
   --jewd-text: #e8e8e8;
   --jewd-text2: #999;
-  --jewd-text3: #666;
+  --jewd-text3: #8a8a8a;
+  --jewd-text-inv: #fff;
   --jewd-gold: #d4a843;
   --jewd-gold-h: #f0c850;
   --jewd-gold-dim: #a8862f;
   --jewd-green: #4caf50;
-  --jewd-red: #ef5350;
+  --jewd-red: #f06060;
   --jewd-blue: #42a5f5;
   --jewd-orange: #ff9800;
   --jewd-shadow: rgba(0, 0, 0, 0.5);
@@ -39,7 +40,17 @@
   --jewd-accent: #d4a843;
   --jewd-bg2: #1e1e1e;
   --jewd-gold-hover: #f0c850;
-  --jewd-danger: #ef5350;
+  --jewd-danger: #f06060;
+
+  /* Typography scale */
+  --jewd-font-xs: 0.7rem;
+  --jewd-font-sm: 0.8rem;
+  --jewd-font-base: 0.9rem;
+  --jewd-font-md: 1.05rem;
+  --jewd-font-lg: 1.3rem;
+  --jewd-font-xl: 1.8rem;
+  --jewd-font-2xl: 2.4rem;
+  --jewd-font-3xl: 3rem;
 }
 
 /* Light mode */
@@ -48,20 +59,24 @@
   --jewd-surface: #ffffff;
   --jewd-surface2: #f5f5f0;
   --jewd-surface3: #eae8e0;
-  --jewd-border: #d5d0c4;
+  --jewd-border: #948c7d;
   --jewd-text: #1a1a1a;
-  --jewd-text2: #666;
-  --jewd-text3: #999;
-  --jewd-gold: #b8922e;
-  --jewd-gold-h: #d4a843;
-  --jewd-gold-dim: #8a6d1f;
+  --jewd-text2: #555;
+  --jewd-text3: #666;
+  --jewd-text-inv: #fff;
+  --jewd-gold: #7d6318;
+  --jewd-gold-h: #9a7a25;
+  --jewd-gold-dim: #6b5418;
+  --jewd-green: #287228;
+  --jewd-blue: #1565c0;
+  --jewd-orange: #9e4f00;
   --jewd-shadow: rgba(0, 0, 0, 0.15);
   --jewd-overlay: rgba(0, 0, 0, 0.4);
-  --jewd-vrow: rgba(184, 146, 46, 0.06);
-  --jewd-vrow-h: rgba(184, 146, 46, 0.12);
-  --jewd-accent: #b8922e;
+  --jewd-vrow: rgba(125, 99, 24, 0.06);
+  --jewd-vrow-h: rgba(125, 99, 24, 0.12);
+  --jewd-accent: #7d6318;
   --jewd-bg2: #ede9e0;
-  --jewd-gold-hover: #d4a843;
+  --jewd-gold-hover: #9a7a25;
   --jewd-danger: #c62828;
 }
 
@@ -103,7 +118,7 @@ body {
 }
 
 .jewd-title {
-  font-size: 1.3rem;
+  font-size: var(--jewd-font-lg);
   font-weight: 700;
   color: var(--jewd-gold);
   display: flex;
@@ -119,7 +134,7 @@ body {
 .jewd-version {
   color: var(--jewd-text2);
   font-weight: 400;
-  font-size: 0.78rem;
+  font-size: var(--jewd-font-sm);
 }
 
 .jewd-actions {
@@ -130,10 +145,211 @@ body {
   align-items: center;
 }
 
+/* ===== GOLD & SILVER TICKER ===== */
+.jewd-gold-ticker {
+  background: var(--jewd-surface2);
+  border-bottom: 1px solid var(--jewd-border);
+  padding: 6px 24px;
+  overflow: hidden;
+}
+
+.jewd-gold-ticker-inner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  padding: 2px 0;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.jewd-gold-ticker-inner::-webkit-scrollbar {
+  display: none;
+}
+
+.jewd-gold-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  padding: 5px 14px;
+  font-size: var(--jewd-font-sm);
+  background: var(--jewd-surface3);
+  border: 1px solid var(--jewd-border);
+  border-radius: 8px;
+  transition:
+    border-color 0.2s,
+    background 0.2s;
+}
+
+.jewd-gold-item:hover {
+  border-color: var(--jewd-gold);
+  background: rgba(255, 193, 7, 0.04);
+}
+
+.jewd-gold-item-label {
+  font-weight: 700;
+  color: var(--jewd-gold);
+  font-size: var(--jewd-font-sm);
+  gap: 5px;
+  padding: 5px 10px;
+  background: none;
+  border: none;
+  border-radius: 0;
+}
+
+.jewd-gold-item-label:hover {
+  background: none;
+  border-color: transparent;
+}
+
+.jewd-gold-icon {
+  font-size: var(--jewd-font-base);
+}
+
+.jewd-gold-metal {
+  color: var(--jewd-text2);
+  font-weight: 600;
+  font-size: var(--jewd-font-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.jewd-gold-price {
+  color: var(--jewd-text);
+  font-weight: 800;
+  font-size: var(--jewd-font-base);
+  font-variant-numeric: tabular-nums;
+}
+
+.jewd-gold-change {
+  font-size: var(--jewd-font-xs);
+  font-weight: 600;
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+
+.jewd-gold-up {
+  color: var(--jewd-green);
+  background: rgba(76, 175, 80, 0.15);
+}
+
+.jewd-gold-down {
+  color: var(--jewd-red);
+  background: rgba(239, 83, 80, 0.15);
+}
+
+.jewd-gold-flat {
+  color: var(--jewd-text3);
+}
+
+.jewd-gold-sep {
+  width: 1px;
+  height: 24px;
+  background: var(--jewd-border);
+  margin: 0 4px;
+  flex-shrink: 0;
+}
+
+.jewd-gold-ticker-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-left: 6px;
+  flex-shrink: 0;
+}
+
+.jewd-gold-timestamp {
+  color: var(--jewd-text3);
+  font-size: var(--jewd-font-xs);
+  white-space: nowrap;
+}
+
+.jewd-gold-refresh {
+  background: none;
+  border: 1px solid var(--jewd-border);
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.74rem;
+  padding: 3px 8px;
+  color: var(--jewd-text2);
+  transition: all 0.2s;
+  line-height: 1;
+}
+
+.jewd-gold-refresh:hover {
+  background: var(--jewd-surface3);
+  color: var(--jewd-gold);
+  border-color: var(--jewd-gold);
+}
+
+.jewd-gold-refresh.jewd-spinning {
+  animation: jewd-spin 0.8s linear infinite;
+}
+
+.jewd-gold-detail-link {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--jewd-gold);
+  text-decoration: none;
+  font-size: var(--jewd-font-xs);
+  font-weight: 600;
+  padding: 4px 10px;
+  border: 1px solid var(--jewd-gold);
+  border-radius: 6px;
+  transition: all 0.2s;
+  white-space: nowrap;
+  opacity: 0.8;
+}
+
+.jewd-gold-detail-link:hover {
+  opacity: 1;
+  background: rgba(255, 193, 7, 0.1);
+}
+
+@keyframes jewd-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.jewd-gold-ticker.jewd-gold-demo {
+  border-bottom-color: var(--jewd-orange);
+}
+
+.jewd-gold-demo .jewd-gold-item-label::after {
+  content: "DEMO";
+  font-size: 0.56rem;
+  color: var(--jewd-orange);
+  margin-left: 4px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  background: rgba(255, 152, 0, 0.1);
+  padding: 1px 4px;
+  border-radius: 3px;
+}
+
+.jewd-gold-ticker.jewd-gold-stale .jewd-gold-timestamp {
+  color: var(--jewd-orange);
+}
+
+.jewd-gold-error {
+  color: var(--jewd-text3);
+  font-size: var(--jewd-font-xs);
+  padding: 6px 0;
+}
+
 /* ===== CONNECTION STATUS ===== */
 .jewd-connection {
   padding: 6px 24px;
-  font-size: 0.78rem;
+  font-size: var(--jewd-font-sm);
   display: flex;
   align-items: center;
   gap: 8px;
@@ -171,7 +387,7 @@ body {
   border: none;
   border-radius: 6px;
   cursor: pointer;
-  font-size: 0.82rem;
+  font-size: var(--jewd-font-sm);
   font-weight: 600;
   transition: all 0.2s;
   display: inline-flex;
@@ -183,11 +399,11 @@ body {
 
 .jewd-btn-gold {
   background: var(--jewd-gold);
-  color: #fff;
+  color: var(--jewd-text-inv);
 }
 .jewd-btn-gold:hover {
   background: var(--jewd-gold-h);
-  color: #fff;
+  color: var(--jewd-text-inv);
 }
 
 .jewd-btn-outline {
@@ -202,14 +418,14 @@ body {
 
 .jewd-btn-sm {
   padding: 5px 10px;
-  font-size: 0.76rem;
+  font-size: var(--jewd-font-sm);
 }
 
 .jewd-btn-theme {
   background: var(--jewd-surface2);
   border: 1px solid var(--jewd-border);
   color: var(--jewd-text);
-  font-size: 1.1rem;
+  font-size: var(--jewd-font-md);
   padding: 4px 10px;
   border-radius: 6px;
   cursor: pointer;
@@ -243,7 +459,7 @@ body {
 }
 
 .jewd-stat-label {
-  font-size: 0.72rem;
+  font-size: var(--jewd-font-xs);
   text-transform: uppercase;
   color: var(--jewd-text2);
   letter-spacing: 0.5px;
@@ -257,7 +473,7 @@ body {
 }
 
 .jewd-stat-sub {
-  font-size: 0.75rem;
+  font-size: var(--jewd-font-sm);
   color: var(--jewd-text2);
   margin-top: 2px;
 }
@@ -322,7 +538,7 @@ body {
   color: var(--jewd-text);
   padding: 8px 12px;
   border-radius: 6px;
-  font-size: 0.85rem;
+  font-size: var(--jewd-font-base);
   outline: none;
   transition: all 0.3s;
 }
@@ -336,7 +552,7 @@ body {
 
 .jewd-filter-count {
   color: var(--jewd-text2);
-  font-size: 0.8rem;
+  font-size: var(--jewd-font-sm);
   margin-left: 8px;
 }
 
@@ -349,7 +565,7 @@ body {
 .jewd-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.82rem;
+  font-size: var(--jewd-font-sm);
 }
 
 .jewd-table th {
@@ -363,7 +579,7 @@ body {
   transition: all 0.3s;
   font-weight: 600;
   text-transform: uppercase;
-  font-size: 0.72rem;
+  font-size: var(--jewd-font-xs);
   letter-spacing: 0.5px;
 }
 .jewd-table th:hover {
@@ -406,7 +622,7 @@ body {
   width: 24px;
   height: 24px;
   border-radius: 4px;
-  font-size: 0.75rem;
+  font-size: var(--jewd-font-sm);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -427,7 +643,7 @@ body {
   display: inline-block;
   padding: 2px 8px;
   border-radius: 10px;
-  font-size: 0.7rem;
+  font-size: var(--jewd-font-xs);
   font-weight: 600;
   text-transform: uppercase;
 }
@@ -468,7 +684,7 @@ body {
   text-decoration: line-through;
   color: var(--jewd-text2);
   margin-right: 6px;
-  font-size: 0.78rem;
+  font-size: var(--jewd-font-sm);
 }
 .jewd-price-current {
   color: var(--jewd-gold);
@@ -478,7 +694,7 @@ body {
 /* SKU */
 .jewd-sku {
   font-family: Consolas, "Courier New", monospace;
-  font-size: 0.75rem;
+  font-size: var(--jewd-font-sm);
   color: var(--jewd-text2);
 }
 
@@ -523,7 +739,7 @@ body {
   display: inline-flex;
   align-items: center;
   text-decoration: none;
-  font-size: 0.9rem;
+  font-size: var(--jewd-font-base);
 }
 .jewd-action-btn:hover {
   opacity: 1;
@@ -540,7 +756,7 @@ body {
 }
 .jewd-pagination span {
   color: var(--jewd-text2);
-  font-size: 0.82rem;
+  font-size: var(--jewd-font-sm);
 }
 .jewd-pagination button {
   padding: 6px 12px;
@@ -549,7 +765,7 @@ body {
   color: var(--jewd-text);
   border-radius: 4px;
   cursor: pointer;
-  font-size: 0.82rem;
+  font-size: var(--jewd-font-sm);
   transition: 0.2s;
 }
 .jewd-pagination button:hover {
@@ -562,7 +778,7 @@ body {
 }
 .jewd-pagination button.active {
   background: var(--jewd-gold);
-  color: #fff;
+  color: var(--jewd-text-inv);
   border-color: var(--jewd-gold);
 }
 
@@ -599,7 +815,7 @@ body {
   justify-content: space-between;
 }
 .jewd-modal-header h2 {
-  font-size: 1.05rem;
+  font-size: var(--jewd-font-md);
   color: var(--jewd-gold);
 }
 
@@ -651,13 +867,13 @@ body {
   grid-column: 1 / -1;
 }
 .jewd-detail-label {
-  font-size: 0.72rem;
+  font-size: var(--jewd-font-xs);
   color: var(--jewd-text2);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 .jewd-detail-value {
-  font-size: 0.9rem;
+  font-size: var(--jewd-font-base);
   color: var(--jewd-text);
   padding: 6px 10px;
   background: var(--jewd-surface2);
@@ -700,7 +916,7 @@ body {
   color: var(--jewd-text);
   padding: 12px 20px;
   border-radius: 8px;
-  font-size: 0.85rem;
+  font-size: var(--jewd-font-base);
   z-index: 600000;
   opacity: 0;
   transform: translateY(20px);
@@ -715,7 +931,7 @@ body {
 /* ===== VARIATION ATTRS ===== */
 .jewd-var-attr {
   color: var(--jewd-orange);
-  font-size: 0.8rem;
+  font-size: var(--jewd-font-sm);
 }
 .jewd-var-indent {
   padding-left: 36px;
@@ -726,7 +942,7 @@ body {
   text-align: center;
   padding: 60px 20px;
   color: var(--jewd-text2);
-  font-size: 1.1rem;
+  font-size: var(--jewd-font-md);
 }
 
 /* ===== EDIT FORM ===== */
@@ -740,7 +956,7 @@ body {
   margin-bottom: 20px;
 }
 .jewd-edit-section-title {
-  font-size: 0.95rem;
+  font-size: var(--jewd-font-base);
   color: var(--jewd-gold);
   border-bottom: 1px solid var(--jewd-border);
   padding-bottom: 6px;
@@ -760,7 +976,7 @@ body {
   grid-column: 1 / -1;
 }
 .jewd-edit-label {
-  font-size: 0.78rem;
+  font-size: var(--jewd-font-sm);
   color: var(--jewd-text2);
   font-weight: 600;
   text-transform: uppercase;
@@ -772,7 +988,7 @@ body {
   color: var(--jewd-text);
   padding: 8px 10px;
   border-radius: 6px;
-  font-size: 0.88rem;
+  font-size: var(--jewd-font-base);
   font-family: inherit;
   transition: border-color 0.2s;
 }
@@ -786,7 +1002,7 @@ body {
 }
 .jewd-edit-sm {
   padding: 5px 7px;
-  font-size: 0.8rem;
+  font-size: var(--jewd-font-sm);
 }
 .jewd-edit-num {
   text-align: right;
@@ -806,6 +1022,487 @@ body {
   }
   .jewd-modal-lg {
     max-width: 95vw;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════ */
+/* METALS SECTION                                                             */
+/* ═══════════════════════════════════════════════════════════════════════════ */
+
+.jewd-metals-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.jewd-metals-source-badge {
+  font-size: var(--jewd-font-sm);
+  font-weight: 600;
+  padding: 4px 12px;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+
+.jewd-metals-badge-demo {
+  background: rgba(255, 152, 0, 0.12);
+  color: var(--jewd-orange);
+  border: 1px solid rgba(255, 152, 0, 0.3);
+}
+
+.jewd-metals-badge-live {
+  background: rgba(76, 175, 80, 0.12);
+  color: var(--jewd-green);
+  border: 1px solid rgba(76, 175, 80, 0.3);
+}
+
+.jewd-metals-badge-stale {
+  background: rgba(255, 193, 7, 0.12);
+  color: var(--jewd-gold);
+  border: 1px solid rgba(255, 193, 7, 0.3);
+}
+
+/* Price Cards Grid */
+.jewd-metals-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.jewd-metals-card {
+  background: var(--jewd-surface2);
+  border: 1px solid var(--jewd-border);
+  border-radius: 12px;
+  padding: 20px;
+  position: relative;
+  transition:
+    border-color 0.2s,
+    transform 0.2s;
+}
+
+.jewd-metals-card:hover {
+  border-color: var(--jewd-border-hover, var(--jewd-border));
+  transform: translateY(-2px);
+}
+
+.jewd-metals-card-gold {
+  border-left: 3px solid var(--jewd-gold);
+}
+
+.jewd-metals-card-gold:hover {
+  border-color: var(--jewd-gold);
+}
+
+.jewd-metals-card-silver {
+  border-left: 3px solid var(--jewd-border);
+}
+
+.jewd-metals-card-silver:hover {
+  border-color: var(--jewd-border);
+}
+
+.jewd-metals-card-hero {
+  grid-column: span 1;
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  background: linear-gradient(135deg, var(--jewd-surface2) 0%, rgba(255, 193, 7, 0.04) 100%);
+}
+
+.jewd-metals-card-hero .jewd-metals-card-icon {
+  font-size: var(--jewd-font-2xl);
+}
+
+.jewd-metals-card-hero .jewd-metals-card-price {
+  font-size: var(--jewd-font-xl);
+}
+
+.jewd-metals-card-popular {
+  border-left-width: 4px;
+}
+
+.jewd-metals-card-badge {
+  position: absolute;
+  top: 8px;
+  right: 12px;
+  font-size: var(--jewd-font-xs);
+  font-weight: 700;
+  color: var(--jewd-gold);
+  letter-spacing: 0.5px;
+}
+
+.jewd-metals-card-icon {
+  font-size: var(--jewd-font-xl);
+  flex-shrink: 0;
+}
+
+.jewd-metals-card-body {
+  flex: 1;
+}
+
+.jewd-metals-card-label {
+  font-size: var(--jewd-font-sm);
+  font-weight: 700;
+  color: var(--jewd-text);
+  margin-bottom: 6px;
+}
+
+.jewd-metals-purity {
+  font-weight: 400;
+  color: var(--jewd-text3);
+  font-size: var(--jewd-font-sm);
+}
+
+.jewd-metals-card-price {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--jewd-text);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
+}
+
+.jewd-metals-card-price-sm {
+  font-size: var(--jewd-font-md);
+  font-weight: 700;
+  color: var(--jewd-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.jewd-metals-card-unit {
+  font-size: var(--jewd-font-xs);
+  color: var(--jewd-text3);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  margin-top: 2px;
+}
+
+.jewd-metals-card-row {
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+}
+
+.jewd-metals-card-change {
+  font-size: var(--jewd-font-sm);
+  font-weight: 600;
+  margin-top: 8px;
+}
+
+/* Section blocks */
+.jewd-metals-section {
+  margin-bottom: 32px;
+}
+
+.jewd-metals-section-title {
+  font-size: var(--jewd-font-md);
+  font-weight: 700;
+  color: var(--jewd-text);
+  margin-bottom: 8px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid var(--jewd-border);
+}
+
+.jewd-metals-section-desc {
+  font-size: var(--jewd-font-sm);
+  color: var(--jewd-text2);
+  margin-bottom: 16px;
+  line-height: 1.5;
+}
+
+/* Calculator */
+.jewd-metals-calc {
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+  background: var(--jewd-surface2);
+  border: 1px solid var(--jewd-border);
+  border-radius: 12px;
+  padding: 24px;
+}
+
+.jewd-metals-calc-inputs {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  flex: 1;
+}
+
+.jewd-metals-calc-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 120px;
+}
+
+.jewd-metals-calc-field label {
+  font-size: var(--jewd-font-sm);
+  font-weight: 600;
+  color: var(--jewd-text2);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.jewd-metals-calc-result {
+  background: linear-gradient(135deg, var(--jewd-surface3) 0%, rgba(255, 193, 7, 0.06) 100%);
+  border: 2px solid var(--jewd-gold);
+  border-radius: 12px;
+  padding: 20px 28px;
+  text-align: center;
+  min-width: 200px;
+  flex-shrink: 0;
+}
+
+.jewd-metals-calc-result-label {
+  font-size: var(--jewd-font-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--jewd-gold);
+  margin-bottom: 4px;
+}
+
+.jewd-metals-calc-result-price {
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--jewd-text);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
+}
+
+.jewd-metals-calc-result-detail {
+  font-size: var(--jewd-font-xs);
+  color: var(--jewd-text3);
+  margin-top: 6px;
+}
+
+/* Karat comparison table */
+.jewd-metals-table-wrap {
+  overflow-x: auto;
+  border-radius: 10px;
+  border: 1px solid var(--jewd-border);
+}
+
+.jewd-metals-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--jewd-font-sm);
+}
+
+.jewd-metals-table th {
+  background: var(--jewd-surface3);
+  padding: 10px 16px;
+  text-align: left;
+  font-weight: 700;
+  font-size: var(--jewd-font-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  color: var(--jewd-text2);
+  border-bottom: 2px solid var(--jewd-border);
+}
+
+.jewd-metals-table td {
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--jewd-border);
+  font-variant-numeric: tabular-nums;
+}
+
+.jewd-metals-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.jewd-metals-table-highlight {
+  background: rgba(255, 193, 7, 0.06);
+}
+
+.jewd-metals-table-highlight td:first-child {
+  border-left: 3px solid var(--jewd-gold);
+}
+
+.jewd-metals-table-silver {
+  background: rgba(176, 190, 197, 0.06);
+}
+
+.jewd-metals-table-silver td:first-child {
+  border-left: 3px solid var(--jewd-border);
+}
+
+.jewd-metals-loading {
+  text-align: center;
+  color: var(--jewd-text3);
+  padding: 24px;
+}
+
+/* Info cards grid */
+.jewd-metals-info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.jewd-metals-info-card {
+  background: var(--jewd-surface2);
+  border: 1px solid var(--jewd-border);
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.jewd-metals-info-card h4 {
+  font-size: var(--jewd-font-base);
+  font-weight: 700;
+  margin-bottom: 10px;
+  color: var(--jewd-text);
+}
+
+.jewd-metals-info-card p {
+  font-size: var(--jewd-font-sm);
+  color: var(--jewd-text2);
+  line-height: 1.5;
+  margin-bottom: 10px;
+}
+
+.jewd-metals-info-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.jewd-metals-info-list li {
+  font-size: var(--jewd-font-sm);
+  color: var(--jewd-text2);
+  padding: 5px 0;
+  border-bottom: 1px solid var(--jewd-border);
+  line-height: 1.4;
+}
+
+.jewd-metals-info-list li:last-child {
+  border-bottom: none;
+}
+
+.jewd-metals-info-steps {
+  counter-reset: step;
+}
+
+.jewd-metals-info-steps li {
+  padding-left: 28px;
+  position: relative;
+  counter-increment: step;
+}
+
+.jewd-metals-info-steps li::before {
+  content: counter(step);
+  position: absolute;
+  left: 0;
+  top: 5px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--jewd-gold);
+  color: var(--jewd-text-inv);
+  font-size: var(--jewd-font-xs);
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Formula block */
+.jewd-metals-formula {
+  background: var(--jewd-surface3);
+  border: 1px solid var(--jewd-border);
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin: 8px 0;
+}
+
+.jewd-metals-formula code {
+  font-family: "Fira Code", "Cascadia Code", monospace;
+  font-size: var(--jewd-font-sm);
+  color: var(--jewd-gold);
+  word-break: break-all;
+}
+
+.jewd-metals-formula-example {
+  font-size: var(--jewd-font-sm);
+  color: var(--jewd-text2);
+  line-height: 1.6;
+  margin-top: 8px;
+}
+
+/* Cache info */
+.jewd-metals-cache-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.jewd-metals-cache-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--jewd-font-sm);
+  padding: 6px 0;
+  border-bottom: 1px solid var(--jewd-border);
+}
+
+.jewd-metals-cache-row:last-child {
+  border-bottom: none;
+}
+
+.jewd-metals-cache-row span {
+  color: var(--jewd-text2);
+}
+
+.jewd-metals-cache-row strong {
+  color: var(--jewd-text);
+}
+
+/* Glossary */
+.jewd-metals-glossary {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 12px;
+}
+
+.jewd-metals-glossary-item {
+  background: var(--jewd-surface2);
+  border: 1px solid var(--jewd-border);
+  border-radius: 10px;
+  padding: 16px 20px;
+}
+
+.jewd-metals-glossary-item dt {
+  font-size: var(--jewd-font-base);
+  font-weight: 700;
+  color: var(--jewd-gold);
+  margin-bottom: 6px;
+}
+
+.jewd-metals-glossary-item dd {
+  font-size: var(--jewd-font-sm);
+  color: var(--jewd-text2);
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* Metals responsive */
+@media (max-width: 768px) {
+  .jewd-metals-grid {
+    grid-template-columns: 1fr;
+  }
+  .jewd-metals-calc {
+    flex-direction: column;
+  }
+  .jewd-metals-calc-result {
+    min-width: unset;
+    width: 100%;
+  }
+  .jewd-metals-info-grid {
+    grid-template-columns: 1fr;
+  }
+  .jewd-metals-glossary {
+    grid-template-columns: 1fr;
+  }
+  .jewd-metals-card-hero .jewd-metals-card-price {
+    font-size: 1.4rem;
   }
 }
 
@@ -880,8 +1577,8 @@ body {
   top: 4px;
   left: 4px;
   background: var(--jewd-gold);
-  color: #000;
-  font-size: 0.65rem;
+  color: var(--jewd-text);
+  font-size: var(--jewd-font-xs);
   font-weight: 700;
   padding: 2px 6px;
   border-radius: 3px;
@@ -951,7 +1648,7 @@ body {
 .jewd-img-badge-sm {
   font-size: 0.6rem;
   font-weight: 700;
-  color: #000;
+  color: var(--jewd-text);
   background: var(--jewd-gold);
   padding: 2px 5px;
   border-radius: 3px;
@@ -960,17 +1657,17 @@ body {
 
 .jewd-img-badge-new {
   background: var(--jewd-green);
-  color: #fff;
+  color: var(--jewd-text-inv);
 }
 
 .jewd-img-remove-btn {
   background: var(--jewd-red);
-  color: #fff;
+  color: var(--jewd-text-inv);
   border: none;
   border-radius: 50%;
   width: 22px;
   height: 22px;
-  font-size: 0.75rem;
+  font-size: var(--jewd-font-sm);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -1007,7 +1704,7 @@ body {
 }
 
 .jewd-img-add-icon {
-  font-size: 1.8rem;
+  font-size: var(--jewd-font-xl);
   line-height: 1;
   color: var(--jewd-text3);
 }
@@ -1017,14 +1714,14 @@ body {
 }
 
 .jewd-img-add-text {
-  font-size: 0.65rem;
+  font-size: var(--jewd-font-xs);
   color: var(--jewd-text3);
   margin-top: 4px;
 }
 
 .jewd-img-hint {
   grid-column: 1 / -1;
-  font-size: 0.72rem;
+  font-size: var(--jewd-font-xs);
   color: var(--jewd-text3);
   text-align: center;
   padding: 4px 0;
@@ -1053,7 +1750,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.85rem;
+  font-size: var(--jewd-font-base);
   color: var(--jewd-text3);
   cursor: pointer;
   transition: border-color 0.2s;
@@ -1074,8 +1771,8 @@ body {
   bottom: 16px;
   left: 50%;
   transform: translateX(-50%);
-  color: #fff;
-  font-size: 0.85rem;
+  color: var(--jewd-text-inv);
+  font-size: var(--jewd-font-base);
   background: rgba(0, 0, 0, 0.6);
   padding: 4px 12px;
   border-radius: 12px;
@@ -1088,7 +1785,7 @@ body {
   top: 50%;
   transform: translateY(-50%);
   background: rgba(0, 0, 0, 0.5);
-  color: #fff;
+  color: var(--jewd-text-inv);
   border: none;
   font-size: 2.5rem;
   cursor: pointer;
@@ -1113,7 +1810,7 @@ body {
 
 /* ===== IMAGE SECTION TITLE ===== */
 .jewd-img-section-title {
-  font-size: 0.95rem;
+  font-size: var(--jewd-font-base);
   font-weight: 600;
   color: var(--jewd-gold);
   margin-top: 16px;
@@ -1132,7 +1829,7 @@ body {
     padding: 8px;
   }
   .jewd-lightbox-nav {
-    font-size: 1.8rem;
+    font-size: var(--jewd-font-xl);
     padding: 6px 10px;
   }
   .jewd-lightbox-prev {
@@ -1159,7 +1856,7 @@ body {
   border: none;
   border-bottom: 3px solid transparent;
   color: var(--jewd-text2);
-  font-size: 0.88rem;
+  font-size: var(--jewd-font-base);
   font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
@@ -1205,7 +1902,7 @@ body {
   padding: 4px 6px;
   border-radius: 4px;
   cursor: pointer;
-  font-size: 0.82rem;
+  font-size: var(--jewd-font-sm);
   transition: background 0.15s;
 }
 
@@ -1227,7 +1924,7 @@ body {
 
 .jewd-cat-count {
   color: var(--jewd-text3);
-  font-size: 0.75rem;
+  font-size: var(--jewd-font-sm);
 }
 
 /* ===== TAGS (chips + autocomplete) ===== */
@@ -1251,10 +1948,10 @@ body {
   align-items: center;
   gap: 4px;
   background: var(--jewd-gold-dim);
-  color: #fff;
+  color: var(--jewd-text-inv);
   padding: 3px 8px;
   border-radius: 12px;
-  font-size: 0.78rem;
+  font-size: var(--jewd-font-sm);
   font-weight: 600;
 }
 
@@ -1263,13 +1960,13 @@ body {
   border: none;
   color: rgba(255, 255, 255, 0.7);
   cursor: pointer;
-  font-size: 0.7rem;
+  font-size: var(--jewd-font-xs);
   padding: 0 2px;
   line-height: 1;
 }
 
 .jewd-tag-remove:hover {
-  color: #fff;
+  color: var(--jewd-text-inv);
 }
 
 .jewd-tags-input-wrap {
@@ -1278,7 +1975,7 @@ body {
 
 .jewd-tags-input {
   width: 100%;
-  font-size: 0.82rem;
+  font-size: var(--jewd-font-sm);
 }
 
 .jewd-tags-dropdown {
@@ -1303,7 +2000,7 @@ body {
 .jewd-tag-option {
   padding: 8px 12px;
   cursor: pointer;
-  font-size: 0.82rem;
+  font-size: var(--jewd-font-sm);
   color: var(--jewd-text);
   transition: background 0.1s;
 }
@@ -1319,20 +2016,20 @@ body {
 
 /* ===== EDIT HINTS ===== */
 .jewd-edit-hint {
-  font-size: 0.72rem;
+  font-size: var(--jewd-font-xs);
   color: var(--jewd-text3);
   margin-top: 4px;
 }
 
 .jewd-edit-desc-full {
   font-family: "Courier New", Courier, monospace;
-  font-size: 0.82rem;
+  font-size: var(--jewd-font-sm);
   min-height: 120px;
 }
 
 .jewd-text-muted {
   color: var(--jewd-text3);
-  font-size: 0.82rem;
+  font-size: var(--jewd-font-sm);
 }
 
 /* ===== TABS + CATEGORIES + TAGS RESPONSIVE ===== */
@@ -1342,7 +2039,7 @@ body {
   }
   .jewd-tab {
     padding: 8px 12px;
-    font-size: 0.8rem;
+    font-size: var(--jewd-font-sm);
   }
   .jewd-cat-grid {
     grid-template-columns: 1fr 1fr;
@@ -1375,14 +2072,14 @@ body {
 
 .jewd-attr-name {
   font-weight: 600;
-  font-size: 0.9rem;
+  font-size: var(--jewd-font-base);
   color: var(--jewd-text);
 }
 
 .jewd-attr-badge {
   background: var(--jewd-gold);
-  color: #000;
-  font-size: 0.65rem;
+  color: var(--jewd-text);
+  font-size: var(--jewd-font-xs);
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -1399,7 +2096,7 @@ body {
 .jewd-attr-option {
   background: var(--jewd-bg3, #333);
   color: var(--jewd-text2);
-  font-size: 0.78rem;
+  font-size: var(--jewd-font-sm);
   padding: 3px 10px;
   border-radius: 12px;
   border: 1px solid var(--jewd-border);
@@ -1407,7 +2104,7 @@ body {
 
 .jewd-attr-edit-input {
   margin-top: 4px;
-  font-size: 0.82rem;
+  font-size: var(--jewd-font-sm);
 }
 
 @media (max-width: 768px) {
@@ -1415,7 +2112,7 @@ body {
     padding: 10px;
   }
   .jewd-attr-option {
-    font-size: 0.72rem;
+    font-size: var(--jewd-font-xs);
     padding: 2px 8px;
   }
 }
@@ -1429,7 +2126,7 @@ body {
   border-radius: 8px;
 }
 .jewd-edit-section-subtitle {
-  font-size: 0.9rem;
+  font-size: var(--jewd-font-base);
   color: var(--jewd-gold);
   margin: 0 0 12px;
   font-weight: 600;
@@ -1442,7 +2139,7 @@ body {
 }
 .jewd-new-var-field label {
   display: block;
-  font-size: 0.78rem;
+  font-size: var(--jewd-font-sm);
   color: var(--jewd-text2);
   margin-bottom: 4px;
 }
@@ -1460,7 +2157,7 @@ body {
 }
 .jewd-btn-success {
   background: var(--jewd-green);
-  color: #fff;
+  color: var(--jewd-text-inv);
   border: none;
   border-radius: 6px;
   cursor: pointer;
@@ -1475,7 +2172,7 @@ body {
   cursor: not-allowed;
 }
 .jewd-btn-sm {
-  font-size: 0.8rem;
+  font-size: var(--jewd-font-sm);
   padding: 6px 14px;
 }
 
@@ -1496,7 +2193,7 @@ body {
 }
 .jewd-btn-danger {
   background: var(--jewd-danger);
-  color: #fff;
+  color: var(--jewd-text-inv);
   border: 1px solid var(--jewd-danger);
   border-radius: 6px;
   cursor: pointer;
@@ -1511,7 +2208,7 @@ body {
 }
 .jewd-badge-trash {
   background: var(--jewd-danger);
-  color: #fff;
+  color: var(--jewd-text-inv);
 }
 
 /* ===== BULK ACTIONS BAR ===== */
@@ -1521,23 +2218,23 @@ body {
   gap: 12px;
   padding: 10px 16px;
   background: var(--jewd-accent);
-  color: #000;
+  color: var(--jewd-text);
   border-radius: 8px;
   margin-bottom: 12px;
   font-weight: 600;
-  font-size: 0.85rem;
+  font-size: var(--jewd-font-base);
 }
 .jewd-bulk-bar.active {
   display: flex;
 }
 .jewd-bulk-bar button {
   background: rgba(0, 0, 0, 0.15);
-  color: #000;
+  color: var(--jewd-text);
   border: 1px solid rgba(0, 0, 0, 0.2);
   border-radius: 5px;
   padding: 5px 12px;
   cursor: pointer;
-  font-size: 0.8rem;
+  font-size: var(--jewd-font-sm);
   font-weight: 600;
   transition: background 0.15s;
 }
@@ -1569,7 +2266,7 @@ body {
   flex: 1;
   text-align: center;
   padding: 12px 8px;
-  font-size: 0.82rem;
+  font-size: var(--jewd-font-sm);
   font-weight: 600;
   color: var(--jewd-text2);
   border-bottom: 3px solid transparent;
@@ -1581,8 +2278,8 @@ body {
   border-bottom-color: var(--jewd-accent);
 }
 .jewd-wizard-step.done {
-  color: #66bb6a;
-  border-bottom-color: #66bb6a;
+  color: var(--jewd-green);
+  border-bottom-color: var(--jewd-green);
 }
 .jewd-wizard-panel {
   display: none;
@@ -1617,10 +2314,10 @@ body {
 }
 .jewd-wizard-type-card .label {
   font-weight: 700;
-  font-size: 0.9rem;
+  font-size: var(--jewd-font-base);
 }
 .jewd-wizard-type-card .desc {
-  font-size: 0.75rem;
+  font-size: var(--jewd-font-sm);
   color: var(--jewd-text2);
   margin-top: 4px;
 }
@@ -1633,7 +2330,7 @@ body {
 }
 .jewd-bulk-progress {
   margin-top: 12px;
-  font-size: 0.82rem;
+  font-size: var(--jewd-font-sm);
   color: var(--jewd-text2);
 }
 .jewd-bulk-progress-bar {
@@ -1705,7 +2402,7 @@ body {
   padding: 10px 20px;
   color: var(--jewd-text2);
   text-decoration: none;
-  font-size: 0.9rem;
+  font-size: var(--jewd-font-base);
   font-weight: 500;
   border-left: 3px solid transparent;
   transition: all 0.2s;
@@ -1720,15 +2417,15 @@ body {
   border-left-color: var(--jewd-gold);
 }
 .jewd-nav-icon {
-  font-size: 1.1rem;
+  font-size: var(--jewd-font-md);
 }
 .jewd-nav-label {
   flex: 1;
 }
 .jewd-nav-badge {
   background: var(--jewd-red);
-  color: #fff;
-  font-size: 0.7rem;
+  color: var(--jewd-text-inv);
+  font-size: var(--jewd-font-xs);
   font-weight: 700;
   padding: 1px 6px;
   border-radius: 10px;
@@ -1772,54 +2469,54 @@ body {
   display: inline-block;
   padding: 2px 10px;
   border-radius: 12px;
-  font-size: 0.78rem;
+  font-size: var(--jewd-font-sm);
   font-weight: 600;
   white-space: nowrap;
 }
 .jewd-order-pending {
-  background: #ff9800;
-  color: #fff;
+  background: var(--jewd-orange);
+  color: var(--jewd-text-inv);
 }
 .jewd-order-processing {
-  background: #2196f3;
-  color: #fff;
+  background: var(--jewd-blue);
+  color: var(--jewd-text-inv);
 }
 .jewd-order-on-hold {
-  background: #ff5722;
-  color: #fff;
+  background: var(--jewd-danger);
+  color: var(--jewd-text-inv);
 }
 .jewd-order-completed {
-  background: #4caf50;
-  color: #fff;
+  background: var(--jewd-green);
+  color: var(--jewd-text-inv);
 }
 .jewd-order-cancelled {
-  background: #757575;
-  color: #fff;
+  background: var(--jewd-text3);
+  color: var(--jewd-text-inv);
 }
 .jewd-order-refunded {
   background: #9c27b0;
-  color: #fff;
+  color: var(--jewd-text-inv);
 }
 .jewd-order-failed {
-  background: #ef5350;
-  color: #fff;
+  background: var(--jewd-red);
+  color: var(--jewd-text-inv);
 }
 .jewd-order-trash {
-  background: #424242;
-  color: #ccc;
+  background: var(--jewd-surface3);
+  color: var(--jewd-text2);
 }
 
 .jewd-text-sm {
-  font-size: 0.78rem;
+  font-size: var(--jewd-font-sm);
   color: var(--jewd-text2);
 }
 .jewd-text-muted {
   color: var(--jewd-text2);
-  font-size: 0.85rem;
+  font-size: var(--jewd-font-base);
 }
 .jewd-text-mono {
   font-family: "Courier New", monospace;
-  font-size: 0.82rem;
+  font-size: var(--jewd-font-sm);
 }
 
 /* ===== ORDER DETAIL MODAL (F4-UI-03) ===== */
@@ -1835,7 +2532,7 @@ body {
   padding: 14px;
 }
 .jewd-order-info-card h4 {
-  font-size: 0.88rem;
+  font-size: var(--jewd-font-base);
   color: var(--jewd-gold);
   margin-bottom: 10px;
 }
@@ -1844,7 +2541,7 @@ body {
   justify-content: space-between;
   gap: 8px;
   padding: 4px 0;
-  font-size: 0.85rem;
+  font-size: var(--jewd-font-base);
 }
 .jewd-order-items {
   margin: 16px 0;
@@ -1852,7 +2549,7 @@ body {
 .jewd-order-items h4 {
   margin-bottom: 8px;
   color: var(--jewd-gold);
-  font-size: 0.95rem;
+  font-size: var(--jewd-font-base);
 }
 
 .jewd-order-totals {
@@ -1867,7 +2564,7 @@ body {
   border-top: 2px solid var(--jewd-gold);
   padding-top: 8px;
   margin-top: 8px;
-  font-size: 1.05rem;
+  font-size: var(--jewd-font-md);
   color: var(--jewd-gold);
 }
 .jewd-order-actions {
@@ -1876,7 +2573,7 @@ body {
 .jewd-order-actions h4 {
   margin-bottom: 8px;
   color: var(--jewd-gold);
-  font-size: 0.88rem;
+  font-size: var(--jewd-font-base);
 }
 .jewd-order-status-btns {
   display: flex;
@@ -1890,7 +2587,7 @@ body {
 .jewd-order-notes h4 {
   margin-bottom: 8px;
   color: var(--jewd-gold);
-  font-size: 0.88rem;
+  font-size: var(--jewd-font-base);
 }
 .jewd-order-notes-list {
   max-height: 200px;
@@ -1902,14 +2599,14 @@ body {
   border-radius: 6px;
   padding: 8px 12px;
   margin-bottom: 6px;
-  font-size: 0.82rem;
+  font-size: var(--jewd-font-sm);
 }
 .jewd-note-customer {
   border-left: 3px solid var(--jewd-gold);
 }
 .jewd-note-meta {
   color: var(--jewd-text2);
-  font-size: 0.75rem;
+  font-size: var(--jewd-font-sm);
   margin-top: 4px;
 }
 .jewd-order-note-form {
@@ -1940,7 +2637,7 @@ body {
   padding: 16px;
 }
 .jewd-report-card h3 {
-  font-size: 0.95rem;
+  font-size: var(--jewd-font-base);
   color: var(--jewd-gold);
   margin-bottom: 12px;
 }
@@ -1968,7 +2665,7 @@ body {
   color: var(--jewd-gold);
 }
 .jewd-report-stat-label {
-  font-size: 0.78rem;
+  font-size: var(--jewd-font-sm);
   color: var(--jewd-text2);
   margin-top: 2px;
 }
@@ -1990,9 +2687,9 @@ body {
   width: 28px;
   height: 28px;
   background: var(--jewd-gold);
-  color: #000;
+  color: var(--jewd-text);
   font-weight: 700;
-  font-size: 0.82rem;
+  font-size: var(--jewd-font-sm);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2004,14 +2701,14 @@ body {
   min-width: 0;
 }
 .jewd-top-name {
-  font-size: 0.88rem;
+  font-size: var(--jewd-font-base);
   font-weight: 600;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 .jewd-top-meta {
-  font-size: 0.75rem;
+  font-size: var(--jewd-font-sm);
   color: var(--jewd-text2);
 }
 
@@ -2029,7 +2726,7 @@ body {
   padding: 16px;
 }
 .jewd-settings-card h3 {
-  font-size: 0.95rem;
+  font-size: var(--jewd-font-base);
   color: var(--jewd-gold);
   margin-bottom: 12px;
   padding-bottom: 8px;
@@ -2047,7 +2744,7 @@ body {
   gap: 8px;
   padding: 6px 0;
   border-bottom: 1px solid var(--jewd-surface2);
-  font-size: 0.85rem;
+  font-size: var(--jewd-font-base);
 }
 .jewd-settings-label {
   color: var(--jewd-text2);
@@ -2072,11 +2769,11 @@ body {
   padding: 6px 10px;
   background: var(--jewd-surface2);
   border-radius: 6px;
-  font-size: 0.82rem;
+  font-size: var(--jewd-font-sm);
 }
 .jewd-origin-row code {
   font-family: "SF Mono", "Fira Code", Consolas, monospace;
-  font-size: 0.8rem;
+  font-size: var(--jewd-font-sm);
   color: var(--jewd-text);
   word-break: break-all;
 }
@@ -2085,7 +2782,7 @@ body {
 }
 .jewd-badge-default {
   display: inline-block;
-  font-size: 0.65rem;
+  font-size: var(--jewd-font-xs);
   padding: 2px 6px;
   border-radius: 4px;
   background: var(--jewd-border);
@@ -2100,20 +2797,20 @@ body {
   border-radius: 4px;
   cursor: pointer;
   padding: 2px 8px;
-  font-size: 0.75rem;
+  font-size: var(--jewd-font-sm);
   transition: background 0.2s;
 }
 .jewd-btn-danger-sm:hover {
   background: var(--jewd-red);
-  color: #fff;
+  color: var(--jewd-text-inv);
 }
 .jewd-btn-sm {
-  font-size: 0.8rem;
+  font-size: var(--jewd-font-sm);
   padding: 6px 14px;
 }
 .jewd-btn-primary {
   background: var(--jewd-gold);
-  color: #1a1a2e;
+  color: var(--jewd-text-inv);
   border: none;
   border-radius: 6px;
   cursor: pointer;
@@ -2251,12 +2948,12 @@ body {
   box-shadow: 0 10px 40px var(--jewd-shadow);
 }
 .jewd-confirm-title {
-  font-size: 1.05rem;
+  font-size: var(--jewd-font-md);
   font-weight: 700;
   margin-bottom: 10px;
 }
 .jewd-confirm-message {
-  font-size: 0.9rem;
+  font-size: var(--jewd-font-base);
   color: var(--jewd-text2);
   margin-bottom: 20px;
   line-height: 1.5;
@@ -2286,7 +2983,7 @@ body {
 }
 .jewd-error-msg {
   color: var(--jewd-red);
-  font-size: 0.75rem;
+  font-size: var(--jewd-font-sm);
   margin-top: 4px;
   display: block;
 }
@@ -2301,7 +2998,7 @@ body {
   top: -100px;
   left: 0;
   background: var(--jewd-gold);
-  color: #000;
+  color: var(--jewd-text);
   padding: 8px 16px;
   z-index: 9999;
   font-weight: 700;
@@ -2356,8 +3053,8 @@ body {
 .jewd-stock-alert-badge {
   display: inline-block;
   background: var(--jewd-red);
-  color: #fff;
-  font-size: 0.65rem;
+  color: var(--jewd-text-inv);
+  font-size: var(--jewd-font-xs);
   font-weight: 700;
   padding: 1px 5px;
   border-radius: 8px;
@@ -2381,14 +3078,14 @@ body {
     gap: 8px;
   }
   .jewd-title {
-    font-size: 1rem;
+    font-size: var(--jewd-font-md);
   }
   .jewd-actions {
     gap: 4px;
   }
   .jewd-btn-sm {
     padding: 4px 8px;
-    font-size: 0.72rem;
+    font-size: var(--jewd-font-xs);
   }
 
   /* Table → Cards */
@@ -2413,13 +3110,13 @@ body {
     align-items: center;
     padding: 4px 0;
     border: none;
-    font-size: 0.82rem;
+    font-size: var(--jewd-font-sm);
   }
   .jewd-table tbody td::before {
     content: attr(data-label);
     font-weight: 600;
     color: var(--jewd-text2);
-    font-size: 0.75rem;
+    font-size: var(--jewd-font-sm);
     margin-right: 8px;
     flex-shrink: 0;
   }
@@ -2470,7 +3167,7 @@ body {
     flex-direction: column;
     padding: 6px 4px;
     border-left: none;
-    font-size: 0.7rem;
+    font-size: var(--jewd-font-xs);
     text-align: center;
     gap: 2px;
     flex: 1;
@@ -2483,7 +3180,7 @@ body {
     font-size: 1.2rem;
   }
   .jewd-nav-label {
-    font-size: 0.65rem;
+    font-size: var(--jewd-font-xs);
   }
   .jewd-sidebar-toggle {
     display: none !important;
@@ -2564,7 +3261,7 @@ body {
 }
 
 .jewd-login-logo {
-  font-size: 3rem;
+  font-size: var(--jewd-font-3xl);
   margin-bottom: 8px;
 }
 
@@ -2576,7 +3273,7 @@ body {
 
 .jewd-login-subtitle {
   color: var(--jewd-text2);
-  font-size: 0.85rem;
+  font-size: var(--jewd-font-base);
   margin-bottom: 24px;
 }
 
@@ -2587,7 +3284,7 @@ body {
 
 .jewd-login-field label {
   display: block;
-  font-size: 0.8rem;
+  font-size: var(--jewd-font-sm);
   color: var(--jewd-text2);
   margin-bottom: 6px;
   text-transform: uppercase;
@@ -2597,12 +3294,12 @@ body {
 .jewd-login-field .jewd-input {
   width: 100%;
   padding: 10px 14px;
-  font-size: 0.95rem;
+  font-size: var(--jewd-font-base);
 }
 
 .jewd-login-error {
   color: var(--jewd-red);
-  font-size: 0.85rem;
+  font-size: var(--jewd-font-base);
   min-height: 1.2em;
   margin-bottom: 8px;
 }
@@ -2610,7 +3307,7 @@ body {
 .jewd-login-btn {
   width: 100%;
   padding: 12px;
-  font-size: 1rem;
+  font-size: var(--jewd-font-md);
   margin-top: 8px;
   cursor: pointer;
 }
@@ -2622,7 +3319,7 @@ body {
 
 .jewd-login-footer {
   margin-top: 24px;
-  font-size: 0.75rem;
+  font-size: var(--jewd-font-sm);
   color: var(--jewd-text3);
 }
 
@@ -2647,13 +3344,13 @@ body {
 }
 
 .jewd-topbar-username {
-  font-size: 0.85rem;
+  font-size: var(--jewd-font-base);
   color: var(--jewd-text);
   font-weight: 600;
 }
 
 .jewd-topbar-role {
-  font-size: 0.7rem;
+  font-size: var(--jewd-font-xs);
   color: var(--jewd-gold);
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -2683,17 +3380,17 @@ body {
 }
 
 .jewd-role-card-icon {
-  font-size: 1.8rem;
+  font-size: var(--jewd-font-xl);
 }
 
 .jewd-role-card-name {
   font-weight: 600;
   color: var(--jewd-text);
-  font-size: 0.9rem;
+  font-size: var(--jewd-font-base);
 }
 
 .jewd-role-card-count {
-  font-size: 0.8rem;
+  font-size: var(--jewd-font-sm);
   color: var(--jewd-text2);
 }
 
@@ -2703,7 +3400,7 @@ body {
 }
 
 .jewd-user-username {
-  font-size: 0.75rem;
+  font-size: var(--jewd-font-sm);
   color: var(--jewd-text3);
 }
 
@@ -2711,14 +3408,14 @@ body {
   display: inline-block;
   padding: 3px 10px;
   border-radius: 12px;
-  font-size: 0.75rem;
-  color: #fff;
+  font-size: var(--jewd-font-sm);
+  color: var(--jewd-text-inv);
   font-weight: 600;
   white-space: nowrap;
 }
 
 .jewd-user-shield {
-  font-size: 1.1rem;
+  font-size: var(--jewd-font-md);
   cursor: help;
 }
 
@@ -2728,7 +3425,7 @@ body {
 
 .jewd-btn-danger {
   background: var(--jewd-red) !important;
-  color: #fff !important;
+  color: var(--jewd-text-inv) !important;
   border-color: var(--jewd-red) !important;
 }
 .jewd-btn-danger:hover {
@@ -2749,7 +3446,7 @@ body {
 }
 
 .jewd-form-group label {
-  font-size: 0.8rem;
+  font-size: var(--jewd-font-sm);
   color: var(--jewd-text2);
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -2773,7 +3470,7 @@ body {
 
 .jewd-generated-pw code {
   font-family: monospace;
-  font-size: 0.9rem;
+  font-size: var(--jewd-font-base);
   color: var(--jewd-gold);
   background: var(--jewd-bg);
   padding: 4px 8px;
@@ -2783,7 +3480,7 @@ body {
 }
 
 .jewd-pw-warning {
-  font-size: 0.8rem;
+  font-size: var(--jewd-font-sm);
   color: var(--jewd-red);
   margin-top: 8px;
 }
@@ -2811,6 +3508,26 @@ body {
   .jewd-topbar-user .jewd-topbar-avatar {
     display: none;
   }
+  .jewd-gold-ticker {
+    padding: 4px 12px;
+  }
+  .jewd-gold-ticker-inner {
+    justify-content: flex-start;
+    gap: 4px;
+  }
+  .jewd-gold-item-label {
+    display: none;
+  }
+  .jewd-gold-item {
+    padding: 3px 8px;
+    font-size: var(--jewd-font-xs);
+  }
+  .jewd-gold-price {
+    font-size: var(--jewd-font-sm);
+  }
+  .jewd-gold-detail-link span {
+    display: none;
+  }
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════ */
@@ -2823,7 +3540,7 @@ body {
   border: 1px solid var(--jewd-red);
   border-radius: 6px;
   padding: 4px 12px;
-  font-size: 0.8rem;
+  font-size: var(--jewd-font-sm);
   cursor: pointer;
   transition:
     background 0.2s,
@@ -2832,7 +3549,7 @@ body {
 }
 .jewd-btn-logout:hover {
   background: var(--jewd-red);
-  color: #fff;
+  color: var(--jewd-text-inv);
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════ */
@@ -2853,7 +3570,7 @@ body {
 }
 
 .jewd-sidebar-user-name {
-  font-size: 0.85rem;
+  font-size: var(--jewd-font-base);
   color: var(--jewd-text);
   font-weight: 600;
   overflow: hidden;
@@ -2862,7 +3579,7 @@ body {
 }
 
 .jewd-sidebar-user-role {
-  font-size: 0.7rem;
+  font-size: var(--jewd-font-xs);
   color: var(--jewd-gold);
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -2872,7 +3589,7 @@ body {
   width: 100%;
   text-align: center;
   padding: 8px;
-  font-size: 0.85rem;
+  font-size: var(--jewd-font-base);
 }
 
 /* ═══════════════════════════════════════════════════════════════════════
@@ -2903,7 +3620,7 @@ body {
 }
 .jewd-pos-search-input {
   width: 100%;
-  font-size: 1rem;
+  font-size: var(--jewd-font-md);
   padding: 10px 14px;
   border-radius: 8px;
 }
@@ -2968,7 +3685,7 @@ body {
 }
 .jewd-pos-result-name {
   font-weight: 500;
-  font-size: 0.9rem;
+  font-size: var(--jewd-font-base);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -2976,7 +3693,7 @@ body {
 .jewd-pos-result-meta {
   display: flex;
   gap: 8px;
-  font-size: 0.75rem;
+  font-size: var(--jewd-font-sm);
   color: var(--jewd-text-muted);
   margin-top: 2px;
   flex-wrap: wrap;
@@ -2988,10 +3705,10 @@ body {
 .jewd-pos-result-price {
   font-weight: 600;
   color: var(--jewd-gold);
-  font-size: 0.95rem;
+  font-size: var(--jewd-font-base);
 }
 .jewd-pos-result-in-cart {
-  font-size: 0.7rem;
+  font-size: var(--jewd-font-xs);
   color: var(--jewd-success);
 }
 .jewd-pos-result-loading,
@@ -2999,17 +3716,17 @@ body {
   padding: 20px;
   text-align: center;
   color: var(--jewd-text-muted);
-  font-size: 0.9rem;
+  font-size: var(--jewd-font-base);
 }
 .jewd-pos-result-sku {
   font-family: monospace;
 }
 .jewd-pos-result-type {
   background: var(--jewd-gold);
-  color: #fff;
+  color: var(--jewd-text-inv);
   padding: 1px 6px;
   border-radius: 4px;
-  font-size: 0.65rem;
+  font-size: var(--jewd-font-xs);
 }
 
 /* Categories */
@@ -3037,7 +3754,7 @@ body {
   color: var(--jewd-text);
   cursor: pointer;
   white-space: nowrap;
-  font-size: 0.82rem;
+  font-size: var(--jewd-font-sm);
   transition: all 0.15s;
 }
 .jewd-pos-cat-btn:hover {
@@ -3045,11 +3762,11 @@ body {
 }
 .jewd-pos-cat-btn.active {
   background: var(--jewd-gold);
-  color: #fff;
+  color: var(--jewd-text-inv);
   border-color: var(--jewd-gold);
 }
 .jewd-pos-cat-count {
-  font-size: 0.7rem;
+  font-size: var(--jewd-font-xs);
   opacity: 0.7;
 }
 
@@ -3069,7 +3786,7 @@ body {
   text-align: center;
   padding: 40px 20px;
   color: var(--jewd-text-muted);
-  font-size: 0.95rem;
+  font-size: var(--jewd-font-base);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -3121,8 +3838,8 @@ body {
   top: 6px;
   right: 6px;
   background: var(--jewd-gold);
-  color: #fff;
-  font-size: 0.7rem;
+  color: var(--jewd-text-inv);
+  font-size: var(--jewd-font-xs);
   font-weight: 700;
   padding: 2px 7px;
   border-radius: 10px;
@@ -3134,8 +3851,8 @@ body {
   left: 50%;
   transform: translate(-50%, -50%);
   background: rgba(0, 0, 0, 0.7);
-  color: #fff;
-  font-size: 0.7rem;
+  color: var(--jewd-text-inv);
+  font-size: var(--jewd-font-xs);
   padding: 4px 10px;
   border-radius: 4px;
   z-index: 2;
@@ -3161,7 +3878,7 @@ body {
   padding: 8px 10px;
 }
 .jewd-pos-product-name {
-  font-size: 0.8rem;
+  font-size: var(--jewd-font-sm);
   font-weight: 500;
   line-height: 1.3;
   display: -webkit-box;
@@ -3171,7 +3888,7 @@ body {
   min-height: 2em;
 }
 .jewd-pos-product-sku {
-  font-size: 0.65rem;
+  font-size: var(--jewd-font-xs);
   color: var(--jewd-text-muted);
   font-family: monospace;
   margin-top: 2px;
@@ -3185,10 +3902,10 @@ body {
 .jewd-pos-product-price {
   font-weight: 700;
   color: var(--jewd-gold);
-  font-size: 0.9rem;
+  font-size: var(--jewd-font-base);
 }
 .jewd-pos-product-was {
-  font-size: 0.7rem;
+  font-size: var(--jewd-font-xs);
   color: var(--jewd-text-muted);
   text-decoration: line-through;
 }
@@ -3218,7 +3935,7 @@ body {
   flex-shrink: 0;
 }
 .jewd-pos-cart-header h3 {
-  font-size: 1rem;
+  font-size: var(--jewd-font-md);
   margin: 0;
   white-space: nowrap;
 }
@@ -3230,8 +3947,8 @@ body {
 
 .jewd-pos-held-badge {
   background: #ff4444;
-  color: #fff;
-  font-size: 0.65rem;
+  color: var(--jewd-text-inv);
+  font-size: var(--jewd-font-xs);
   padding: 1px 5px;
   border-radius: 8px;
   margin-left: 4px;
@@ -3262,7 +3979,7 @@ body {
   color: var(--jewd-text-muted);
 }
 .jewd-pos-text-sm {
-  font-size: 0.8rem;
+  font-size: var(--jewd-font-sm);
 }
 
 /* Cart item row */
@@ -3284,7 +4001,7 @@ body {
   border-radius: 50%;
   background: var(--jewd-hover);
   color: var(--jewd-text-muted);
-  font-size: 0.65rem;
+  font-size: var(--jewd-font-xs);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -3300,7 +4017,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1rem;
+  font-size: var(--jewd-font-md);
 }
 .jewd-pos-cart-item-img img {
   width: 100%;
@@ -3313,17 +4030,17 @@ body {
 }
 .jewd-pos-cart-item-name {
   font-weight: 500;
-  font-size: 0.82rem;
+  font-size: var(--jewd-font-sm);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 .jewd-pos-cart-item-attrs {
-  font-size: 0.7rem;
+  font-size: var(--jewd-font-xs);
   color: var(--jewd-text-muted);
 }
 .jewd-pos-cart-item-sku {
-  font-size: 0.65rem;
+  font-size: var(--jewd-font-xs);
   color: var(--jewd-text-muted);
   font-family: monospace;
 }
@@ -3334,7 +4051,7 @@ body {
   margin-top: 2px;
 }
 .jewd-pos-cart-item-price {
-  font-size: 0.75rem;
+  font-size: var(--jewd-font-sm);
   color: var(--jewd-text-muted);
 }
 .jewd-pos-cart-item-price.jewd-pos-price-custom {
@@ -3342,7 +4059,7 @@ body {
   font-weight: 600;
 }
 .jewd-pos-cart-item-orig {
-  font-size: 0.65rem;
+  font-size: var(--jewd-font-xs);
   color: var(--jewd-text-muted);
   text-decoration: line-through;
 }
@@ -3350,7 +4067,7 @@ body {
   background: none;
   border: none;
   cursor: pointer;
-  font-size: 0.65rem;
+  font-size: var(--jewd-font-xs);
   padding: 2px;
   opacity: 0;
   transition: opacity 0.15s;
@@ -3376,7 +4093,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.85rem;
+  font-size: var(--jewd-font-base);
   font-weight: 600;
   color: var(--jewd-text);
   transition: all 0.12s;
@@ -3390,7 +4107,7 @@ body {
   text-align: center;
   border: 1px solid var(--jewd-border);
   border-radius: 4px;
-  font-size: 0.85rem;
+  font-size: var(--jewd-font-base);
   font-weight: 600;
   padding: 2px;
   -moz-appearance: textfield;
@@ -3402,7 +4119,7 @@ body {
 
 .jewd-pos-cart-item-total {
   font-weight: 600;
-  font-size: 0.85rem;
+  font-size: var(--jewd-font-base);
   color: var(--jewd-text);
   min-width: 55px;
   text-align: right;
@@ -3413,7 +4130,7 @@ body {
   border: none;
   cursor: pointer;
   color: var(--jewd-text-muted);
-  font-size: 0.75rem;
+  font-size: var(--jewd-font-sm);
   padding: 4px;
   opacity: 0;
   transition: all 0.15s;
@@ -3423,7 +4140,7 @@ body {
   opacity: 1;
 }
 .jewd-pos-cart-item-remove:hover {
-  color: #e74c3c;
+  color: var(--jewd-red);
 }
 
 /* ── Summary / Totals ────────────────────────────────────────────────── */
@@ -3437,14 +4154,14 @@ body {
   display: flex;
   justify-content: space-between;
   padding: 4px 0;
-  font-size: 0.88rem;
+  font-size: var(--jewd-font-base);
 }
 .jewd-pos-discount-row {
-  color: #e74c3c;
+  color: var(--jewd-red);
 }
 .jewd-pos-tax-row {
   color: var(--jewd-text-muted);
-  font-size: 0.8rem;
+  font-size: var(--jewd-font-sm);
 }
 .jewd-pos-total-row {
   font-size: 1.2rem;
@@ -3461,7 +4178,7 @@ body {
   background: none;
   border: none;
   cursor: pointer;
-  font-size: 0.7rem;
+  font-size: var(--jewd-font-xs);
   padding: 2px 4px;
   vertical-align: middle;
 }
@@ -3469,12 +4186,12 @@ body {
   color: var(--jewd-gold);
 }
 .jewd-pos-discount-remove-btn:hover {
-  color: #e74c3c;
+  color: var(--jewd-red);
 }
 .jewd-pos-discount-label {
-  font-size: 0.7rem;
+  font-size: var(--jewd-font-xs);
   background: var(--jewd-gold);
-  color: #fff;
+  color: var(--jewd-text-inv);
   padding: 1px 6px;
   border-radius: 4px;
 }
@@ -3490,12 +4207,12 @@ body {
 .jewd-pos-discount-select {
   width: 50px;
   padding: 4px 6px;
-  font-size: 0.85rem;
+  font-size: var(--jewd-font-base);
 }
 .jewd-pos-discount-input {
   flex: 1;
   padding: 4px 8px;
-  font-size: 0.85rem;
+  font-size: var(--jewd-font-base);
 }
 
 /* Customer section */
@@ -3504,7 +4221,7 @@ body {
   flex-shrink: 0;
 }
 .jewd-pos-customer details {
-  font-size: 0.85rem;
+  font-size: var(--jewd-font-base);
 }
 .jewd-pos-customer summary {
   cursor: pointer;
@@ -3517,7 +4234,7 @@ body {
   padding: 6px 0 10px;
 }
 .jewd-pos-customer-fields .jewd-input {
-  font-size: 0.82rem;
+  font-size: var(--jewd-font-sm);
   padding: 6px 10px;
 }
 
@@ -3527,14 +4244,14 @@ body {
   flex-shrink: 0;
 }
 .jewd-pos-notes-input {
-  font-size: 0.82rem;
+  font-size: var(--jewd-font-sm);
   resize: none;
 }
 
 /* Checkout button */
 .jewd-pos-checkout-btn {
   margin: 8px 14px 14px;
-  font-size: 1rem;
+  font-size: var(--jewd-font-md);
   padding: 12px;
   border-radius: 10px;
   flex-shrink: 0;
@@ -3556,7 +4273,7 @@ body {
 }
 .jewd-pos-held-title {
   padding: 8px 14px 4px;
-  font-size: 0.78rem;
+  font-size: var(--jewd-font-sm);
   font-weight: 600;
   color: var(--jewd-gold);
 }
@@ -3565,7 +4282,7 @@ body {
   justify-content: space-between;
   align-items: center;
   padding: 6px 14px;
-  font-size: 0.78rem;
+  font-size: var(--jewd-font-sm);
   border-bottom: 1px solid rgba(0, 0, 0, 0.05);
 }
 .jewd-pos-held-info {
@@ -3583,7 +4300,7 @@ body {
   background: none;
   border: none;
   cursor: pointer;
-  font-size: 0.8rem;
+  font-size: var(--jewd-font-sm);
   padding: 2px 4px;
 }
 .jewd-pos-held-actions button:hover {
@@ -3605,7 +4322,7 @@ body {
   padding: 20px;
   text-align: center;
   color: var(--jewd-text-muted);
-  font-size: 0.85rem;
+  font-size: var(--jewd-font-base);
 }
 .jewd-pos-today-stats {
   display: flex;
@@ -3624,11 +4341,11 @@ body {
 .jewd-pos-today-stat-value {
   display: block;
   font-weight: 700;
-  font-size: 1.1rem;
+  font-size: var(--jewd-font-md);
   color: var(--jewd-gold);
 }
 .jewd-pos-today-stat-label {
-  font-size: 0.7rem;
+  font-size: var(--jewd-font-xs);
   color: var(--jewd-text-muted);
 }
 .jewd-pos-today-list {
@@ -3639,7 +4356,7 @@ body {
   align-items: center;
   gap: 8px;
   padding: 5px 14px;
-  font-size: 0.78rem;
+  font-size: var(--jewd-font-sm);
 }
 .jewd-pos-today-time {
   color: var(--jewd-text-muted);
@@ -3663,14 +4380,14 @@ body {
   color: var(--jewd-success);
 }
 .jewd-pos-stock-low {
-  color: #e67e22;
+  color: var(--jewd-orange);
   font-weight: 600;
 }
 .jewd-pos-stock-out {
-  color: #e74c3c;
+  color: var(--jewd-red);
 }
 .jewd-pos-result-stock {
-  font-size: 0.7rem;
+  font-size: var(--jewd-font-xs);
 }
 
 /* ── Modal System ────────────────────────────────────────────────────── */
@@ -3728,7 +4445,7 @@ body {
 }
 .jewd-pos-modal-header h4 {
   margin: 0;
-  font-size: 1.05rem;
+  font-size: var(--jewd-font-md);
 }
 .jewd-pos-modal-close {
   background: none;
@@ -3775,10 +4492,10 @@ body {
 }
 .jewd-pos-var-product-info h4 {
   margin: 0;
-  font-size: 0.95rem;
+  font-size: var(--jewd-font-base);
 }
 .jewd-pos-var-product-info p {
-  font-size: 0.78rem;
+  font-size: var(--jewd-font-sm);
   margin: 2px 0 0;
 }
 .jewd-pos-var-option {
@@ -3792,7 +4509,7 @@ body {
   background: transparent;
   cursor: pointer;
   text-align: left;
-  font-size: 0.88rem;
+  font-size: var(--jewd-font-base);
   color: var(--jewd-text);
   transition: background 0.12s;
 }
@@ -3814,14 +4531,14 @@ body {
 .jewd-pos-var-details {
   display: flex;
   gap: 8px;
-  font-size: 0.72rem;
+  font-size: var(--jewd-font-xs);
 }
 .jewd-pos-var-sku {
   color: var(--jewd-text-muted);
   font-family: monospace;
 }
 .jewd-pos-var-stock {
-  font-size: 0.72rem;
+  font-size: var(--jewd-font-xs);
 }
 .jewd-pos-var-right {
   text-align: right;
@@ -3831,12 +4548,12 @@ body {
   color: var(--jewd-gold);
 }
 .jewd-pos-var-in-cart {
-  font-size: 0.65rem;
+  font-size: var(--jewd-font-xs);
   color: var(--jewd-success);
 }
 .jewd-pos-var-oos-divider {
   padding: 8px 20px;
-  font-size: 0.75rem;
+  font-size: var(--jewd-font-sm);
   color: var(--jewd-text-muted);
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -3849,7 +4566,7 @@ body {
 .jewd-pos-price-editor label {
   display: block;
   margin-bottom: 10px;
-  font-size: 0.88rem;
+  font-size: var(--jewd-font-base);
   color: var(--jewd-text-muted);
 }
 .jewd-pos-price-input-row {
@@ -3859,13 +4576,13 @@ body {
   margin-bottom: 12px;
 }
 .jewd-pos-price-prefix {
-  font-size: 1.1rem;
+  font-size: var(--jewd-font-md);
   font-weight: 600;
   color: var(--jewd-text-muted);
 }
 .jewd-pos-price-input {
   flex: 1;
-  font-size: 1.3rem;
+  font-size: var(--jewd-font-lg);
   font-weight: 600;
   text-align: center;
   padding: 10px;
@@ -3882,7 +4599,7 @@ body {
   border-radius: 6px;
   background: var(--jewd-bg);
   cursor: pointer;
-  font-size: 0.78rem;
+  font-size: var(--jewd-font-sm);
   transition: all 0.12s;
 }
 .jewd-pos-preset-btn:hover {
@@ -3900,7 +4617,7 @@ body {
 }
 .jewd-pos-pay-total-label {
   display: block;
-  font-size: 0.85rem;
+  font-size: var(--jewd-font-base);
   color: var(--jewd-text-muted);
   margin-bottom: 4px;
 }
@@ -3926,7 +4643,7 @@ body {
   border-radius: 10px;
   background: var(--jewd-bg);
   cursor: pointer;
-  font-size: 0.8rem;
+  font-size: var(--jewd-font-sm);
   transition: all 0.15s;
   color: var(--jewd-text);
 }
@@ -3949,7 +4666,7 @@ body {
 }
 .jewd-pos-cash-calculator label {
   display: block;
-  font-size: 0.85rem;
+  font-size: var(--jewd-font-base);
   margin-bottom: 6px;
   font-weight: 500;
 }
@@ -3961,7 +4678,7 @@ body {
 }
 .jewd-pos-cash-input {
   flex: 1;
-  font-size: 1.3rem;
+  font-size: var(--jewd-font-lg);
   font-weight: 600;
   padding: 10px;
   text-align: center;
@@ -3978,7 +4695,7 @@ body {
   border-radius: 6px;
   background: var(--jewd-bg);
   cursor: pointer;
-  font-size: 0.82rem;
+  font-size: var(--jewd-font-sm);
   font-weight: 500;
   transition: all 0.12s;
 }
@@ -3994,23 +4711,23 @@ body {
   padding: 10px 14px;
   background: var(--jewd-bg);
   border-radius: 8px;
-  font-size: 0.95rem;
+  font-size: var(--jewd-font-base);
 }
 .jewd-pos-change-amount {
-  font-size: 1.3rem;
+  font-size: var(--jewd-font-lg);
   font-weight: 700;
 }
 .jewd-pos-change-positive {
   color: var(--jewd-success);
 }
 .jewd-pos-change-negative {
-  color: #e74c3c;
+  color: var(--jewd-red);
 }
 
 /* Split payments */
 .jewd-pos-split-details {
   margin-top: 12px;
-  font-size: 0.85rem;
+  font-size: var(--jewd-font-base);
 }
 .jewd-pos-split-details summary {
   cursor: pointer;
@@ -4028,7 +4745,7 @@ body {
 }
 .jewd-pos-split-row .jewd-select {
   flex: 1;
-  font-size: 0.82rem;
+  font-size: var(--jewd-font-sm);
 }
 .jewd-pos-split-amount-wrap {
   display: flex;
@@ -4042,26 +4759,26 @@ body {
 }
 .jewd-pos-split-amount {
   flex: 1;
-  font-size: 0.85rem;
+  font-size: var(--jewd-font-base);
 }
 .jewd-pos-split-remove {
   background: none;
   border: none;
   cursor: pointer;
-  color: #e74c3c;
-  font-size: 0.85rem;
+  color: var(--jewd-red);
+  font-size: var(--jewd-font-base);
   padding: 4px;
 }
 .jewd-pos-split-remaining {
   text-align: right;
-  font-size: 0.85rem;
+  font-size: var(--jewd-font-base);
   padding: 6px 0;
 }
 .jewd-pos-text-success {
   color: var(--jewd-success);
 }
 .jewd-pos-text-danger {
-  color: #e74c3c;
+  color: var(--jewd-red);
 }
 
 /* Payment reference */
@@ -4070,7 +4787,7 @@ body {
 }
 .jewd-pos-ref-section label {
   display: block;
-  font-size: 0.82rem;
+  font-size: var(--jewd-font-sm);
   color: var(--jewd-text-muted);
   margin-bottom: 4px;
 }
@@ -4078,7 +4795,7 @@ body {
 /* Confirm pay button */
 .jewd-pos-confirm-pay {
   width: 100%;
-  font-size: 1.1rem;
+  font-size: var(--jewd-font-md);
   padding: 14px;
 }
 .jewd-pos-confirm-pay:disabled {
@@ -4095,16 +4812,16 @@ body {
   padding: 24px 20px 16px;
 }
 .jewd-pos-receipt-icon {
-  font-size: 3rem;
+  font-size: var(--jewd-font-3xl);
   margin-bottom: 8px;
 }
 .jewd-pos-receipt-header h3 {
   margin: 0 0 4px;
-  font-size: 1.3rem;
+  font-size: var(--jewd-font-lg);
   color: var(--jewd-text);
 }
 .jewd-pos-receipt-number {
-  font-size: 1rem;
+  font-size: var(--jewd-font-md);
   color: var(--jewd-gold);
   font-weight: 600;
 }
@@ -4117,7 +4834,7 @@ body {
 }
 .jewd-pos-receipt-table td {
   padding: 5px 4px;
-  font-size: 0.88rem;
+  font-size: var(--jewd-font-base);
 }
 .jewd-pos-receipt-table tfoot td {
   padding-top: 4px;
@@ -4127,17 +4844,17 @@ body {
   padding-top: 8px;
 }
 .jewd-pos-receipt-total td {
-  font-size: 1.1rem;
+  font-size: var(--jewd-font-md);
   border-top: 2px solid var(--jewd-gold) !important;
   padding-top: 10px !important;
   color: var(--jewd-gold);
 }
 .jewd-pos-receipt-change td {
-  font-size: 1rem;
+  font-size: var(--jewd-font-md);
   color: var(--jewd-success);
 }
 .jewd-pos-receipt-discount td {
-  color: #e74c3c;
+  color: var(--jewd-red);
 }
 .jewd-pos-receipt-item-name {
   max-width: 200px;
@@ -4150,7 +4867,7 @@ body {
   margin-top: 12px;
   padding-top: 12px;
   border-top: 1px dashed var(--jewd-border);
-  font-size: 0.82rem;
+  font-size: var(--jewd-font-sm);
   color: var(--jewd-text-muted);
 }
 .jewd-pos-receipt-meta-row {
@@ -4234,10 +4951,10 @@ body {
   align-items: center;
   justify-content: center;
   background: var(--jewd-primary);
-  color: #fff;
+  color: var(--jewd-text-inv);
   border-radius: 50%;
   font-weight: 700;
-  font-size: 0.85rem;
+  font-size: var(--jewd-font-base);
   flex-shrink: 0;
 }
 
@@ -4248,12 +4965,12 @@ body {
 
 .jewd-seller-name {
   font-weight: 600;
-  font-size: 0.95rem;
+  font-size: var(--jewd-font-base);
   color: var(--jewd-text);
 }
 .jewd-seller-user {
   font-weight: 400;
-  font-size: 0.8rem;
+  font-size: var(--jewd-font-sm);
   color: var(--jewd-text-muted);
 }
 
@@ -4277,17 +4994,17 @@ body {
 }
 .jewd-seller-total {
   font-weight: 700;
-  font-size: 1.05rem;
+  font-size: var(--jewd-font-md);
   color: var(--jewd-success, #22c55e);
 }
 .jewd-seller-pct {
   font-weight: 400;
-  font-size: 0.75rem;
+  font-size: var(--jewd-font-sm);
   color: var(--jewd-text-muted);
 }
 
 .jewd-seller-toggle {
-  font-size: 0.7rem;
+  font-size: var(--jewd-font-xs);
   color: var(--jewd-text-muted);
   transition: transform 0.2s;
   flex-shrink: 0;
@@ -4316,12 +5033,12 @@ body {
 .jewd-stat-val {
   display: block;
   font-weight: 700;
-  font-size: 1.1rem;
+  font-size: var(--jewd-font-md);
   color: var(--jewd-text);
 }
 .jewd-stat-lbl {
   display: block;
-  font-size: 0.72rem;
+  font-size: var(--jewd-font-xs);
   color: var(--jewd-text-muted);
   margin-top: 2px;
   text-transform: uppercase;
@@ -4330,7 +5047,7 @@ body {
 
 .jewd-seller-subtitle {
   font-weight: 600;
-  font-size: 0.8rem;
+  font-size: var(--jewd-font-sm);
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: var(--jewd-text-muted);
@@ -4344,7 +5061,7 @@ body {
   display: flex;
   justify-content: space-between;
   padding: 6px 0;
-  font-size: 0.88rem;
+  font-size: var(--jewd-font-base);
   border-bottom: 1px solid var(--jewd-border);
 }
 .jewd-method-row:last-child {
@@ -4354,13 +5071,13 @@ body {
 .jewd-seller-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.85rem;
+  font-size: var(--jewd-font-base);
 }
 .jewd-seller-table th {
   text-align: left;
   padding: 6px 8px;
   font-weight: 600;
-  font-size: 0.75rem;
+  font-size: var(--jewd-font-sm);
   text-transform: uppercase;
   letter-spacing: 0.03em;
   color: var(--jewd-text-muted);

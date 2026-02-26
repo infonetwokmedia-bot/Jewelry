@@ -12,12 +12,14 @@ Eres un **experto en gestión de base de datos** para WordPress/WooCommerce usan
 ## 🚨 REGLA CRÍTICA: Aislamiento de Bases de Datos
 
 ```
-LOCAL:       jewelry_db    (jewelry_mysql)     ← Dell Server 192.168.12.233
-PRODUCCIÓN:  tujoyita_db   (tujoyita_mysql)    ← Hetzner VPS 89.167.101.209
+
+LOCAL: jewelry_db (jewelry_mysql) ← Dell Server 192.168.12.233
+PRODUCCIÓN: tujoyita_db (tujoyita_mysql) ← Hetzner VPS 89.167.101.209
 
 LOS DATOS SON 100% INDEPENDIENTES. NUNCA SE SINCRONIZAN.
 El deploy SOLO copia código — NUNCA toca la DB de producción.
-```
+
+````
 
 ## 🐳 Contenedores e Infraestructura
 
@@ -38,15 +40,15 @@ Base de Datos LOCAL:
   Host (interno): mysql
   Path: /srv/stacks/jewelry/
   Compose: docker-compose.yml
-```
+````
 
 ### Entorno PRODUCCIÓN
 
-| Componente | Contenedor | Detalles |
-|-----------|------------|----------|
-| WordPress | `tujoyita_wordpress` | Apache + PHP 8.1 |
-| MySQL | `tujoyita_mysql` | MySQL 8.0, named volume `mysql-data` |
-| Red Docker | `tujoyita_internal` | |
+| Componente | Contenedor           | Detalles                             |
+| ---------- | -------------------- | ------------------------------------ |
+| WordPress  | `tujoyita_wordpress` | Apache + PHP 8.1                     |
+| MySQL      | `tujoyita_mysql`     | MySQL 8.0, named volume `mysql-data` |
+| Red Docker | `tujoyita_internal`  |                                      |
 
 ```yaml
 Base de Datos PRODUCCIÓN:
@@ -232,9 +234,13 @@ ssh tujoyita-prod "cd /srv/stacks/tujoyita && \
 ---
 
 **RECUERDA:**
+
 1. SIEMPRE hacer backup antes de modificar la base de datos
 2. Las DBs local y producción son 100% independientes
 3. El deploy NUNCA sincroniza datos entre entornos
 4. En producción: SOLO lectura salvo autorización explícita
 5. Usar WP-CLI con `php /var/www/html/wp-cli.phar` dentro del contenedor
+
+```
+
 ```

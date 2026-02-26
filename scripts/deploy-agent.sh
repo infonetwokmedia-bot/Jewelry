@@ -482,6 +482,11 @@ deploy_code() {
             [ -f "$mu_file" ] || continue
             local basename
             basename=$(basename "$mu_file")
+            # Skip dev-only mu-plugins
+            if [ "$basename" = "jewelry-dev-domain.php" ]; then
+                log_ok "mu-plugin: $basename (SKIPPED — dev only)"
+                continue
+            fi
             # Primero, copiar al VPS
             scp -q "$mu_file" "$PROD_HOST:/tmp/$basename"
             # Luego, mover al contenedor
@@ -498,9 +503,20 @@ deploy_code() {
             --exclude='.env.js' \
             --exclude='.env.production.js' \
             --exclude='node_modules/' \
+            --exclude='.env.js.example' \
+            --exclude='nginx/wc-auth.conf' \
+            --exclude='nginx/wc-auth.production.conf' \
             "$PROJECT_DIR/dashboard/" \
             "$PROD_HOST:$PROD_DIR/dashboard/"
         log_ok "Dashboard sincronizado"
+
+        # Verificar que wc-auth.production.conf existe en VPS
+        if ! ssh_prod "test -f $PROD_DIR/dashboard/nginx/wc-auth.production.conf"; then
+            log_warn "wc-auth.production.conf NO existe en VPS — WC proxy no funcionará"
+            log_warn "Crear manualmente: cp wc-auth.conf.example wc-auth.production.conf"
+        else
+            log_ok "wc-auth.production.conf presente en VPS"
+        fi
     fi
 
     # 4c. Sincronizar docker-compose.production.yml

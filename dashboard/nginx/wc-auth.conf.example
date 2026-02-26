@@ -1,0 +1,10 @@
+# WooCommerce API credentials for server-side proxy injection.
+# Copy this file to wc-auth.conf (local) or wc-auth.production.conf (prod).
+# NEVER commit real keys to git.
+#
+# Generate the base64 value:
+#   echo -n "ck_YOUR_KEY:cs_YOUR_SECRET" | base64 -w0
+#
+# Then replace the placeholder below.
+
+set $wc_basic_auth "Basic REPLACE_WITH_BASE64_OF_CK:CS";

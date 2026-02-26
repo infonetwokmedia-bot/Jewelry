@@ -64,43 +64,40 @@ const JewdUsers = (function () {
     return base;
   }
 
-  function _authQuery() {
-    const cfg = window.JEWD_CONFIG || {};
-    return (
-      "consumer_key=" +
-      encodeURIComponent(cfg.consumerKey) +
-      "&consumer_secret=" +
-      encodeURIComponent(cfg.consumerSecret)
-    );
+  function _wcAuthHeaders() {
+    // WC API keys are now injected server-side by the Nginx proxy.
+    // Only JWT auth headers are needed from the browser.
+    return {};
   }
 
   async function loadUsers() {
-    const url = _baseUrl() + "/jewd/v1/users?" + _authQuery();
+    const url = _baseUrl() + "/jewd/v1/users";
 
     const res = await fetch(url, {
-      headers: { ...JewdAuth.authHeaders() },
+      headers: { ..._wcAuthHeaders(), ...JewdAuth.authHeaders() },
     });
     if (!res.ok) throw new Error("HTTP " + res.status);
     _users = await res.json();
   }
 
   async function loadRoles() {
-    const url = _baseUrl() + "/jewd/v1/roles?" + _authQuery();
+    const url = _baseUrl() + "/jewd/v1/roles";
 
     const res = await fetch(url, {
-      headers: { ...JewdAuth.authHeaders() },
+      headers: { ..._wcAuthHeaders(), ...JewdAuth.authHeaders() },
     });
     if (!res.ok) throw new Error("HTTP " + res.status);
     _roles = await res.json();
   }
 
   async function apiCreateUser(data) {
-    const url = _baseUrl() + "/jewd/v1/users?" + _authQuery();
+    const url = _baseUrl() + "/jewd/v1/users";
 
     const res = await fetch(url, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        ..._wcAuthHeaders(),
         ...JewdAuth.authHeaders(),
       },
       body: JSON.stringify(data),
@@ -111,12 +108,13 @@ const JewdUsers = (function () {
   }
 
   async function apiUpdateUser(id, data) {
-    const url = _baseUrl() + "/jewd/v1/users/" + id + "?" + _authQuery();
+    const url = _baseUrl() + "/jewd/v1/users/" + id;
 
     const res = await fetch(url, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
+        ..._wcAuthHeaders(),
         ...JewdAuth.authHeaders(),
       },
       body: JSON.stringify(data),
@@ -127,11 +125,11 @@ const JewdUsers = (function () {
   }
 
   async function apiDeleteUser(id) {
-    const url = _baseUrl() + "/jewd/v1/users/" + id + "?" + _authQuery();
+    const url = _baseUrl() + "/jewd/v1/users/" + id;
 
     const res = await fetch(url, {
       method: "DELETE",
-      headers: { ...JewdAuth.authHeaders() },
+      headers: { ..._wcAuthHeaders(), ...JewdAuth.authHeaders() },
     });
     const json = await res.json();
     if (!res.ok) throw new Error(json.error || "Error eliminando usuario");

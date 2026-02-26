@@ -8,7 +8,7 @@
       rel="icon"
       href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💎</text></svg>"
     />
-    <link rel="stylesheet" href="css/dashboard.css?v=3.27.0" />
+    <link rel="stylesheet" href="css/dashboard.css?v=3.30.0" />
   </head>
   <body>
     <!-- ══════ LOGIN OVERLAY ══════ -->
@@ -147,6 +147,62 @@
         </div>
       </div>
 
+      <!-- GOLD & SILVER TICKER BAR -->
+      <div class="jewd-gold-ticker" id="goldTickerBar" style="display: none">
+        <div class="jewd-gold-ticker-inner">
+          <div class="jewd-gold-item jewd-gold-item-label">
+            <span class="jewd-gold-icon">🥇</span>
+            <span>Metales</span>
+          </div>
+          <div
+            class="jewd-gold-item"
+            id="goldSpot"
+            title="Oro 24K por onza troy"
+          >
+            <span class="jewd-gold-metal">Oro 24K/oz</span>
+            <span class="jewd-gold-price" id="goldSpotPrice">—</span>
+            <span class="jewd-gold-change" id="goldSpotChange"></span>
+          </div>
+          <div class="jewd-gold-item" id="gold14k" title="Oro 14K por gramo">
+            <span class="jewd-gold-metal">14K/g</span>
+            <span class="jewd-gold-price" id="gold14kPrice">—</span>
+          </div>
+          <div class="jewd-gold-item" id="gold10k" title="Oro 10K por gramo">
+            <span class="jewd-gold-metal">10K/g</span>
+            <span class="jewd-gold-price" id="gold10kPrice">—</span>
+          </div>
+          <div class="jewd-gold-sep"></div>
+          <div
+            class="jewd-gold-item"
+            id="silverSpot"
+            title="Plata 925 por gramo"
+          >
+            <span class="jewd-gold-icon">🥈</span>
+            <span class="jewd-gold-metal">Plata 925/g</span>
+            <span class="jewd-gold-price" id="silver925Price">—</span>
+            <span class="jewd-gold-change" id="silverSpotChange"></span>
+          </div>
+          <div class="jewd-gold-ticker-meta">
+            <span class="jewd-gold-timestamp" id="goldTimestamp"></span>
+            <button
+              class="jewd-gold-refresh"
+              id="btnGoldRefresh"
+              title="Actualizar precios"
+              style="display: none"
+            >
+              🔄
+            </button>
+            <a
+              class="jewd-gold-detail-link"
+              href="#/metals"
+              title="Ver precios detallados, fuentes y calculadora"
+            >
+              <span>Ver detalle</span> →
+            </a>
+          </div>
+        </div>
+      </div>
+
       <!-- LAYOUT: Sidebar + Main -->
       <div class="jewd-layout">
         <!-- SIDEBAR -->
@@ -178,6 +234,10 @@
             <a class="jewd-nav-item" href="#/reports" data-section="reports">
               <span class="jewd-nav-icon">📊</span>
               <span class="jewd-nav-label">Reportes</span>
+            </a>
+            <a class="jewd-nav-item" href="#/metals" data-section="metals">
+              <span class="jewd-nav-icon">🥇</span>
+              <span class="jewd-nav-label">Metales</span>
             </a>
             <a class="jewd-nav-item" href="#/settings" data-section="settings">
               <span class="jewd-nav-icon">⚙️</span>
@@ -705,6 +765,429 @@
             </div>
           </section>
 
+          <!-- ======= SECTION: METALS ======= -->
+          <section class="jewd-section" id="sectionMetals">
+            <div class="jewd-section-header">
+              <h2 class="jewd-section-title">🥇 Metales Preciosos</h2>
+              <div class="jewd-metals-header-actions">
+                <span
+                  class="jewd-metals-source-badge"
+                  id="metalsSourceBadge"
+                ></span>
+                <button
+                  class="jewd-btn jewd-btn-sm jewd-btn-outline"
+                  id="btnMetalsRefresh"
+                  title="Actualizar precios desde la fuente"
+                >
+                  🔄 Actualizar
+                </button>
+              </div>
+            </div>
+
+            <!-- PRICE CARDS -->
+            <div class="jewd-metals-grid" id="metalsPriceGrid">
+              <!-- Gold Spot -->
+              <div
+                class="jewd-metals-card jewd-metals-card-gold jewd-metals-card-hero"
+              >
+                <div class="jewd-metals-card-icon">🥇</div>
+                <div class="jewd-metals-card-body">
+                  <div class="jewd-metals-card-label">Oro Spot (24K)</div>
+                  <div class="jewd-metals-card-price" id="metalsGoldSpot">
+                    —
+                  </div>
+                  <div class="jewd-metals-card-unit">por onza troy (31.1g)</div>
+                  <div
+                    class="jewd-metals-card-change"
+                    id="metalsGoldChange"
+                  ></div>
+                </div>
+              </div>
+              <!-- Gold 22K -->
+              <div class="jewd-metals-card jewd-metals-card-gold">
+                <div class="jewd-metals-card-body">
+                  <div class="jewd-metals-card-label">
+                    Oro 22K <span class="jewd-metals-purity">91.7%</span>
+                  </div>
+                  <div class="jewd-metals-card-row">
+                    <div>
+                      <div class="jewd-metals-card-price-sm" id="metals22kOz">
+                        —
+                      </div>
+                      <div class="jewd-metals-card-unit">por onza</div>
+                    </div>
+                    <div>
+                      <div class="jewd-metals-card-price-sm" id="metals22kG">
+                        —
+                      </div>
+                      <div class="jewd-metals-card-unit">por gramo</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <!-- Gold 18K -->
+              <div class="jewd-metals-card jewd-metals-card-gold">
+                <div class="jewd-metals-card-body">
+                  <div class="jewd-metals-card-label">
+                    Oro 18K <span class="jewd-metals-purity">75.0%</span>
+                  </div>
+                  <div class="jewd-metals-card-row">
+                    <div>
+                      <div class="jewd-metals-card-price-sm" id="metals18kOz">
+                        —
+                      </div>
+                      <div class="jewd-metals-card-unit">por onza</div>
+                    </div>
+                    <div>
+                      <div class="jewd-metals-card-price-sm" id="metals18kG">
+                        —
+                      </div>
+                      <div class="jewd-metals-card-unit">por gramo</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <!-- Gold 14K -->
+              <div
+                class="jewd-metals-card jewd-metals-card-gold jewd-metals-card-popular"
+              >
+                <div class="jewd-metals-card-badge">⭐ Popular</div>
+                <div class="jewd-metals-card-body">
+                  <div class="jewd-metals-card-label">
+                    Oro 14K <span class="jewd-metals-purity">58.3%</span>
+                  </div>
+                  <div class="jewd-metals-card-row">
+                    <div>
+                      <div class="jewd-metals-card-price-sm" id="metals14kOz">
+                        —
+                      </div>
+                      <div class="jewd-metals-card-unit">por onza</div>
+                    </div>
+                    <div>
+                      <div class="jewd-metals-card-price-sm" id="metals14kG">
+                        —
+                      </div>
+                      <div class="jewd-metals-card-unit">por gramo</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <!-- Gold 10K -->
+              <div
+                class="jewd-metals-card jewd-metals-card-gold jewd-metals-card-popular"
+              >
+                <div class="jewd-metals-card-badge">⭐ Popular</div>
+                <div class="jewd-metals-card-body">
+                  <div class="jewd-metals-card-label">
+                    Oro 10K <span class="jewd-metals-purity">41.7%</span>
+                  </div>
+                  <div class="jewd-metals-card-row">
+                    <div>
+                      <div class="jewd-metals-card-price-sm" id="metals10kOz">
+                        —
+                      </div>
+                      <div class="jewd-metals-card-unit">por onza</div>
+                    </div>
+                    <div>
+                      <div class="jewd-metals-card-price-sm" id="metals10kG">
+                        —
+                      </div>
+                      <div class="jewd-metals-card-unit">por gramo</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <!-- Silver -->
+              <div class="jewd-metals-card jewd-metals-card-silver">
+                <div class="jewd-metals-card-icon">🥈</div>
+                <div class="jewd-metals-card-body">
+                  <div class="jewd-metals-card-label">Plata</div>
+                  <div class="jewd-metals-card-row">
+                    <div>
+                      <div class="jewd-metals-card-price" id="metalsSilverSpot">
+                        —
+                      </div>
+                      <div class="jewd-metals-card-unit">Spot/oz (999)</div>
+                    </div>
+                    <div>
+                      <div
+                        class="jewd-metals-card-price-sm"
+                        id="metalsSilver925"
+                      >
+                        —
+                      </div>
+                      <div class="jewd-metals-card-unit">Sterling 925/g</div>
+                    </div>
+                  </div>
+                  <div
+                    class="jewd-metals-card-change"
+                    id="metalsSilverChange"
+                  ></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- CALCULATOR -->
+            <div class="jewd-metals-section">
+              <h3 class="jewd-metals-section-title">
+                🧮 Calculadora de Valor del Metal
+              </h3>
+              <p class="jewd-metals-section-desc">
+                Calcula el valor del metal precioso según peso y quilataje. Este
+                es el valor base del metal — no incluye mano de obra, diseño ni
+                margen comercial.
+              </p>
+              <div class="jewd-metals-calc">
+                <div class="jewd-metals-calc-inputs">
+                  <div class="jewd-metals-calc-field">
+                    <label for="calcWeight">Peso (gramos)</label>
+                    <input
+                      type="number"
+                      id="calcWeight"
+                      min="0.1"
+                      step="0.1"
+                      value="10"
+                      class="jewd-input"
+                    />
+                  </div>
+                  <div class="jewd-metals-calc-field">
+                    <label for="calcMetal">Metal</label>
+                    <select id="calcMetal" class="jewd-select">
+                      <option value="gold">Oro</option>
+                      <option value="silver">Plata</option>
+                    </select>
+                  </div>
+                  <div class="jewd-metals-calc-field" id="calcKaratGroup">
+                    <label for="calcKarat">Quilataje</label>
+                    <select id="calcKarat" class="jewd-select">
+                      <option value="24k">24K (99.9%)</option>
+                      <option value="22k">22K (91.7%)</option>
+                      <option value="18k">18K (75.0%)</option>
+                      <option value="14k" selected>14K (58.3%)</option>
+                      <option value="10k">10K (41.7%)</option>
+                    </select>
+                  </div>
+                  <div
+                    class="jewd-metals-calc-field"
+                    id="calcPurityGroup"
+                    style="display: none"
+                  >
+                    <label for="calcPurity">Pureza</label>
+                    <select id="calcPurity" class="jewd-select">
+                      <option value="999">999 (99.9%)</option>
+                      <option value="925" selected>925 Sterling (92.5%)</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="jewd-metals-calc-result">
+                  <div class="jewd-metals-calc-result-label">
+                    Valor del metal
+                  </div>
+                  <div class="jewd-metals-calc-result-price" id="calcResult">
+                    $0.00
+                  </div>
+                  <div
+                    class="jewd-metals-calc-result-detail"
+                    id="calcDetail"
+                  ></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- KARAT COMPARISON TABLE -->
+            <div class="jewd-metals-section">
+              <h3 class="jewd-metals-section-title">
+                📊 Tabla Comparativa de Quilates
+              </h3>
+              <p class="jewd-metals-section-desc">
+                Comparación de precios por quilataje basada en el precio spot
+                actual del oro.
+              </p>
+              <div class="jewd-metals-table-wrap">
+                <table class="jewd-metals-table" id="metalsKaratTable">
+                  <thead>
+                    <tr>
+                      <th>Quilate</th>
+                      <th>Pureza</th>
+                      <th>Precio/oz</th>
+                      <th>Precio/gramo</th>
+                      <th>Precio 10g</th>
+                      <th>Precio 1oz</th>
+                    </tr>
+                  </thead>
+                  <tbody id="metalsKaratTableBody">
+                    <tr>
+                      <td colspan="6" class="jewd-metals-loading">
+                        Cargando datos...
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- DATA SOURCE -->
+            <div class="jewd-metals-section">
+              <h3 class="jewd-metals-section-title">🌐 Fuente de Datos</h3>
+              <div class="jewd-metals-info-grid">
+                <div class="jewd-metals-info-card">
+                  <h4>📡 Proveedor de Precios</h4>
+                  <p>
+                    <strong>MetalPriceAPI.com</strong> — Servicio profesional de
+                    datos de metales preciosos que agrega precios de múltiples
+                    fuentes del mercado internacional.
+                  </p>
+                  <ul class="jewd-metals-info-list">
+                    <li>
+                      Datos basados en el mercado <strong>LBMA</strong> (London
+                      Bullion Market Association)
+                    </li>
+                    <li>
+                      Precios de referencia global utilizados por bancos,
+                      refinerías y joyerías
+                    </li>
+                    <li>
+                      Actualización
+                      <strong id="metalsUpdateFreq">cada 8 horas</strong> (plan
+                      gratuito)
+                    </li>
+                    <li>
+                      Moneda de referencia:
+                      <strong>USD (Dólar estadounidense)</strong>
+                    </li>
+                  </ul>
+                </div>
+                <div class="jewd-metals-info-card">
+                  <h4>⚙️ Cómo Funciona</h4>
+                  <ol class="jewd-metals-info-list jewd-metals-info-steps">
+                    <li>
+                      <strong>Precio Spot</strong> — Obtenemos el precio XAU
+                      (oro) y XAG (plata) en USD por onza troy desde
+                      MetalPriceAPI
+                    </li>
+                    <li>
+                      <strong>Onza Troy → Gramos</strong> — Dividimos entre
+                      31.1035g (1 onza troy = 31.1035 gramos)
+                    </li>
+                    <li>
+                      <strong>Pureza por Quilate</strong> — Multiplicamos por el
+                      % de pureza del quilate (ej: 14K = 58.3%)
+                    </li>
+                    <li>
+                      <strong>Precio Base</strong> — El resultado es el valor
+                      del metal puro. <strong>No incluye</strong> mano de obra,
+                      diseño, marca ni margen comercial
+                    </li>
+                  </ol>
+                </div>
+                <div class="jewd-metals-info-card">
+                  <h4>📐 Fórmula</h4>
+                  <div class="jewd-metals-formula">
+                    <code
+                      >Precio por gramo (Xk) = (Spot USD/oz ÷ 31.1035) × (X ÷
+                      24)</code
+                    >
+                  </div>
+                  <p class="jewd-metals-formula-example">
+                    <strong>Ejemplo:</strong> Oro 14K con spot a $2,650/oz<br />
+                    = ($2,650 ÷ 31.1035) × (14 ÷ 24)<br />
+                    = $85.20 × 0.5833<br />
+                    = <strong>$49.70 por gramo</strong>
+                  </p>
+                </div>
+                <div class="jewd-metals-info-card">
+                  <h4>🕐 Estado de la Caché</h4>
+                  <div class="jewd-metals-cache-info">
+                    <div class="jewd-metals-cache-row">
+                      <span>Última actualización:</span>
+                      <strong id="metalsCacheTime">—</strong>
+                    </div>
+                    <div class="jewd-metals-cache-row">
+                      <span>Caché expira:</span>
+                      <strong id="metalsCacheExpires">—</strong>
+                    </div>
+                    <div class="jewd-metals-cache-row">
+                      <span>Fuente actual:</span>
+                      <strong id="metalsCacheSource">—</strong>
+                    </div>
+                    <div class="jewd-metals-cache-row">
+                      <span>Modo:</span>
+                      <strong id="metalsCacheMode">—</strong>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- GLOSSARY -->
+            <div class="jewd-metals-section">
+              <h3 class="jewd-metals-section-title">📖 Glosario</h3>
+              <div class="jewd-metals-glossary">
+                <div class="jewd-metals-glossary-item">
+                  <dt>Onza Troy</dt>
+                  <dd>
+                    Unidad de medida estándar para metales preciosos. Equivale a
+                    <strong>31.1035 gramos</strong> (diferente a la onza común
+                    de 28.35g). Todas las cotizaciones internacionales de oro y
+                    plata se expresan en onzas troy.
+                  </dd>
+                </div>
+                <div class="jewd-metals-glossary-item">
+                  <dt>Precio Spot</dt>
+                  <dd>
+                    Precio actual del metal en el mercado internacional para
+                    entrega inmediata. Se actualiza constantemente durante las
+                    horas de mercado (lunes a viernes). Es diferente al precio
+                    de futuros.
+                  </dd>
+                </div>
+                <div class="jewd-metals-glossary-item">
+                  <dt>LBMA</dt>
+                  <dd>
+                    <strong>London Bullion Market Association</strong> —
+                    Autoridad global que establece los precios de referencia del
+                    oro y la plata. El "LBMA Gold Price" se fija dos veces al
+                    día (10:30 AM y 3:00 PM hora Londres).
+                  </dd>
+                </div>
+                <div class="jewd-metals-glossary-item">
+                  <dt>Quilate (Karat)</dt>
+                  <dd>
+                    Medida de pureza del oro.
+                    <strong>24 quilates = oro puro (99.9%)</strong>. En joyería
+                    se usan aleaciones: 18K (75%), 14K (58.3%), 10K (41.7%). No
+                    confundir con "quilate" de gemas (unidad de peso = 0.2g).
+                  </dd>
+                </div>
+                <div class="jewd-metals-glossary-item">
+                  <dt>Sterling Silver (Plata 925)</dt>
+                  <dd>
+                    Aleación de plata más usada en joyería:
+                    <strong>92.5% plata pura + 7.5% otros metales</strong>
+                    (generalmente cobre). Ofrece mayor durabilidad que la plata
+                    pura 999.
+                  </dd>
+                </div>
+                <div class="jewd-metals-glossary-item">
+                  <dt>XAU / XAG</dt>
+                  <dd>
+                    Símbolos ISO 4217 para el oro (XAU) y la plata (XAG) como
+                    commodities. La "X" indica que no es moneda de un país; "AU"
+                    viene del latín <em>aurum</em> y "AG" de <em>argentum</em>.
+                  </dd>
+                </div>
+                <div class="jewd-metals-glossary-item">
+                  <dt>Premium / Sobreprecio</dt>
+                  <dd>
+                    Diferencia entre el valor del metal base y el precio final
+                    de la joya. Incluye mano de obra, diseño, marca, garantía y
+                    margen comercial. Varía según complejidad y artesano.
+                  </dd>
+                </div>
+              </div>
+            </div>
+          </section>
+
           <!-- ======= SECTION: USERS ======= -->
           <section
             class="jewd-section"
@@ -964,11 +1447,11 @@
       <div class="jewd-toast" id="toast"></div>
     </div>
 
-    <script src=".env.js?v=3.27.0"></script>
-    <script src="js/auth.js?v=3.27.0"></script>
-    <script src="js/api.js?v=3.27.0"></script>
-    <script src="js/users.js?v=3.27.0"></script>
-    <script src="js/pos.js?v=3.27.0"></script>
-    <script src="js/dashboard.js?v=3.27.0"></script>
+    <script src=".env.js?v=3.30.0"></script>
+    <script src="js/auth.js?v=3.30.0"></script>
+    <script src="js/api.js?v=3.30.0"></script>
+    <script src="js/users.js?v=3.30.0"></script>
+    <script src="js/pos.js?v=3.30.0"></script>
+    <script src="js/dashboard.js?v=3.30.0"></script>
   </body>
 </html>
