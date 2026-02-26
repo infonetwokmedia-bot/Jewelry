@@ -1,9 +1,10 @@
 {
+  // Nota: github.copilot y github.copilot-chat están fusionadas
+  //       desde VS Code 1.108+ — solo se necesita copilot-chat
   "recommendations": [
     // ============================================
     // AI (Principal)
     // ============================================
-    "github.copilot",
     "github.copilot-chat",
     // ============================================
     // PHP & WordPress
@@ -46,5 +47,10 @@
     // Database
     // ============================================
     "cweijan.vscode-mysql-client2"
+  ],
+  // Extensiones que NO deben recomendarse (evita prompts repetitivos)
+  "unwantedRecommendations": [
+    "github.copilot",
+    "ms-azuretools.vscode-docker"
   ]
 }

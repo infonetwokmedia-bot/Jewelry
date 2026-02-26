@@ -23,7 +23,22 @@
   },
   // ────────────────────────────────────────────────────────────
   // GITHUB COPILOT (Principal)
+  // Nota: github.copilot y github.copilot-chat están fusionadas
+  //       desde VS Code 1.108+ — una sola extensión
   // ────────────────────────────────────────────────────────────
+  // Usar instruction files del proyecto (.github/copilot-instructions.md)
+  "github.copilot.chat.codeGeneration.useInstructionFiles": true,
+  "github.copilot.chat.codeGeneration.instructions": [
+    {
+      "file": ".github/copilot-instructions.md"
+    }
+  ],
+  // Instrucciones para mensajes de commit generados por Copilot
+  "github.copilot.chat.commitMessageGeneration.instructions": [
+    {
+      "text": "Use conventional commits: feat, fix, chore, docs, refactor, style, test. Escribe en inglés. Subject max 50 chars. Body en español si es necesario."
+    }
+  ],
   "github.copilot.enable": {
     "*": true,
     "yaml": true,
@@ -47,6 +62,10 @@
   "chat.promptFilesLocations": {
     ".github/prompts": true
   },
+  // Prompts recomendados al iniciar sesión de chat
+  "chat.promptFilesRecommendations": [
+    ".github/prompts/deploy-check.prompt.md"
+  ],
   // Configuración de inline suggestions
   "editor.inlineSuggest.enabled": true,
   "editor.quickSuggestions": {
@@ -192,8 +211,18 @@
     "data/mysql/**": true
   },
   // ────────────────────────────────────────────────────────────
-  // GIT
+  // GIT & GITHUB INTEGRATION (Multi-Account SSH)
   // ────────────────────────────────────────────────────────────
+  // Protocolo SSH requerido para multi-cuenta (github.com-tujoyita)
+  "github.gitProtocol": "ssh",
+  "github.gitAuthentication": true,
+  // GitHub PR extension
+  "githubPullRequests.remotes": ["origin"],
+  "githubPullRequests.defaultMergeMethod": "squash",
+  "githubPullRequests.showInSCM": true,
+  // GitHub Actions
+  "github-actions.remote-name": "origin",
+  // Git general
   "git.enableSmartCommit": true,
   "git.confirmSync": false,
   "git.autofetch": true,

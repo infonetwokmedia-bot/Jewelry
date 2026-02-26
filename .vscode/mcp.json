@@ -1,0 +1,42 @@
+{
+  // ══════════════════════════════════════════════════════════════
+  // MCP SERVERS - Tu Joyita Miami
+  // ══════════════════════════════════════════════════════════════
+  //
+  // NOTA: El GitHub MCP ya está integrado en Copilot Chat (built-in).
+  //       No necesita configuración — proporciona herramientas como
+  //       crear issues, PRs, buscar código, etc.
+  //
+  // Requisitos: node v18+, npx v10+ (verificado en este servidor)
+  //
+  "servers": {
+    // ────────────────────────────────────────────────────────────
+    // Docker MCP - Gestión de containers desde Copilot Chat
+    // ────────────────────────────────────────────────────────────
+    // Permite: listar containers, ver logs, inspeccionar, exec
+    // Útil para: "muéstrame los logs de jewelry_wordpress",
+    //            "¿qué containers están corriendo?", etc.
+    "docker": {
+      "type": "stdio",
+      "command": "docker",
+      "args": [
+        "run", "-i", "--rm",
+        "-v", "/var/run/docker.sock:/var/run/docker.sock",
+        "mcp/docker"
+      ]
+    },
+    // ────────────────────────────────────────────────────────────
+    // Fetch MCP - Acceder a URLs/APIs desde Copilot Chat
+    // ────────────────────────────────────────────────────────────
+    // Permite: fetch de URLs, verificar APIs REST
+    // Útil para: verificar WooCommerce REST API, status del sitio
+    "fetch": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@anthropic-ai/mcp-fetch@latest"
+      ]
+    }
+  }
+}
