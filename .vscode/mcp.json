@@ -96,10 +96,9 @@
         // Smoke tests después de cambios para detectar regresiones.
         "playwright": {
             "type": "stdio",
-            "command": "npx",
+            "command": "node",
             "args": [
-                "-y",
-                "@playwright/mcp@latest",
+                "${workspaceFolder}/node_modules/@playwright/mcp/cli.js",
                 "--headless"
             ]
         },
