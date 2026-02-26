@@ -22,6 +22,53 @@
                 "-y",
                 "mcp-fetch-server"
             ]
+        },
+        // ────────────────────────────────────────────────────────────
+        // MySQL MCP - Acceso a base de datos LOCAL (jewelry_db)
+        // ────────────────────────────────────────────────────────────
+        // Herramientas: query, execute, list_tables, describe_table,
+        //   create_table, add/alter/drop_column, drop/truncate_table,
+        //   list_databases, get_indexes, get_foreign_keys, connect_db
+        // Resources: Navegación de schema
+        // Prompts: Generación SQL, sugerencias de índices
+        // Puerto 3307 = MySQL local (Docker: 3306 interno → 3307 host)
+        "mysql-local": {
+            "type": "stdio",
+            "command": "npx",
+            "args": [
+                "-y",
+                "mcp-mysql-server"
+            ],
+            "env": {
+                "MYSQL_HOST": "127.0.0.1",
+                "MYSQL_PORT": "3307",
+                "MYSQL_USER": "jewelry_user",
+                "MYSQL_PASSWORD": "jewelry_pass_2026!",
+                "MYSQL_DATABASE": "jewelry_db"
+            }
+        },
+        // ────────────────────────────────────────────────────────────
+        // MySQL MCP - Acceso a base de datos PRODUCCIÓN (tujoyita_db)
+        // ────────────────────────────────────────────────────────────
+        // SOLO LECTURA: Usuario mcp_readonly con permisos SELECT only
+        // Requiere SSH tunnel activo:
+        //   ssh -fNL 3311:127.0.0.1:3307 tujoyita-prod
+        // Puerto 3311 local → VPS:3307 → MySQL container:3306
+        // (3308=runartinside, 3309=ppcapiro, 3310=runart — ya ocupados)
+        "mysql-prod": {
+            "type": "stdio",
+            "command": "npx",
+            "args": [
+                "-y",
+                "mcp-mysql-server"
+            ],
+            "env": {
+                "MYSQL_HOST": "127.0.0.1",
+                "MYSQL_PORT": "3311",
+                "MYSQL_USER": "mcp_readonly",
+                "MYSQL_PASSWORD": "McpReadonly2026",
+                "MYSQL_DATABASE": "tujoyita_db"
+            }
         }
     }
 }
