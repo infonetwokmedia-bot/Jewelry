@@ -91,3 +91,4 @@ docker-compose.yml.backup*
 !.vscode/jewelry.code-snippets
 dashboard/.env.production.js
 !data/wordpress/wp-content/mu-plugins/jewelry-roles.php
+!data/wordpress/wp-content/mu-plugins/jewelry-gold-prices.php
