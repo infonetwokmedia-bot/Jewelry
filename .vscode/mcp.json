@@ -69,6 +69,62 @@
                 "MYSQL_PASSWORD": "McpReadonly2026",
                 "MYSQL_DATABASE": "tujoyita_db"
             }
+        },
+        // ────────────────────────────────────────────────────────────
+        // Git MCP (Oficial Anthropic) - Prevención de regresiones
+        // ────────────────────────────────────────────────────────────
+        // Herramientas: git_status, git_diff_unstaged, git_diff_staged,
+        //   git_diff, git_commit, git_add, git_reset, git_log,
+        //   git_create_branch, git_checkout, git_show, git_branch
+        // Anti-regresión: crear branches de respaldo, ver diffs,
+        //   comparar con commits previos, reset si algo falla
+        "git": {
+            "type": "stdio",
+            "command": "uvx",
+            "args": [
+                "mcp-server-git",
+                "--repository",
+                "/srv/stacks/jewelry"
+            ]
+        },
+        // ────────────────────────────────────────────────────────────
+        // Playwright MCP - Testing visual y funcional del sitio
+        // ────────────────────────────────────────────────────────────
+        // Navega el sitio real, verifica que páginas cargan,
+        // detecta elementos rotos, errores 404, JS errors.
+        // Usa accessibility tree (no screenshots, no GPU).
+        // Smoke tests después de cambios para detectar regresiones.
+        "playwright": {
+            "type": "stdio",
+            "command": "npx",
+            "args": [
+                "-y",
+                "@playwright/mcp@latest",
+                "--headless"
+            ]
+        },
+        // ────────────────────────────────────────────────────────────
+        // WordPress MCP - Gestión WordPress (59 herramientas)
+        // ────────────────────────────────────────────────────────────
+        // Posts, pages, media, users, comments, taxonomías,
+        // settings, auth, cache, performance monitoring.
+        // Anti-regresión: verificar revisiones, estado de plugins,
+        //   configuraciones antes/después de cambios, limpiar cache.
+        // Apunta al WP local (dev.tujoyita.com via Cloudflare Tunnel)
+        // NOTA: Usa node directo (no npx) porque bin/mcp-wordpress.js
+        //   tiene bug con process.argv[1] vs import.meta.url.
+        //   Versión 1.2.3 pinned (última compatible con Node 18).
+        "wordpress": {
+            "type": "stdio",
+            "command": "node",
+            "args": [
+                "${workspaceFolder}/node_modules/mcp-wordpress/dist/index.js"
+            ],
+            "env": {
+                "WORDPRESS_SITE_URL": "https://dev.tujoyita.com",
+                "WORDPRESS_USERNAME": "ppcapiro",
+                "WORDPRESS_APP_PASSWORD": "dGFgWx2Hu6m3vP2XUHNRpIUz"
+            }
         }
     }
 }
