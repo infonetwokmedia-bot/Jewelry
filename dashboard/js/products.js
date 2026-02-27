@@ -2425,7 +2425,7 @@
   J.exportCSV = exportCSV;
 
   // Lightbox — expose for keyboard nav from app.js
-  J.openLightbox = openLightbox;
+  J.openLightbox = showLightbox;
   J.renderLightbox = renderLightbox;
   J.getLightboxState = () => ({ images: lightboxImages, idx: lightboxIdx });
   J.setLightboxIdx = (i) => { lightboxIdx = i; };
