@@ -740,12 +740,13 @@ phase7_health() {
     log_section "WordPress REST API"
 
     local api_resp
-    api_resp=$(curl -s --max-time 10 "https://$PROD_DOMAIN/wp-json/" 2>/dev/null | head -c 200)
+    api_resp=$(curl -s --max-time 10 "https://$PROD_DOMAIN/wp-json/" 2>/dev/null || true)
+    api_resp="${api_resp:0:500}"
     if echo "$api_resp" | grep -q '"name"'; then
         log_ok "REST API respondiendo"
         local site_name
-        site_name=$(echo "$api_resp" | grep -oP '"name"\s*:\s*"[^"]*"' | head -1 || echo "")
-        [ -n "$site_name" ] && log_info "  $site_name"
+        site_name=$(echo "$api_resp" | grep -oP '"name"\s*:\s*"[^"]*"' | head -1) || true
+        [ -n "$site_name" ] && log_info "  $site_name" || true
     else
         log_warn "REST API no responde correctamente"
     fi
