@@ -89,7 +89,7 @@ El dashboard es una SPA vanilla JS que consume la API REST de WooCommerce.
 | Archivo | Proposito |
 |---------|-----------|
 | `dashboard/index.html` | HTML principal (cache buster en assets) |
-| `dashboard/.env.js` | Config LOCAL (tracked en Git) |
+| `dashboard/.env.js` | Config LOCAL (gitignored, NO en Git) |
 | `dashboard/.env.production.js` | Config PRODUCCION (NO en Git, solo en VPS) |
 | `dashboard/js/auth.js` | Autenticacion JWT + roles |
 | `dashboard/js/api.js` | Capa API WooCommerce REST |
@@ -101,7 +101,7 @@ El dashboard es una SPA vanilla JS que consume la API REST de WooCommerce.
 ### Roles del Dashboard
 
 - `administrator` — Acceso total
-- `jewelry_manager` — Gestion completa de tienda
+- `shop_manager` — Gestion completa de tienda (WooCommerce built-in, equivale a jewelry_manager)
 - `jewelry_seller` — Solo vender (POS, sus propios pedidos)
 - `jewelry_viewer` — Solo lectura
 
@@ -183,8 +183,11 @@ NUNCA SQL directo — usar WP_Query, get_posts(), WPDB abstraction.
 ### 5. Funciones Custom
 
 Usar mu-plugins (prefijo `jewelry-`):
-- `data/wordpress/wp-content/mu-plugins/jewelry-roles.php`
-- `data/wordpress/wp-content/mu-plugins/jewelry-api-proxy.php`
+- `data/wordpress/wp-content/mu-plugins/jewelry-roles.php` — Roles, JWT auth, Users API, Sales API
+- `data/wordpress/wp-content/mu-plugins/jewelry-security.php` — XML-RPC off, version hiding, rate limiting
+- `data/wordpress/wp-content/mu-plugins/jewelry-dev-domain.php` — Domain mirroring local/public
+- `data/wordpress/wp-content/mu-plugins/jewelry-gold-prices.php` — MetalPriceAPI integration
+- `data/wordpress/wp-content/mu-plugins/jewelry-image-optimization.php` — WebP conversion, lazy loading
 
 NO modificar archivos core de Astra, Elementor, WooCommerce.
 
