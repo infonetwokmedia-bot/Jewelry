@@ -110,20 +110,13 @@
         // Anti-regresión: verificar revisiones, estado de plugins,
         //   configuraciones antes/después de cambios, limpiar cache.
         // Apunta al WP local (dev.tujoyita.com via Cloudflare Tunnel)
-        // NOTA: Usa node directo (no npx) porque bin/mcp-wordpress.js
-        //   tiene bug con process.argv[1] vs import.meta.url.
-        //   Versión 1.2.3 pinned (última compatible con Node 18).
+        // Usa wrapper script que carga .env antes de iniciar
         "wordpress": {
             "type": "stdio",
-            "command": "node",
+            "command": "bash",
             "args": [
-                "${workspaceFolder}/node_modules/mcp-wordpress/dist/index.js"
-            ],
-            "env": {
-                "WORDPRESS_SITE_URL": "https://dev.tujoyita.com",
-                "WORDPRESS_USERNAME": "ppcapiro",
-                "WORDPRESS_APP_PASSWORD": "${env:MCP_WP_APP_PASSWORD}"
-            }
+                "${workspaceFolder}/scripts/mcp-wordpress-wrapper.sh"
+            ]
         }
     }
 }
