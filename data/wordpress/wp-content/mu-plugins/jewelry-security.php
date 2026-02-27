@@ -53,47 +53,84 @@ add_filter(
     }
 );
 
-// ─── LIMITAR INTENTOS DE LOGIN ────────────────────────────────────────────
+// ─── LIMITAR INTENTOS DE LOGIN (HTTP 429 — no bloquea workers PHP) ────────
+// Nota: jewelry_get_client_ip() definida en jewelry-auth.php (cargado antes).
+
+/**
+ * Registrar intento fallido de login.
+ */
 add_action(
     'wp_login_failed',
     function ( $username ) {
-        $ip = isset( $_SERVER['REMOTE_ADDR'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) : '';
+        $ip            = jewelry_get_client_ip();
         $transient_key = 'jewelry_login_attempts_' . md5( $ip );
-        $attempts = (int) get_transient( $transient_key );
+        $attempts      = (int) get_transient( $transient_key );
         $attempts++;
-        set_transient( $transient_key, $attempts, HOUR_IN_SECONDS );
-        if ( $attempts > 5 ) {
-            $delay = min( pow( 2, $attempts - 5 ), 30 );
-            sleep( $delay );
+        $lockout_seconds = 15 * MINUTE_IN_SECONDS;
+        set_transient( $transient_key, $attempts, $lockout_seconds );
+
+        if ( $attempts >= 5 ) {
+            // Log para monitoreo.
+            error_log(
+                sprintf(
+                    '[Jewelry Security] Login bloqueado: IP=%s, usuario=%s, intentos=%d',
+                    $ip,
+                    sanitize_user( $username ),
+                    $attempts
+                )
+            );
         }
     }
 );
 
+/**
+ * Bloquear login si se exceden 5 intentos — retorna HTTP 429 inmediatamente.
+ * NO usa sleep() para no bloquear workers PHP.
+ */
 add_filter(
     'authenticate',
     function ( $user, $username, $password ) {
         if ( empty( $username ) ) {
             return $user;
         }
-        $ip = isset( $_SERVER['REMOTE_ADDR'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) : '';
+
+        $ip            = jewelry_get_client_ip();
         $transient_key = 'jewelry_login_attempts_' . md5( $ip );
-        $attempts = (int) get_transient( $transient_key );
-        if ( $attempts >= 15 ) {
-            return new WP_Error(
-                'too_many_attempts',
-                __( 'Too many login attempts. Please try again later.', 'jewelry' )
+        $attempts      = (int) get_transient( $transient_key );
+
+        if ( $attempts >= 5 ) {
+            $lockout_seconds = 15 * MINUTE_IN_SECONDS;
+            $remaining       = $lockout_seconds; // Máximo posible (transients no exponen TTL).
+
+            // Header Retry-After para clientes bien comportados.
+            if ( ! headers_sent() ) {
+                header( 'Retry-After: ' . $remaining );
+            }
+
+            wp_die(
+                sprintf(
+                    /* translators: %d: minutes remaining */
+                    __( 'Demasiados intentos de login. Intente de nuevo en %d minutos.', 'jewelry' ),
+                    (int) ceil( $remaining / 60 )
+                ),
+                __( 'Acceso bloqueado', 'jewelry' ),
+                array( 'response' => 429 )
             );
         }
+
         return $user;
     },
     30,
     3
 );
 
+/**
+ * Limpiar intentos al login exitoso.
+ */
 add_action(
     'wp_login',
     function () {
-        $ip = isset( $_SERVER['REMOTE_ADDR'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) : '';
+        $ip = jewelry_get_client_ip();
         delete_transient( 'jewelry_login_attempts_' . md5( $ip ) );
     }
 );

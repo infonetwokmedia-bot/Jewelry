@@ -30,12 +30,32 @@ services:
       timeout: 5s
       retries: 5
 
+  redis:
+    image: redis:7-alpine
+    container_name: tujoyita_redis
+    restart: always
+    volumes:
+      - redis-data:/data
+    command: redis-server --maxmemory 128mb --maxmemory-policy allkeys-lru
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    networks:
+      - tujoyita_internal
+
   wordpress:
-    image: wordpress:6.9-php8.1-apache
+    build:
+      context: ./docker/wordpress
+      dockerfile: Dockerfile
+    image: tujoyita_wordpress:6.9-php8.1-redis
     container_name: tujoyita_wordpress
     restart: always
     depends_on:
       mysql:
+        condition: service_healthy
+      redis:
         condition: service_healthy
     environment:
       WORDPRESS_DB_HOST: mysql
@@ -51,6 +71,11 @@ services:
         define('EMPTY_TRASH_DAYS', 15);
         define('WP_MEMORY_LIMIT', '256M');
         define('WP_MAX_MEMORY_LIMIT', '512M');
+        define('WP_REDIS_HOST', 'redis');
+        define('WP_REDIS_PORT', 6379);
+        define('WP_REDIS_DATABASE', 0);
+        define('WP_REDIS_TIMEOUT', 1);
+        define('WP_REDIS_READ_TIMEOUT', 1);
     volumes:
       - wp-data:/var/www/html
     networks:
@@ -164,6 +189,7 @@ services:
 volumes:
   mysql-data:
   wp-data:
+  redis-data:
 
 networks:
   tujoyita_internal:

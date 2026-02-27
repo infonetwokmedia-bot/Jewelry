@@ -7,11 +7,15 @@ on:
         description: 'Escribe "deploy" para confirmar'
         required: true
         type: string
-      skip_backup:
-        description: "Saltar backup pre-deploy"
+      mode:
+        description: "Modo de operación"
         required: false
-        type: boolean
-        default: false
+        type: choice
+        options:
+          - deploy
+          - check
+          - status
+        default: deploy
 
 concurrency:
   group: production-deploy
@@ -22,209 +26,87 @@ env:
   SITE_URL: https://tujoyita.com
 
 jobs:
-  validate:
-    name: Validate Deploy
+  deploy:
+    name: "Deploy (${{ github.event.inputs.mode || 'deploy' }})"
     runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.mode == 'deploy' && 'production' || '' }}
     steps:
       - name: Confirm deployment
-        if: ${{ github.event.inputs.confirm != 'deploy' }}
+        if: ${{ github.event.inputs.mode == 'deploy' && github.event.inputs.confirm != 'deploy' }}
         run: |
-          echo "❌ Deploy cancelado. Debes escribir 'deploy' para confirmar."
+          echo "::error::Deploy cancelado. Debes escribir 'deploy' para confirmar."
           exit 1
-
-      - name: Checkout code
-        uses: actions/checkout@v4
 
       - name: Verify branch
         run: |
           BRANCH="${GITHUB_REF#refs/heads/}"
           if [ "$BRANCH" != "main" ]; then
-            echo "❌ Solo se puede desplegar desde main. Branch actual: $BRANCH"
+            echo "::error::Solo se puede desplegar desde main. Branch actual: $BRANCH"
             exit 1
           fi
-          echo "✅ Branch: main"
 
-  backup:
-    name: Pre-deploy Backup
-    needs: validate
-    if: ${{ github.event.inputs.skip_backup != 'true' }}
-    runs-on: ubuntu-latest
-    steps:
-      - name: Backup production database
-        uses: appleboy/ssh-action@v1
-        with:
-          host: ${{ secrets.VPS_HOST }}
-          username: ${{ secrets.VPS_USER }}
-          key: ${{ secrets.VPS_SSH_KEY }}
-          script: |
-            cd ${{ env.PROD_DIR }}
-            mkdir -p backups
-            TIMESTAMP=$(date +%Y%m%d_%H%M%S)
-            docker exec tujoyita_mysql mysqldump \
-              -u root -p$(grep MYSQL_ROOT_PASSWORD .env | cut -d= -f2) \
-              $(grep MYSQL_DATABASE .env | cut -d= -f2) \
-              --single-transaction --routines --triggers \
-              | gzip > backups/pre-deploy_${TIMESTAMP}.sql.gz
-            echo "✅ Backup: backups/pre-deploy_${TIMESTAMP}.sql.gz"
-            ls -lh backups/pre-deploy_${TIMESTAMP}.sql.gz
-
-  deploy:
-    name: Deploy
-    needs: [validate, backup]
-    if: always() && needs.validate.result == 'success' && (needs.backup.result == 'success' || needs.backup.result == 'skipped')
-    runs-on: ubuntu-latest
-    environment: production
-    steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Deploy to VPS
-        uses: appleboy/ssh-action@v1
+      - name: Setup Node.js
+        if: ${{ github.event.inputs.mode == 'deploy' }}
+        uses: actions/setup-node@v4
         with:
-          host: ${{ secrets.VPS_HOST }}
-          username: ${{ secrets.VPS_USER }}
-          key: ${{ secrets.VPS_SSH_KEY }}
-          script: |
-            set -e
-            cd ${{ env.PROD_DIR }}
+          node-version: 20
+          cache: npm
 
-            COMPOSE="docker compose -f docker-compose.production.yml"
+      - name: Install dependencies
+        if: ${{ github.event.inputs.mode == 'deploy' }}
+        run: npm ci
 
-            echo "📋 Estado previo:"
-            $COMPOSE ps --format 'table {{.Name}}\t{{.Status}}'
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.VPS_SSH_KEY }}" > ~/.ssh/id_deploy
+          chmod 600 ~/.ssh/id_deploy
+          cat >> ~/.ssh/config <<EOF
+          Host tujoyita-prod
+            HostName ${{ secrets.VPS_HOST }}
+            User ${{ secrets.VPS_USER }}
+            IdentityFile ~/.ssh/id_deploy
+            StrictHostKeyChecking accept-new
+            ConnectTimeout 10
+          EOF
+          chmod 600 ~/.ssh/config
+          ssh tujoyita-prod "echo 'SSH OK'"
 
-            echo ""
-            echo "⟳ Pulling latest images..."
-            $COMPOSE pull wordpress dashboard
+      - name: Run deploy-agent.sh
+        env:
+          PROD_HOST: tujoyita-prod
+          PROD_DIR: ${{ env.PROD_DIR }}
+        run: |
+          chmod +x scripts/deploy-agent.sh
+          MODE="${{ github.event.inputs.mode || 'deploy' }}"
+          case "$MODE" in
+            deploy) FLAG="--force" ;;
+            check)  FLAG="--check" ;;
+            status) FLAG="--status" ;;
+          esac
+          bash scripts/deploy-agent.sh $FLAG 2>&1 | tee deploy-output.txt
+          exit ${PIPESTATUS[0]}
 
-            echo ""
-            echo "⟳ Recreating WordPress & Dashboard (DB untouched)..."
-            $COMPOSE up -d --force-recreate wordpress dashboard
-
-            echo ""
-            echo "⏳ Esperando que WordPress arranque..."
-            sleep 10
-
-            # Verify MySQL was NOT restarted
-            MYSQL_STATUS=$(docker inspect --format='{{.State.Status}}' tujoyita_mysql 2>/dev/null || echo "unknown")
-            echo "MySQL status: $MYSQL_STATUS (should be running, NOT restarted)"
-
-            # Verify WordPress is responding
-            HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" -H "Host: tujoyita.com" http://localhost:80 2>/dev/null || echo "000")
-            echo "WordPress HTTP: $HTTP_CODE"
-
-            echo ""
-            echo "📋 Estado posterior:"
-            $COMPOSE ps --format 'table {{.Name}}\t{{.Status}}'
-
-      - name: Sync mu-plugins to production volume
-        uses: appleboy/ssh-action@v1
+      - name: Upload deploy log
+        if: always()
+        uses: actions/upload-artifact@v4
         with:
-          host: ${{ secrets.VPS_HOST }}
-          username: ${{ secrets.VPS_USER }}
-          key: ${{ secrets.VPS_SSH_KEY }}
-          script: |
-            cd ${{ env.PROD_DIR }}
-            # mu-plugins go into the Docker named volume via docker cp
-            for f in data/wordpress/wp-content/mu-plugins/jewelry-*.php; do
-              [ -f "$f" ] || continue
-              docker cp "$f" tujoyita_wordpress:/var/www/html/wp-content/mu-plugins/
-              echo "  ✔ $(basename $f)"
-            done
-            echo "✅ mu-plugins synced to container volume"
+          name: deploy-log-${{ github.run_number }}
+          path: deploy-output.txt
+          retention-days: 30
 
-      - name: Sync dashboard
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.VPS_HOST }}
-          username: ${{ secrets.VPS_USER }}
-          key: ${{ secrets.VPS_SSH_KEY }}
-          source: "dashboard/"
-          target: "${{ env.PROD_DIR }}/"
-          strip_components: 0
-
-      - name: Clear cache
-        uses: appleboy/ssh-action@v1
-        with:
-          host: ${{ secrets.VPS_HOST }}
-          username: ${{ secrets.VPS_USER }}
-          key: ${{ secrets.VPS_SSH_KEY }}
-          script: |
-            cd ${{ env.PROD_DIR }}
-            COMPOSE="docker compose -f docker-compose.production.yml"
-            # Restart dashboard to pick up new files
-            $COMPOSE restart dashboard
-            # Flush WP cache (wpcli has profiles: ["cli"])
-            $COMPOSE --profile cli run --rm wpcli cache flush 2>/dev/null || true
-            echo "✅ Cache cleared"
-
-  health-check:
-    name: Post-deploy Health Check
-    needs: deploy
-    runs-on: ubuntu-latest
-    steps:
-      - name: Wait for propagation
-        run: sleep 15
-
-      - name: Check HTTPS
-        run: |
-          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 30 ${{ env.SITE_URL }})
-          echo "HTTPS Status: $HTTP_CODE"
-          if [ "$HTTP_CODE" != "200" ]; then
-            echo "❌ Site returned $HTTP_CODE"
-            exit 1
-          fi
-          echo "✅ Site is UP"
-
-      - name: Check www redirect
-        run: |
-          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 15 https://www.tujoyita.com)
-          echo "www redirect: $HTTP_CODE"
-          if [ "$HTTP_CODE" != "301" ] && [ "$HTTP_CODE" != "200" ]; then
-            echo "⚠️ www redirect returned $HTTP_CODE"
-          else
-            echo "✅ www redirect OK"
-          fi
-
-      - name: Check SSL certificate
-        run: |
-          EXPIRY=$(echo | openssl s_client -servername tujoyita.com -connect tujoyita.com:443 2>/dev/null | openssl x509 -noout -enddate 2>/dev/null | cut -d= -f2)
-          echo "SSL expires: $EXPIRY"
-          # Check if expiry is more than 7 days away
-          EXPIRY_EPOCH=$(date -d "$EXPIRY" +%s 2>/dev/null || echo "0")
-          NOW_EPOCH=$(date +%s)
-          DIFF=$(( (EXPIRY_EPOCH - NOW_EPOCH) / 86400 ))
-          if [ "$DIFF" -lt 7 ]; then
-            echo "⚠️ SSL certificate expires in $DIFF days!"
-          else
-            echo "✅ SSL certificate valid for $DIFF days"
-          fi
-
-      - name: Check WP REST API
-        run: |
-          RESPONSE=$(curl -s --max-time 15 "${{ env.SITE_URL }}/wp-json/" | head -c 200)
-          if echo "$RESPONSE" | grep -q "name"; then
-            echo "✅ WordPress REST API responding"
-          else
-            echo "⚠️ REST API may not be responding"
-          fi
-
-  notify:
-    name: Notify Result
-    needs: [deploy, health-check]
-    if: always()
-    runs-on: ubuntu-latest
-    steps:
       - name: Summary
+        if: always()
         run: |
-          echo "## 🚀 Deploy Summary" >> $GITHUB_STEP_SUMMARY
+          echo "## Deploy Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "| Check | Result |" >> $GITHUB_STEP_SUMMARY
-          echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
-          echo "| Deploy | ${{ needs.deploy.result }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Health Check | ${{ needs.health-check.result }} |" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Mode:** ${{ github.event.inputs.mode || 'deploy' }}" >> $GITHUB_STEP_SUMMARY
           echo "**Branch:** ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
-          echo "**Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit:** \`$(git log --oneline -1)\`" >> $GITHUB_STEP_SUMMARY
           echo "**Actor:** ${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
           echo "**Time:** $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "> Unified deploy via \`deploy-agent.sh\` — backup, code sync, containers, health checks" >> $GITHUB_STEP_SUMMARY
