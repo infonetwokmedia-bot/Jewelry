@@ -1,6 +1,6 @@
 # Contexto Compartido - Proyecto Tu Joyita Miami
 
-> **Última actualización:** 25 de febrero de 2026
+> **Última actualización:** 27 de febrero de 2026
 
 ## Información General
 
@@ -95,16 +95,19 @@ Las bases de datos son 100% independientes. El deploy NUNCA toca la DB de produc
 
 | Archivo | Propósito |
 |---------|-----------|
-| `dashboard/index.html` | HTML principal |
-| `dashboard/.env.js` | Config LOCAL (tracked) |
-| `dashboard/.env.production.js` | Config PROD (NO en Git) |
+| `dashboard/index.html` | HTML principal (cache buster en assets) |
+| `dashboard/.env.js` | Config LOCAL (gitignored, NO en Git) |
+| `dashboard/.env.production.js` | Config PROD (NO en Git, solo en VPS) |
 | `dashboard/js/auth.js` | Auth JWT + roles |
 | `dashboard/js/api.js` | Capa API WooCommerce |
 | `dashboard/js/dashboard.js` | App principal |
 | `dashboard/js/pos.js` | Punto de Venta v2.0 |
 | `dashboard/js/users.js` | Gestión usuarios |
+| `dashboard/build.js` | esbuild: concatena JS → `dist/bundle.min.js` |
+| `dashboard/sw.js` | Service Worker (pre-cache dist/ assets) |
+| `dashboard/dist/` | Artefactos de build (bundle.min.js, .css, index.html) |
 
-### Roles: administrator, jewelry_manager, jewelry_seller, jewelry_viewer
+### Roles: administrator, shop_manager, jewelry_seller, jewelry_viewer
 
 ---
 
@@ -145,6 +148,36 @@ Ver `deployment-specialist.agent.md` para guía completa.
 - `data/wordpress/wp-content/mu-plugins/jewelry-*.php`
 - `dashboard/` (SPA completa)
 - `scripts/` (automatización)
+
+---
+
+## Sistema Anti-Regresión (CRÍTICO)
+
+### Incidentes Documentados
+
+| ID | Problema | Causa Raíz | Regla Permanente |
+|----|----------|-------------|------------------|
+| REG-001 | `J.openLightbox = openLightbox` (función no existía) | Typo en export, crasheó bundle completo y login | NUNCA asignar `J.xxx = fn` sin verificar que `fn` existe en el mismo archivo |
+| REG-002 | SW pre-cacheaba `js/auth.js` (no existe en prod) | SW no actualizado para bundles | `PRECACHE_ASSETS` solo debe listar `dist/bundle.min.*`, NUNCA módulos individuales |
+| REG-003 | Cache buster con timestamp viejo | `dist/index.html` no regenerado | SIEMPRE ejecutar `node dashboard/build.js` antes de deploy |
+| REG-004 | Healthcheck IPv6 en Alpine | `localhost` resuelve a `::1` | Usar `http://127.0.0.1/` en healthchecks docker-compose |
+| REG-005 | Traefik pierde routers tras recrear containers | Labels no re-detectadas | Verificar routers en Traefik API post-deploy |
+
+### Capas de Protección
+
+| Capa | Herramienta | Cuándo |
+|------|-------------|--------|
+| Pre-commit | `scripts/pre-commit.sh` | Automático en `git commit` |
+| Tests locales | `bash tests/regression/run-tests.sh` | Manual + CI (111 tests, 5 suites) |
+| Build verify | `node dashboard/build.js` + `node --check` | Pre-deploy |
+| CI/CD | `.github/workflows/code-quality.yml` | Push/PR a main |
+| Deploy gate | `deploy-agent.sh` ejecuta tests antes de desplegar | Cada deploy |
+
+### Comando Rápido
+
+```bash
+bash tests/regression/run-tests.sh && node dashboard/build.js && node --check dashboard/dist/bundle.min.js
+```
 
 ---
 

@@ -200,6 +200,98 @@ NO modificar archivos core de Astra, Elementor, WooCommerce.
 
 Conventional Commits: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`
 
+---
+
+## ANTI-REGRESION: Lecciones Aprendidas (CRITICO)
+
+### Incidentes Documentados
+
+Estas regresiones ocurrieron en produccion. Las pruebas automatizadas en
+`tests/regression/` previenen que se repitan. **SIEMPRE ejecutar** antes de deploy.
+
+#### REG-001: ReferenceError openLightbox (2026-02-27)
+
+**Que paso:** `products.js` exportaba `J.openLightbox = openLightbox` pero la funcion
+se llamaba `showLightbox`. El ReferenceError crasheaba el bundle COMPLETO antes de que
+`app.js` pudiera registrar el `addEventListener('submit')` del login. Resultado: login
+100% roto, credenciales visibles en URL (GET en vez de POST).
+
+**Causa raiz:** Typo durante modularizacion. esbuild NO detecta ReferenceErrors en
+modo concatenacion global-scope.
+
+**Regla permanente:**
+- **NUNCA** asignar `J.xxx = nombreFuncion` sin verificar que `nombreFuncion` existe
+  con exactamente ese nombre en el mismo archivo.
+- Despues de CUALQUIER cambio en `dashboard/js/*.js`, ejecutar:
+  `node --check dashboard/js/ARCHIVO.js` para sintaxis.
+- Ejecutar `bash tests/regression/run-tests.sh` que verifica TODOS los exports.
+
+#### REG-002: Service Worker sirviendo bundle viejo (2026-02-27)
+
+**Que paso:** El SW tenia `PRECACHE_ASSETS` con paths de modulos individuales
+(`/dashboard/js/auth.js`, etc.) que NO existen en produccion (produccion usa
+`dist/bundle.min.js`). Ademas, `CACHE_NAME` no se actualizo, asi que el SW
+servia el bundle roto del cache incluso despues de desplegar el fix.
+
+**Causa raiz:** `sw.js` no se actualizo cuando se implemento el sistema de bundles.
+
+**Regla permanente:**
+- `sw.js` PRECACHE_ASSETS debe listar `dist/bundle.min.js` y `dist/bundle.min.css`
+  (NUNCA modulos individuales `js/*.js` ni `css/dashboard.css`).
+- Al cambiar contenido del bundle, **SIEMPRE** incrementar `CACHE_NAME` en `sw.js`.
+- `.env.js` NUNCA debe estar en PRECACHE_ASSETS (es environment-specific).
+
+#### REG-003: Cache buster desactualizado (2026-02-27)
+
+**Que paso:** Despues de desplegar el bundle fijo, el HTML seguia pidiendo
+`bundle.min.js?v=TIMESTAMP_VIEJO`. El SW hacia cache-match con la URL exacta
+y servia la version cacheada rota.
+
+**Causa raiz:** Se desplego el bundle sin reconstruir `dist/index.html`.
+
+**Regla permanente:**
+- **SIEMPRE** ejecutar `node dashboard/build.js` antes de deploy. El script genera
+  nuevos timestamps en `dist/index.html`.
+- **SIEMPRE** copiar `dist/index.html` al root `dashboard/index.html` en produccion
+  (`deploy-agent.sh` ya lo hace automaticamente).
+
+#### REG-004: Healthcheck IPv6 en Alpine/Nginx (2026-02-27)
+
+**Que paso:** `wget http://localhost/` en contenedores Alpine resuelve `localhost`
+a `::1` (IPv6), pero Nginx solo escucha en IPv4. El healthcheck fallaba.
+
+**Regla permanente:**
+- En `docker-compose*.yml`, healthchecks deben usar `http://127.0.0.1/` (NO `localhost`).
+
+#### REG-005: Traefik pierde rutas tras docker compose (2026-02-27)
+
+**Que paso:** Tras `docker compose up -d` que recreo contenedores, Traefik no
+re-detecto las labels del dashboard. 0 routers registrados.
+
+**Regla permanente:**
+- Despues de `docker compose up -d`, verificar routers en Traefik API:
+  `curl -s http://localhost:8080/api/http/routers | grep jewelry-dashboard`
+- Si faltan routers: `docker compose up -d dashboard` para forzar re-deteccion.
+
+---
+
+### Sistema Anti-Regresion
+
+| Capa | Herramienta | Cuando se ejecuta |
+|------|-------------|-------------------|
+| Pre-commit | `scripts/pre-commit.sh` | Automatico al hacer `git commit` |
+| Tests locales | `bash tests/regression/run-tests.sh` | Manual + CI |
+| Build verify | `node dashboard/build.js` + `node --check dist/bundle.min.js` | Pre-deploy |
+| CI/CD | `.github/workflows/code-quality.yml` | Push/PR a main |
+| Deploy gate | `deploy-agent.sh` fase de validacion | Cada deploy |
+
+**Comando rapido para verificar todo:**
+```bash
+bash tests/regression/run-tests.sh && node dashboard/build.js && node --check dashboard/dist/bundle.min.js
+```
+
+---
+
 ## Estructura del Proyecto
 
 ```
@@ -223,11 +315,14 @@ Conventional Commits: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore
 │       └── uploads/
 ├── scripts/
 │   ├── deploy-agent.sh             # Deploy principal
+│   ├── pre-commit.sh               # Hook anti-regresion
 │   └── backup-database.sh
 ├── docs/
 │   └── DEPLOYMENT.md
 ├── tests/
-│   └── dashboard/                  # Test suite (574+ tests)
+│   ├── regression/                 # 🛡️ Tests anti-regresion (SIEMPRE ejecutar pre-deploy)
+│   ├── pos/                        # Tests POS
+│   └── sales/                      # Tests ventas
 ├── backups/
 ├── .github/
 │   ├── agents/                     # 8 agentes Copilot

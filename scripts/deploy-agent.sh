@@ -307,6 +307,49 @@ check_database_isolation() {
 }
 
 # ═══════════════════════════════════════════════════════════════════════════════
+# FASE 1b: TESTS ANTI-REGRESIÓN
+# ═══════════════════════════════════════════════════════════════════════════════
+
+check_regression_tests() {
+    log_section "Tests Anti-Regresión"
+
+    local test_runner="$PROJECT_DIR/tests/regression/run-tests.sh"
+
+    if [ ! -f "$test_runner" ]; then
+        log_warn "tests/regression/run-tests.sh no encontrado — saltando"
+        return 0
+    fi
+
+    # Verificar Node.js disponible
+    if ! command -v node &>/dev/null; then
+        log_warn "Node.js no disponible — saltando tests de regresión"
+        return 0
+    fi
+
+    log_info "Ejecutando suite anti-regresión (5 suites, 111+ tests)..."
+
+    local test_output
+    local test_exit_code
+    test_output=$(bash "$test_runner" 2>&1) || test_exit_code=$?
+    test_exit_code=${test_exit_code:-0}
+
+    if [ "$test_exit_code" -eq 0 ]; then
+        log_ok "Tests anti-regresión: TODOS PASARON"
+        # Extraer conteo de tests del output
+        local test_count
+        test_count=$(echo "$test_output" | grep -oP 'Total:.*?(\d+) tests' | grep -oP '\d+' | tail -1 || echo "")
+        [ -n "$test_count" ] && log_info "  $test_count tests ejecutados"
+    else
+        log_fail "Tests anti-regresión FALLARON (exit code: $test_exit_code)"
+        # Mostrar las últimas líneas del output para diagnóstico
+        echo "$test_output" | grep -E '(FAILED|✗|not ok|Error)' | head -10 | while IFS= read -r line; do
+            log_info "  $line"
+        done
+        log_info "Ejecutar manualmente: bash tests/regression/run-tests.sh"
+    fi
+}
+
+# ═══════════════════════════════════════════════════════════════════════════════
 # FASE 2: VALIDACIONES DE PRODUCCIÓN (REMOTO)
 # ═══════════════════════════════════════════════════════════════════════════════
 
@@ -809,6 +852,7 @@ main() {
             check_local_files
             check_no_credentials_leak
             check_database_isolation
+            check_regression_tests
             check_ssh_connection && {
                 check_prod_containers
                 check_prod_disk_space
@@ -858,6 +902,7 @@ main() {
     check_local_files
     check_no_credentials_leak
     check_database_isolation
+    check_regression_tests
 
     # ── Fase 2: Validaciones remotas ───────────────────────────────────────
     log_step "2" "Validaciones de Producción"

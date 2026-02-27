@@ -315,7 +315,7 @@ jobs:
             !node_modules/**
 
   dashboard-tests:
-    name: Dashboard Tests (POS + Sales)
+    name: Dashboard Tests (POS + Sales + Regression)
     runs-on: ubuntu-latest
 
     steps:
@@ -326,6 +326,11 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "20"
+
+      - name: Run Anti-Regression test suite
+        run: |
+          echo "🛡️ Running anti-regression tests..."
+          bash tests/regression/run-tests.sh
 
       - name: Run POS test suite
         run: |
@@ -347,6 +352,7 @@ jobs:
           test -f dashboard/dist/bundle.min.js || (echo "❌ bundle.min.js missing" && exit 1)
           test -f dashboard/dist/bundle.min.css || (echo "❌ bundle.min.css missing" && exit 1)
           test -f dashboard/dist/index.html || (echo "❌ dist/index.html missing" && exit 1)
+          node --check dashboard/dist/bundle.min.js || (echo "❌ bundle.min.js has syntax errors" && exit 1)
           echo "✅ Build successful"
 
   repo-structure:
