@@ -67,8 +67,8 @@ PROD_DB_NAME="tujoyita_db"
 LOCAL_DB_CONTAINER="jewelry_mysql"
 LOCAL_DB_NAME="jewelry_db"
 
-# WP-CLI command prefix for production
-WPCLI_CMD="docker compose -f docker-compose.production.yml --profile cli run --rm wpcli"
+# WP-CLI command prefix for production (uses docker exec to avoid Redis connectivity issues)
+WPCLI_CMD="docker exec $PROD_WP_CONTAINER php /var/www/html/wp-cli.phar"
 
 # State
 LAST_BACKUP=""
@@ -113,7 +113,7 @@ ssh_prod() {
 
 # WP-CLI on production (returns trimmed output)
 wpcli_prod() {
-    ssh_prod "cd $PROD_DIR && $WPCLI_CMD $*" 2>/dev/null | tr -d '\r'
+    ssh_prod "$WPCLI_CMD $* --allow-root" 2>/dev/null | tr -d '\r'
 }
 
 # ═════════════════════════════════════════════════════════════════════════════
@@ -579,7 +579,7 @@ phase5_containers() {
     log_section "Traefik (REG-005)"
 
     local traefik_routers
-    traefik_routers=$(ssh_prod "curl -sf http://localhost:8080/api/http/routers 2>/dev/null | grep -co 'tujoyita'" || echo "0")
+    traefik_routers=$(ssh_prod "curl -sf http://localhost:8080/api/http/routers 2>/dev/null | grep -co 'tujoyita'" 2>/dev/null) || traefik_routers=0
 
     if [ "$traefik_routers" -gt 0 ]; then
         log_ok "Traefik: $traefik_routers routers tujoyita"
@@ -587,7 +587,7 @@ phase5_containers() {
         log_warn "Traefik sin routers — forzando redescubrimiento..."
         ssh_prod "cd $PROD_DIR && docker compose -f docker-compose.production.yml up -d dashboard" 2>/dev/null
         sleep 5
-        traefik_routers=$(ssh_prod "curl -sf http://localhost:8080/api/http/routers 2>/dev/null | grep -co 'tujoyita'" || echo "0")
+        traefik_routers=$(ssh_prod "curl -sf http://localhost:8080/api/http/routers 2>/dev/null | grep -co 'tujoyita'" 2>/dev/null) || traefik_routers=0
         if [ "$traefik_routers" -gt 0 ]; then
             log_ok "Traefik redescubrió $traefik_routers routers"
         else
@@ -597,7 +597,7 @@ phase5_containers() {
 
     # Flush WP cache
     log_info "Limpiando cache..."
-    ssh_prod "cd $PROD_DIR && $WPCLI_CMD cache flush" 2>/dev/null || true
+    ssh_prod "$WPCLI_CMD cache flush --allow-root" 2>/dev/null || true
     log_ok "Cache limpiado"
 }
 
@@ -622,7 +622,7 @@ phase6_provision() {
         local key="$1"
         local expected="$2"
         local current
-        current=$(wpcli_prod "option get '$key'" 2>/dev/null | tr -d '\r\n' || echo "__UNSET__")
+        current=$(wpcli_prod "option get '$key'" 2>/dev/null | tr -d '\r\n') || current="__UNSET__"
 
         if [ "$current" = "$expected" ]; then
             log_ok "$key = $expected"
@@ -681,7 +681,7 @@ phase6_provision() {
 
     # Only delete "Hello world!" (ID 1) if it exists as a post
     local post_ids
-    post_ids=$(wpcli_prod "post list --post_type=post --field=ID" 2>/dev/null || echo "")
+    post_ids=$(wpcli_prod "post list --post_type=post --field=ID" 2>/dev/null) || post_ids=""
     if echo "$post_ids" | grep -qw "1"; then
         wpcli_prod "post delete 1 --force" >/dev/null 2>&1 || true
         log_ok "Eliminado 'Hello world!' (ID 1)"
@@ -691,7 +691,7 @@ phase6_provision() {
 
     # Delete sample comment (ID 1) if exists
     local comment_ids
-    comment_ids=$(wpcli_prod "comment list --field=comment_ID" 2>/dev/null || echo "")
+    comment_ids=$(wpcli_prod "comment list --field=comment_ID" 2>/dev/null) || comment_ids=""
     if echo "$comment_ids" | grep -qw "1"; then
         wpcli_prod "comment delete 1 --force" >/dev/null 2>&1 || true
         log_ok "Eliminado comentario default (ID 1)"
@@ -789,7 +789,7 @@ cmd_rollback() {
         \$(grep MYSQL_DATABASE .env | cut -d'=' -f2-)"
 
     log_ok "DB restaurada"
-    ssh_prod "cd $PROD_DIR && $WPCLI_CMD cache flush" 2>/dev/null || true
+    ssh_prod "$WPCLI_CMD cache flush --allow-root" 2>/dev/null || true
     log_ok "Cache limpiado"
     echo -e "\n  ${GREEN}${BOLD}Rollback completado.${NC}"
 }
