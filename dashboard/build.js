@@ -29,13 +29,21 @@ if (!fs.existsSync(distDir)) {
 }
 
 // ── JS Bundle ────────────────────────────────────────────────────────────────
-// Order matters: auth → api → users → pos → dashboard (dependency chain)
+// Order matters: auth → api → core → ui-helpers → products → orders →
+//                reports → settings → metals → users → pos → app
 const jsFiles = [
     'js/auth.js',
     'js/api.js',
+    'js/core.js',
+    'js/ui-helpers.js',
+    'js/products.js',
+    'js/orders.js',
+    'js/reports.js',
+    'js/settings.js',
+    'js/metals.js',
     'js/users.js',
     'js/pos.js',
-    'js/dashboard.js',
+    'js/app.js',
 ].map(f => path.join(dashboardDir, f));
 
 // Verify all source files exist
@@ -114,9 +122,15 @@ html = html.replace(
 
 // Replace individual JS scripts with single bundle
 // Keep .env.js (environment-specific), replace the rest
+const scriptPattern = /\s*<script src="js\/(?:auth|api|core|ui-helpers|products|orders|reports|settings|metals|users|pos|app|dashboard)\.js[^"]*"><\/script>/g;
 html = html.replace(
-    /\s*<script src="js\/auth\.js[^"]*"><\/script>\s*<script src="js\/api\.js[^"]*"><\/script>\s*<script src="js\/users\.js[^"]*"><\/script>\s*<script src="js\/pos\.js[^"]*"><\/script>\s*<script src="js\/dashboard\.js[^"]*"><\/script>/,
-    `\n  <script src="dist/bundle.min.js?v=${version}"></script>`
+    scriptPattern,
+    ''
+);
+// Insert bundle right before </body>
+html = html.replace(
+    '</body>',
+    `  <script src="dist/bundle.min.js?v=${version}"></script>\n</body>`
 );
 
 // Update .env.js cache buster too

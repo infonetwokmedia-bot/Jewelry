@@ -1,1457 +1,1100 @@
 <!doctype html>
 <html lang="es">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Jewelry Dashboard — WooCommerce Manager</title>
-    <link
-      rel="icon"
-      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💎</text></svg>"
-    />
-    <link rel="stylesheet" href="css/dashboard.css?v=3.30.0" />
-  </head>
-  <body>
-    <!-- ══════ LOGIN OVERLAY ══════ -->
-    <div id="loginOverlay" class="jewd-login-overlay active">
-      <div class="jewd-login-card">
-        <div class="jewd-login-logo">💎</div>
-        <h2 class="jewd-login-title">Jewelry Dashboard</h2>
-        <p class="jewd-login-subtitle">Inicia sesión para continuar</p>
-        <form id="loginForm" autocomplete="on">
-          <div class="jewd-login-field">
-            <label for="loginUsername">Usuario</label>
-            <input
-              type="text"
-              id="loginUsername"
-              name="username"
-              class="jewd-input"
-              placeholder="Tu usuario de WordPress"
-              autocomplete="username"
-              required
-            />
-          </div>
-          <div class="jewd-login-field">
-            <label for="loginPassword">Contraseña</label>
-            <input
-              type="password"
-              id="loginPassword"
-              name="password"
-              class="jewd-input"
-              placeholder="Contraseña"
-              autocomplete="current-password"
-              required
-            />
-          </div>
-          <div id="loginError" class="jewd-login-error"></div>
-          <button
-            type="submit"
-            id="loginBtn"
-            class="jewd-btn jewd-btn-gold jewd-login-btn"
-          >
-            🔑 Iniciar Sesión
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Jewelry Dashboard — WooCommerce Manager</title>
+  <link rel="icon"
+    href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💎</text></svg>" />
+  <link rel="stylesheet" href="css/dashboard.css?v=3.30.0" />
+</head>
+
+<body>
+  <!-- ══════ LOGIN OVERLAY ══════ -->
+  <div id="loginOverlay" class="jewd-login-overlay active">
+    <div class="jewd-login-card">
+      <div class="jewd-login-logo">💎</div>
+      <h2 class="jewd-login-title">Jewelry Dashboard</h2>
+      <p class="jewd-login-subtitle">Inicia sesión para continuar</p>
+      <form id="loginForm" autocomplete="on">
+        <div class="jewd-login-field">
+          <label for="loginUsername">Usuario</label>
+          <input type="text" id="loginUsername" name="username" class="jewd-input" placeholder="Tu usuario de WordPress"
+            autocomplete="username" required />
+        </div>
+        <div class="jewd-login-field">
+          <label for="loginPassword">Contraseña</label>
+          <input type="password" id="loginPassword" name="password" class="jewd-input" placeholder="Contraseña"
+            autocomplete="current-password" required />
+        </div>
+        <div id="loginError" class="jewd-login-error"></div>
+        <button type="submit" id="loginBtn" class="jewd-btn jewd-btn-gold jewd-login-btn">
+          🔑 Iniciar Sesión
+        </button>
+      </form>
+      <div class="jewd-login-footer">Tu Joyita Miami © 2026</div>
+    </div>
+  </div>
+
+  <a href="#sectionProducts" class="jewd-skip-link">Saltar al contenido</a>
+  <div id="jewd-app" class="jewd-wrap">
+    <!-- TOPBAR -->
+    <div class="jewd-topbar">
+      <div class="jewd-topbar-left">
+        <button class="jewd-sidebar-toggle" id="btnSidebarToggle" title="Menú" aria-label="Toggle menu">
+          ☰
+        </button>
+        <h1 class="jewd-title">
+          <span class="jewd-icon">💎</span>
+          Jewelry Dashboard
+          <span class="jewd-version" id="versionTag">v3.0.0</span>
+        </h1>
+      </div>
+      <div class="jewd-actions" id="topbarActions">
+        <button class="jewd-btn jewd-btn-gold jewd-btn-sm jewd-section-action" data-section="products"
+          id="btnNewProduct" title="Crear nuevo producto">
+          ➕ Nuevo
+        </button>
+        <button class="jewd-btn jewd-btn-outline jewd-btn-sm jewd-section-action" data-section="products"
+          id="btnExpandAll" title="Expandir/Colapsar todo">
+          ⊞ Expandir
+        </button>
+        <button class="jewd-btn jewd-btn-outline jewd-btn-sm jewd-section-action" data-section="products"
+          id="btnExportJSON" title="Exportar JSON">
+          ⬇ JSON
+        </button>
+        <button class="jewd-btn jewd-btn-outline jewd-btn-sm jewd-section-action" data-section="products"
+          id="btnExportCSV" title="Exportar CSV">
+          📊 CSV
+        </button>
+        <button class="jewd-btn jewd-btn-outline jewd-btn-sm" id="btnRefresh" title="Refrescar sección actual">
+          🔄
+        </button>
+        <a class="jewd-btn jewd-btn-outline jewd-btn-sm" id="btnWPAdmin" href="#" target="_blank" title="WP Admin">⚙</a>
+        <button class="jewd-btn-theme" id="btnTheme" title="Cambiar tema">
+          🌙
+        </button>
+        <div class="jewd-topbar-user" id="topbarUser">
+          <img id="currentUserAvatar" class="jewd-topbar-avatar" src="" alt="" style="display: none" />
+          <span id="currentUserName" class="jewd-topbar-username"></span>
+          <span id="currentUserRole" class="jewd-topbar-role"></span>
+          <button class="jewd-btn jewd-btn-sm jewd-btn-logout" id="btnLogout" style="display: none"
+            title="Cerrar sesión">
+            🚪 Salir
           </button>
-        </form>
-        <div class="jewd-login-footer">Tu Joyita Miami © 2026</div>
+        </div>
       </div>
     </div>
 
-    <a href="#sectionProducts" class="jewd-skip-link">Saltar al contenido</a>
-    <div id="jewd-app" class="jewd-wrap">
-      <!-- TOPBAR -->
-      <div class="jewd-topbar">
-        <div class="jewd-topbar-left">
-          <button
-            class="jewd-sidebar-toggle"
-            id="btnSidebarToggle"
-            title="Menú"
-            aria-label="Toggle menu"
-          >
-            ☰
-          </button>
-          <h1 class="jewd-title">
-            <span class="jewd-icon">💎</span>
-            Jewelry Dashboard
-            <span class="jewd-version" id="versionTag">v3.0.0</span>
-          </h1>
+    <!-- GOLD & SILVER TICKER BAR -->
+    <div class="jewd-gold-ticker" id="goldTickerBar" style="display: none">
+      <div class="jewd-gold-ticker-inner">
+        <div class="jewd-gold-item jewd-gold-item-label">
+          <span class="jewd-gold-icon">🥇</span>
+          <span>Metales</span>
         </div>
-        <div class="jewd-actions" id="topbarActions">
-          <button
-            class="jewd-btn jewd-btn-gold jewd-btn-sm jewd-section-action"
-            data-section="products"
-            id="btnNewProduct"
-            title="Crear nuevo producto"
-          >
-            ➕ Nuevo
-          </button>
-          <button
-            class="jewd-btn jewd-btn-outline jewd-btn-sm jewd-section-action"
-            data-section="products"
-            id="btnExpandAll"
-            title="Expandir/Colapsar todo"
-          >
-            ⊞ Expandir
-          </button>
-          <button
-            class="jewd-btn jewd-btn-outline jewd-btn-sm jewd-section-action"
-            data-section="products"
-            id="btnExportJSON"
-            title="Exportar JSON"
-          >
-            ⬇ JSON
-          </button>
-          <button
-            class="jewd-btn jewd-btn-outline jewd-btn-sm jewd-section-action"
-            data-section="products"
-            id="btnExportCSV"
-            title="Exportar CSV"
-          >
-            📊 CSV
-          </button>
-          <button
-            class="jewd-btn jewd-btn-outline jewd-btn-sm"
-            id="btnRefresh"
-            title="Refrescar sección actual"
-          >
+        <div class="jewd-gold-item" id="goldSpot" title="Oro 24K por onza troy">
+          <span class="jewd-gold-metal">Oro 24K/oz</span>
+          <span class="jewd-gold-price" id="goldSpotPrice">—</span>
+          <span class="jewd-gold-change" id="goldSpotChange"></span>
+        </div>
+        <div class="jewd-gold-item" id="gold14k" title="Oro 14K por gramo">
+          <span class="jewd-gold-metal">14K/g</span>
+          <span class="jewd-gold-price" id="gold14kPrice">—</span>
+        </div>
+        <div class="jewd-gold-item" id="gold10k" title="Oro 10K por gramo">
+          <span class="jewd-gold-metal">10K/g</span>
+          <span class="jewd-gold-price" id="gold10kPrice">—</span>
+        </div>
+        <div class="jewd-gold-sep"></div>
+        <div class="jewd-gold-item" id="silverSpot" title="Plata 925 por gramo">
+          <span class="jewd-gold-icon">🥈</span>
+          <span class="jewd-gold-metal">Plata 925/g</span>
+          <span class="jewd-gold-price" id="silver925Price">—</span>
+          <span class="jewd-gold-change" id="silverSpotChange"></span>
+        </div>
+        <div class="jewd-gold-ticker-meta">
+          <span class="jewd-gold-timestamp" id="goldTimestamp"></span>
+          <button class="jewd-gold-refresh" id="btnGoldRefresh" title="Actualizar precios" style="display: none">
             🔄
           </button>
-          <a
-            class="jewd-btn jewd-btn-outline jewd-btn-sm"
-            id="btnWPAdmin"
-            href="#"
-            target="_blank"
-            title="WP Admin"
-            >⚙</a
-          >
-          <button class="jewd-btn-theme" id="btnTheme" title="Cambiar tema">
-            🌙
-          </button>
-          <div class="jewd-topbar-user" id="topbarUser">
-            <img
-              id="currentUserAvatar"
-              class="jewd-topbar-avatar"
-              src=""
-              alt=""
-              style="display: none"
-            />
-            <span id="currentUserName" class="jewd-topbar-username"></span>
-            <span id="currentUserRole" class="jewd-topbar-role"></span>
-            <button
-              class="jewd-btn jewd-btn-sm jewd-btn-logout"
-              id="btnLogout"
-              style="display: none"
-              title="Cerrar sesión"
-            >
-              🚪 Salir
-            </button>
-          </div>
+          <a class="jewd-gold-detail-link" href="#/metals" title="Ver precios detallados, fuentes y calculadora">
+            <span>Ver detalle</span> →
+          </a>
         </div>
       </div>
-
-      <!-- GOLD & SILVER TICKER BAR -->
-      <div class="jewd-gold-ticker" id="goldTickerBar" style="display: none">
-        <div class="jewd-gold-ticker-inner">
-          <div class="jewd-gold-item jewd-gold-item-label">
-            <span class="jewd-gold-icon">🥇</span>
-            <span>Metales</span>
-          </div>
-          <div
-            class="jewd-gold-item"
-            id="goldSpot"
-            title="Oro 24K por onza troy"
-          >
-            <span class="jewd-gold-metal">Oro 24K/oz</span>
-            <span class="jewd-gold-price" id="goldSpotPrice">—</span>
-            <span class="jewd-gold-change" id="goldSpotChange"></span>
-          </div>
-          <div class="jewd-gold-item" id="gold14k" title="Oro 14K por gramo">
-            <span class="jewd-gold-metal">14K/g</span>
-            <span class="jewd-gold-price" id="gold14kPrice">—</span>
-          </div>
-          <div class="jewd-gold-item" id="gold10k" title="Oro 10K por gramo">
-            <span class="jewd-gold-metal">10K/g</span>
-            <span class="jewd-gold-price" id="gold10kPrice">—</span>
-          </div>
-          <div class="jewd-gold-sep"></div>
-          <div
-            class="jewd-gold-item"
-            id="silverSpot"
-            title="Plata 925 por gramo"
-          >
-            <span class="jewd-gold-icon">🥈</span>
-            <span class="jewd-gold-metal">Plata 925/g</span>
-            <span class="jewd-gold-price" id="silver925Price">—</span>
-            <span class="jewd-gold-change" id="silverSpotChange"></span>
-          </div>
-          <div class="jewd-gold-ticker-meta">
-            <span class="jewd-gold-timestamp" id="goldTimestamp"></span>
-            <button
-              class="jewd-gold-refresh"
-              id="btnGoldRefresh"
-              title="Actualizar precios"
-              style="display: none"
-            >
-              🔄
-            </button>
-            <a
-              class="jewd-gold-detail-link"
-              href="#/metals"
-              title="Ver precios detallados, fuentes y calculadora"
-            >
-              <span>Ver detalle</span> →
-            </a>
-          </div>
-        </div>
-      </div>
-
-      <!-- LAYOUT: Sidebar + Main -->
-      <div class="jewd-layout">
-        <!-- SIDEBAR -->
-        <aside class="jewd-sidebar" id="sidebar">
-          <nav class="jewd-nav">
-            <a
-              class="jewd-nav-item active"
-              href="#/products"
-              data-section="products"
-            >
-              <span class="jewd-nav-icon">📦</span>
-              <span class="jewd-nav-label">Productos</span>
-            </a>
-            <a class="jewd-nav-item" href="#/orders" data-section="orders">
-              <span class="jewd-nav-icon">🛒</span>
-              <span class="jewd-nav-label">Pedidos</span>
-              <span class="jewd-nav-badge" id="ordersBadge"></span>
-            </a>
-            <a
-              class="jewd-nav-item"
-              href="#/pos"
-              data-section="pos"
-              data-permission="create_orders"
-              style="display: none"
-            >
-              <span class="jewd-nav-icon">💰</span>
-              <span class="jewd-nav-label">Venta Local</span>
-            </a>
-            <a class="jewd-nav-item" href="#/reports" data-section="reports">
-              <span class="jewd-nav-icon">📊</span>
-              <span class="jewd-nav-label">Reportes</span>
-            </a>
-            <a class="jewd-nav-item" href="#/metals" data-section="metals">
-              <span class="jewd-nav-icon">🥇</span>
-              <span class="jewd-nav-label">Metales</span>
-            </a>
-            <a class="jewd-nav-item" href="#/settings" data-section="settings">
-              <span class="jewd-nav-icon">⚙️</span>
-              <span class="jewd-nav-label">Ajustes</span>
-            </a>
-            <a
-              class="jewd-nav-item"
-              href="#/users"
-              data-section="users"
-              data-permission="manage_users"
-              style="display: none"
-            >
-              <span class="jewd-nav-icon">👥</span>
-              <span class="jewd-nav-label">Usuarios</span>
-            </a>
-          </nav>
-          <div
-            class="jewd-sidebar-footer"
-            id="sidebarFooter"
-            style="display: none"
-          >
-            <div class="jewd-sidebar-user">
-              <span id="sidebarUserName" class="jewd-sidebar-user-name"></span>
-              <span id="sidebarUserRole" class="jewd-sidebar-user-role"></span>
-            </div>
-            <button
-              class="jewd-btn jewd-btn-sm jewd-btn-logout jewd-sidebar-logout"
-              id="btnSidebarLogout"
-              title="Cerrar sesión"
-            >
-              🚪 Cerrar sesión
-            </button>
-          </div>
-        </aside>
-
-        <!-- MAIN CONTENT -->
-        <main class="jewd-main">
-          <!-- ======= SECTION: PRODUCTS ======= -->
-          <section class="jewd-section active" id="sectionProducts">
-            <div class="jewd-connection" id="connectionStatus">
-              <span class="jewd-conn-dot"></span>
-              <span id="connText">Conectando a WooCommerce...</span>
-            </div>
-            <div class="jewd-stats" id="statsContainer">
-              <div class="jewd-stat jewd-loading-pulse">
-                <div class="jewd-stat-label">Cargando...</div>
-                <div class="jewd-stat-value">—</div>
-              </div>
-            </div>
-            <!-- Sales Stats (Ticket #15) -->
-            <div id="salesStatsContainer" class="jewd-sales-stats"></div>
-            <div class="jewd-filters">
-              <input
-                type="text"
-                id="filterSearch"
-                class="jewd-input"
-                aria-label="Buscar productos"
-                placeholder="🔍 Buscar nombre, SKU, categoría..."
-              />
-              <select
-                id="filterCategory"
-                class="jewd-select"
-                aria-label="Filtrar por categoría"
-              >
-                <option value="">Todas categorías</option>
-              </select>
-              <select
-                id="filterType"
-                class="jewd-select"
-                aria-label="Filtrar por tipo"
-              >
-                <option value="">Todos tipos</option>
-                <option value="variable">Variable</option>
-                <option value="simple">Simple</option>
-              </select>
-              <select
-                id="filterStock"
-                class="jewd-select"
-                aria-label="Filtrar por stock"
-              >
-                <option value="">Todo stock</option>
-                <option value="instock">En stock</option>
-                <option value="outofstock">Sin stock</option>
-              </select>
-              <select
-                id="filterStatus"
-                class="jewd-select"
-                aria-label="Filtrar por estado"
-              >
-                <option value="">Todos estados</option>
-                <option value="publish">Publicado</option>
-                <option value="draft">Borrador</option>
-                <option value="private">Privado</option>
-                <option value="trash">Papelera</option>
-              </select>
-              <span class="jewd-filter-count" id="filterCount"></span>
-            </div>
-            <div class="jewd-bulk-bar" id="bulkBar">
-              <span class="jewd-bulk-count" id="bulkCount"
-                >0 seleccionados</span
-              >
-              <button id="bulkChangeStatus" title="Cambiar estado">
-                📝 Estado
-              </button>
-              <button id="bulkChangePrice" title="Cambiar precio">
-                💰 Precio
-              </button>
-              <button id="bulkChangeStock" title="Cambiar stock">
-                📦 Stock
-              </button>
-              <button id="bulkDelete" title="Mover a papelera">
-                🗑 Eliminar
-              </button>
-              <button id="bulkCancel" title="Cancelar selección">✕</button>
-            </div>
-            <div class="jewd-table-wrap">
-              <table class="jewd-table">
-                <thead>
-                  <tr>
-                    <th class="jewd-checkbox-col">
-                      <input
-                        type="checkbox"
-                        id="selectAll"
-                        class="jewd-row-check"
-                        title="Seleccionar todo"
-                        aria-label="Seleccionar todos los productos"
-                      />
-                    </th>
-                    <th style="width: 30px"></th>
-                    <th style="width: 44px">Img</th>
-                    <th>SKU</th>
-                    <th>Nombre</th>
-                    <th>Tipo</th>
-                    <th>Categoría</th>
-                    <th class="jewd-right">Precio</th>
-                    <th class="jewd-right">Oferta</th>
-                    <th class="jewd-right">Stock</th>
-                    <th class="jewd-right">Peso</th>
-                    <th style="width: 140px" class="jewd-center">Acciones</th>
-                  </tr>
-                </thead>
-                <tbody id="productsTable">
-                  <tr>
-                    <td colspan="12" class="jewd-loading-row">
-                      <div class="jewd-spinner"></div>
-                      Cargando catálogo...
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-            <div class="jewd-pagination" id="pagination"></div>
-          </section>
-
-          <!-- ======= SECTION: ORDERS ======= -->
-          <section class="jewd-section" id="sectionOrders">
-            <div class="jewd-section-header">
-              <h2 class="jewd-section-title">🛒 Pedidos</h2>
-            </div>
-            <div class="jewd-filters">
-              <input
-                type="text"
-                id="orderSearch"
-                class="jewd-input"
-                aria-label="Buscar pedidos"
-                placeholder="🔍 Buscar pedido, cliente..."
-              />
-              <select
-                id="orderStatusFilter"
-                class="jewd-select"
-                aria-label="Filtrar pedidos por estado"
-              >
-                <option value="">Todos estados</option>
-                <option value="pending">Pendiente</option>
-                <option value="processing">Procesando</option>
-                <option value="on-hold">En espera</option>
-                <option value="completed">Completado</option>
-                <option value="cancelled">Cancelado</option>
-                <option value="refunded">Reembolsado</option>
-                <option value="failed">Fallido</option>
-              </select>
-              <span class="jewd-filter-count" id="orderFilterCount"></span>
-            </div>
-            <div class="jewd-table-wrap">
-              <table class="jewd-table">
-                <thead>
-                  <tr>
-                    <th>#Orden</th>
-                    <th>Cliente</th>
-                    <th>Items</th>
-                    <th class="jewd-right">Total</th>
-                    <th>Estado</th>
-                    <th>Fecha</th>
-                    <th class="jewd-center" style="width: 100px">Acciones</th>
-                  </tr>
-                </thead>
-                <tbody id="ordersTable">
-                  <tr>
-                    <td colspan="7" class="jewd-loading-row">
-                      <div class="jewd-spinner"></div>
-                      Cargando pedidos...
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-            <div class="jewd-pagination" id="ordersPagination"></div>
-          </section>
-
-          <!-- ======= SECTION: POS (Punto de Venta) v2.0 ======= -->
-          <section class="jewd-section" id="sectionPos">
-            <div class="jewd-pos-layout">
-              <!-- LEFT: Product Search + Catalog -->
-              <div class="jewd-pos-catalog">
-                <div class="jewd-pos-search">
-                  <input
-                    type="text"
-                    id="posSearch"
-                    class="jewd-input jewd-pos-search-input"
-                    placeholder="🔍 Buscar por nombre, SKU... (F2)"
-                    autocomplete="off"
-                  />
-                  <div class="jewd-pos-results" id="posResults"></div>
-                </div>
-                <div class="jewd-pos-categories" id="posCategories">
-                  <button class="jewd-pos-cat-btn active" data-cat="">
-                    Todos
-                  </button>
-                </div>
-                <div class="jewd-pos-grid" id="posGrid">
-                  <div class="jewd-pos-grid-empty">
-                    Busca un producto o selecciona una categoría
-                  </div>
-                </div>
-              </div>
-
-              <!-- RIGHT: Cart + Checkout -->
-              <div class="jewd-pos-cart">
-                <div class="jewd-pos-cart-header">
-                  <h3>🛒 Carrito <span id="posCartCount"></span></h3>
-                  <div class="jewd-pos-cart-header-actions">
-                    <button
-                      class="jewd-btn jewd-btn-sm jewd-btn-outline"
-                      id="posHoldCart"
-                      title="Guardar carrito para después"
-                    >
-                      📌 Guardar
-                      <span
-                        id="posHeldCount"
-                        style="display: none"
-                        class="jewd-pos-held-badge"
-                      ></span>
-                    </button>
-                    <button
-                      class="jewd-btn jewd-btn-sm jewd-btn-outline"
-                      id="posTodayToggle"
-                      title="Ventas de hoy"
-                    >
-                      📊 Hoy
-                    </button>
-                    <button
-                      class="jewd-btn jewd-btn-sm jewd-btn-outline jewd-btn-danger"
-                      id="posClearCart"
-                      title="Vaciar carrito"
-                    >
-                      🗑
-                    </button>
-                  </div>
-                </div>
-
-                <!-- Held carts list (hidden when empty) -->
-                <div id="posHeldList" style="display: none"></div>
-
-                <!-- Today's sales panel (toggle) -->
-                <div id="posTodayPanel" class="jewd-pos-today-panel">
-                  <div id="posTodaySummary"></div>
-                  <!-- Seller summary for gerente/admin (Ticket #26) -->
-                  <div id="posSellerSummary" style="display: none"></div>
-                </div>
-
-                <!-- Cart items -->
-                <div class="jewd-pos-cart-items" id="posCartItems">
-                  <div class="jewd-pos-cart-empty">
-                    <span class="jewd-pos-cart-empty-icon">🛒</span>
-                    <p>Agrega productos para iniciar la venta</p>
-                    <p class="jewd-pos-text-muted jewd-pos-text-sm">
-                      Busca o selecciona del catálogo
-                    </p>
-                  </div>
-                </div>
-
-                <!-- Totals summary -->
-                <div class="jewd-pos-cart-summary">
-                  <div class="jewd-pos-summary-row">
-                    <span
-                      >Subtotal
-                      <small
-                        class="jewd-pos-text-muted"
-                        id="posTotalItems"
-                      ></small
-                    ></span>
-                    <span id="posSubtotal">$0.00</span>
-                  </div>
-                  <div
-                    class="jewd-pos-summary-row jewd-pos-discount-row"
-                    style="display: none"
-                  >
-                    <span
-                      >Descuento
-                      <span
-                        id="posDiscountLabel"
-                        style="display: none"
-                        class="jewd-pos-discount-label"
-                      ></span>
-                      <button
-                        class="jewd-pos-discount-btn"
-                        id="posDiscountBtn"
-                        title="Aplicar descuento"
-                      >
-                        ✏️
-                      </button>
-                      <button
-                        class="jewd-pos-discount-remove-btn"
-                        id="posDiscountRemove"
-                        title="Quitar descuento"
-                        style="display: none"
-                      >
-                        ✕
-                      </button>
-                    </span>
-                    <span id="posDiscount">-$0.00</span>
-                  </div>
-                  <!-- Discount panel (collapsible) -->
-                  <div class="jewd-pos-discount-panel" id="posDiscountPanel">
-                    <select
-                      id="posDiscountType"
-                      class="jewd-select jewd-pos-discount-select"
-                    >
-                      <option value="percent">%</option>
-                      <option value="fixed">$</option>
-                    </select>
-                    <input
-                      type="number"
-                      id="posDiscountValue"
-                      class="jewd-input jewd-pos-discount-input"
-                      placeholder="0"
-                      min="0"
-                      step="0.01"
-                    />
-                    <button
-                      class="jewd-btn jewd-btn-sm jewd-btn-gold"
-                      id="posDiscountApply"
-                    >
-                      Aplicar
-                    </button>
-                  </div>
-                  <div class="jewd-pos-summary-row jewd-pos-tax-row">
-                    <span>Tax (7%)</span>
-                    <span id="posTax">$0.00</span>
-                  </div>
-                  <div class="jewd-pos-summary-row jewd-pos-total-row">
-                    <span>TOTAL</span>
-                    <span id="posTotal">$0.00</span>
-                  </div>
-                </div>
-
-                <!-- Customer (collapsible) -->
-                <div class="jewd-pos-customer">
-                  <details>
-                    <summary>👤 Cliente (opcional)</summary>
-                    <div class="jewd-pos-customer-fields">
-                      <input
-                        type="text"
-                        id="posCustName"
-                        class="jewd-input"
-                        placeholder="Nombre del cliente"
-                      />
-                      <input
-                        type="email"
-                        id="posCustEmail"
-                        class="jewd-input"
-                        placeholder="Email"
-                      />
-                      <input
-                        type="tel"
-                        id="posCustPhone"
-                        class="jewd-input"
-                        placeholder="Teléfono"
-                      />
-                    </div>
-                  </details>
-                </div>
-
-                <!-- Notes -->
-                <div class="jewd-pos-notes">
-                  <textarea
-                    id="posNotes"
-                    class="jewd-input jewd-pos-notes-input"
-                    placeholder="Notas de la venta (opcional)"
-                    rows="2"
-                  ></textarea>
-                </div>
-
-                <!-- Checkout button (opens payment modal) -->
-                <button
-                  class="jewd-btn jewd-btn-gold jewd-btn-lg jewd-pos-checkout-btn"
-                  id="posCheckout"
-                  disabled
-                >
-                  💎 Cobrar Venta (F4)
-                </button>
-              </div>
-            </div>
-          </section>
-
-          <!-- ======= SECTION: REPORTS ======= -->
-          <section class="jewd-section" id="sectionReports">
-            <div class="jewd-section-header">
-              <h2 class="jewd-section-title">📊 Reportes</h2>
-              <div class="jewd-report-period">
-                <button
-                  class="jewd-btn jewd-btn-sm jewd-btn-outline active"
-                  data-period="7"
-                  id="reportPeriod7"
-                >
-                  7 días
-                </button>
-                <button
-                  class="jewd-btn jewd-btn-sm jewd-btn-outline"
-                  data-period="30"
-                  id="reportPeriod30"
-                >
-                  30 días
-                </button>
-              </div>
-            </div>
-            <div class="jewd-report-grid">
-              <div class="jewd-report-card jewd-report-chart-card">
-                <h3>Ventas por Día</h3>
-                <canvas id="salesChart" width="600" height="260"></canvas>
-              </div>
-              <div class="jewd-report-card">
-                <h3>Resumen de Ventas</h3>
-                <div id="reportSummary" class="jewd-report-summary">
-                  <div
-                    class="jewd-loading-pulse"
-                    style="padding: 20px; text-align: center"
-                  >
-                    Cargando...
-                  </div>
-                </div>
-              </div>
-              <div class="jewd-report-card">
-                <h3>Top 5 Productos</h3>
-                <div id="topSellers" class="jewd-top-sellers">
-                  <div
-                    class="jewd-loading-pulse"
-                    style="padding: 20px; text-align: center"
-                  >
-                    Cargando...
-                  </div>
-                </div>
-              </div>
-              <div
-                class="jewd-report-card"
-                id="sellerSalesCard"
-                style="display: none"
-              >
-                <h3>Ventas por Vendedor</h3>
-                <div id="sellerSalesContainer" class="jewd-seller-sales">
-                  <div
-                    class="jewd-loading-pulse"
-                    style="padding: 20px; text-align: center"
-                  >
-                    Cargando...
-                  </div>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          <!-- ======= SECTION: SETTINGS ======= -->
-          <section class="jewd-section" id="sectionSettings">
-            <div class="jewd-section-header">
-              <h2 class="jewd-section-title">⚙️ Ajustes</h2>
-            </div>
-            <div class="jewd-settings-grid">
-              <div class="jewd-settings-card">
-                <h3>🏪 Configuración de Tienda</h3>
-                <div id="settingsStore" class="jewd-settings-body">
-                  <div
-                    class="jewd-loading-pulse"
-                    style="padding: 20px; text-align: center"
-                  >
-                    Cargando configuración...
-                  </div>
-                </div>
-              </div>
-              <div class="jewd-settings-card">
-                <h3>🔑 API del Dashboard</h3>
-                <div id="settingsAPI" class="jewd-settings-body"></div>
-              </div>
-              <div class="jewd-settings-card">
-                <h3>ℹ️ Sistema</h3>
-                <div id="settingsSystem" class="jewd-settings-body">
-                  <div
-                    class="jewd-loading-pulse"
-                    style="padding: 20px; text-align: center"
-                  >
-                    Cargando...
-                  </div>
-                </div>
-              </div>
-              <div class="jewd-settings-card">
-                <h3>🌐 CORS Origins</h3>
-                <div id="settingsOrigins" class="jewd-settings-body">
-                  <div
-                    class="jewd-loading-pulse"
-                    style="padding: 20px; text-align: center"
-                  >
-                    Cargando origins...
-                  </div>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          <!-- ======= SECTION: METALS ======= -->
-          <section class="jewd-section" id="sectionMetals">
-            <div class="jewd-section-header">
-              <h2 class="jewd-section-title">🥇 Metales Preciosos</h2>
-              <div class="jewd-metals-header-actions">
-                <span
-                  class="jewd-metals-source-badge"
-                  id="metalsSourceBadge"
-                ></span>
-                <button
-                  class="jewd-btn jewd-btn-sm jewd-btn-outline"
-                  id="btnMetalsRefresh"
-                  title="Actualizar precios desde la fuente"
-                >
-                  🔄 Actualizar
-                </button>
-              </div>
-            </div>
-
-            <!-- PRICE CARDS -->
-            <div class="jewd-metals-grid" id="metalsPriceGrid">
-              <!-- Gold Spot -->
-              <div
-                class="jewd-metals-card jewd-metals-card-gold jewd-metals-card-hero"
-              >
-                <div class="jewd-metals-card-icon">🥇</div>
-                <div class="jewd-metals-card-body">
-                  <div class="jewd-metals-card-label">Oro Spot (24K)</div>
-                  <div class="jewd-metals-card-price" id="metalsGoldSpot">
-                    —
-                  </div>
-                  <div class="jewd-metals-card-unit">por onza troy (31.1g)</div>
-                  <div
-                    class="jewd-metals-card-change"
-                    id="metalsGoldChange"
-                  ></div>
-                </div>
-              </div>
-              <!-- Gold 22K -->
-              <div class="jewd-metals-card jewd-metals-card-gold">
-                <div class="jewd-metals-card-body">
-                  <div class="jewd-metals-card-label">
-                    Oro 22K <span class="jewd-metals-purity">91.7%</span>
-                  </div>
-                  <div class="jewd-metals-card-row">
-                    <div>
-                      <div class="jewd-metals-card-price-sm" id="metals22kOz">
-                        —
-                      </div>
-                      <div class="jewd-metals-card-unit">por onza</div>
-                    </div>
-                    <div>
-                      <div class="jewd-metals-card-price-sm" id="metals22kG">
-                        —
-                      </div>
-                      <div class="jewd-metals-card-unit">por gramo</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <!-- Gold 18K -->
-              <div class="jewd-metals-card jewd-metals-card-gold">
-                <div class="jewd-metals-card-body">
-                  <div class="jewd-metals-card-label">
-                    Oro 18K <span class="jewd-metals-purity">75.0%</span>
-                  </div>
-                  <div class="jewd-metals-card-row">
-                    <div>
-                      <div class="jewd-metals-card-price-sm" id="metals18kOz">
-                        —
-                      </div>
-                      <div class="jewd-metals-card-unit">por onza</div>
-                    </div>
-                    <div>
-                      <div class="jewd-metals-card-price-sm" id="metals18kG">
-                        —
-                      </div>
-                      <div class="jewd-metals-card-unit">por gramo</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <!-- Gold 14K -->
-              <div
-                class="jewd-metals-card jewd-metals-card-gold jewd-metals-card-popular"
-              >
-                <div class="jewd-metals-card-badge">⭐ Popular</div>
-                <div class="jewd-metals-card-body">
-                  <div class="jewd-metals-card-label">
-                    Oro 14K <span class="jewd-metals-purity">58.3%</span>
-                  </div>
-                  <div class="jewd-metals-card-row">
-                    <div>
-                      <div class="jewd-metals-card-price-sm" id="metals14kOz">
-                        —
-                      </div>
-                      <div class="jewd-metals-card-unit">por onza</div>
-                    </div>
-                    <div>
-                      <div class="jewd-metals-card-price-sm" id="metals14kG">
-                        —
-                      </div>
-                      <div class="jewd-metals-card-unit">por gramo</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <!-- Gold 10K -->
-              <div
-                class="jewd-metals-card jewd-metals-card-gold jewd-metals-card-popular"
-              >
-                <div class="jewd-metals-card-badge">⭐ Popular</div>
-                <div class="jewd-metals-card-body">
-                  <div class="jewd-metals-card-label">
-                    Oro 10K <span class="jewd-metals-purity">41.7%</span>
-                  </div>
-                  <div class="jewd-metals-card-row">
-                    <div>
-                      <div class="jewd-metals-card-price-sm" id="metals10kOz">
-                        —
-                      </div>
-                      <div class="jewd-metals-card-unit">por onza</div>
-                    </div>
-                    <div>
-                      <div class="jewd-metals-card-price-sm" id="metals10kG">
-                        —
-                      </div>
-                      <div class="jewd-metals-card-unit">por gramo</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <!-- Silver -->
-              <div class="jewd-metals-card jewd-metals-card-silver">
-                <div class="jewd-metals-card-icon">🥈</div>
-                <div class="jewd-metals-card-body">
-                  <div class="jewd-metals-card-label">Plata</div>
-                  <div class="jewd-metals-card-row">
-                    <div>
-                      <div class="jewd-metals-card-price" id="metalsSilverSpot">
-                        —
-                      </div>
-                      <div class="jewd-metals-card-unit">Spot/oz (999)</div>
-                    </div>
-                    <div>
-                      <div
-                        class="jewd-metals-card-price-sm"
-                        id="metalsSilver925"
-                      >
-                        —
-                      </div>
-                      <div class="jewd-metals-card-unit">Sterling 925/g</div>
-                    </div>
-                  </div>
-                  <div
-                    class="jewd-metals-card-change"
-                    id="metalsSilverChange"
-                  ></div>
-                </div>
-              </div>
-            </div>
-
-            <!-- CALCULATOR -->
-            <div class="jewd-metals-section">
-              <h3 class="jewd-metals-section-title">
-                🧮 Calculadora de Valor del Metal
-              </h3>
-              <p class="jewd-metals-section-desc">
-                Calcula el valor del metal precioso según peso y quilataje. Este
-                es el valor base del metal — no incluye mano de obra, diseño ni
-                margen comercial.
-              </p>
-              <div class="jewd-metals-calc">
-                <div class="jewd-metals-calc-inputs">
-                  <div class="jewd-metals-calc-field">
-                    <label for="calcWeight">Peso (gramos)</label>
-                    <input
-                      type="number"
-                      id="calcWeight"
-                      min="0.1"
-                      step="0.1"
-                      value="10"
-                      class="jewd-input"
-                    />
-                  </div>
-                  <div class="jewd-metals-calc-field">
-                    <label for="calcMetal">Metal</label>
-                    <select id="calcMetal" class="jewd-select">
-                      <option value="gold">Oro</option>
-                      <option value="silver">Plata</option>
-                    </select>
-                  </div>
-                  <div class="jewd-metals-calc-field" id="calcKaratGroup">
-                    <label for="calcKarat">Quilataje</label>
-                    <select id="calcKarat" class="jewd-select">
-                      <option value="24k">24K (99.9%)</option>
-                      <option value="22k">22K (91.7%)</option>
-                      <option value="18k">18K (75.0%)</option>
-                      <option value="14k" selected>14K (58.3%)</option>
-                      <option value="10k">10K (41.7%)</option>
-                    </select>
-                  </div>
-                  <div
-                    class="jewd-metals-calc-field"
-                    id="calcPurityGroup"
-                    style="display: none"
-                  >
-                    <label for="calcPurity">Pureza</label>
-                    <select id="calcPurity" class="jewd-select">
-                      <option value="999">999 (99.9%)</option>
-                      <option value="925" selected>925 Sterling (92.5%)</option>
-                    </select>
-                  </div>
-                </div>
-                <div class="jewd-metals-calc-result">
-                  <div class="jewd-metals-calc-result-label">
-                    Valor del metal
-                  </div>
-                  <div class="jewd-metals-calc-result-price" id="calcResult">
-                    $0.00
-                  </div>
-                  <div
-                    class="jewd-metals-calc-result-detail"
-                    id="calcDetail"
-                  ></div>
-                </div>
-              </div>
-            </div>
-
-            <!-- KARAT COMPARISON TABLE -->
-            <div class="jewd-metals-section">
-              <h3 class="jewd-metals-section-title">
-                📊 Tabla Comparativa de Quilates
-              </h3>
-              <p class="jewd-metals-section-desc">
-                Comparación de precios por quilataje basada en el precio spot
-                actual del oro.
-              </p>
-              <div class="jewd-metals-table-wrap">
-                <table class="jewd-metals-table" id="metalsKaratTable">
-                  <thead>
-                    <tr>
-                      <th>Quilate</th>
-                      <th>Pureza</th>
-                      <th>Precio/oz</th>
-                      <th>Precio/gramo</th>
-                      <th>Precio 10g</th>
-                      <th>Precio 1oz</th>
-                    </tr>
-                  </thead>
-                  <tbody id="metalsKaratTableBody">
-                    <tr>
-                      <td colspan="6" class="jewd-metals-loading">
-                        Cargando datos...
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            <!-- DATA SOURCE -->
-            <div class="jewd-metals-section">
-              <h3 class="jewd-metals-section-title">🌐 Fuente de Datos</h3>
-              <div class="jewd-metals-info-grid">
-                <div class="jewd-metals-info-card">
-                  <h4>📡 Proveedor de Precios</h4>
-                  <p>
-                    <strong>MetalPriceAPI.com</strong> — Servicio profesional de
-                    datos de metales preciosos que agrega precios de múltiples
-                    fuentes del mercado internacional.
-                  </p>
-                  <ul class="jewd-metals-info-list">
-                    <li>
-                      Datos basados en el mercado <strong>LBMA</strong> (London
-                      Bullion Market Association)
-                    </li>
-                    <li>
-                      Precios de referencia global utilizados por bancos,
-                      refinerías y joyerías
-                    </li>
-                    <li>
-                      Actualización
-                      <strong id="metalsUpdateFreq">cada 8 horas</strong> (plan
-                      gratuito)
-                    </li>
-                    <li>
-                      Moneda de referencia:
-                      <strong>USD (Dólar estadounidense)</strong>
-                    </li>
-                  </ul>
-                </div>
-                <div class="jewd-metals-info-card">
-                  <h4>⚙️ Cómo Funciona</h4>
-                  <ol class="jewd-metals-info-list jewd-metals-info-steps">
-                    <li>
-                      <strong>Precio Spot</strong> — Obtenemos el precio XAU
-                      (oro) y XAG (plata) en USD por onza troy desde
-                      MetalPriceAPI
-                    </li>
-                    <li>
-                      <strong>Onza Troy → Gramos</strong> — Dividimos entre
-                      31.1035g (1 onza troy = 31.1035 gramos)
-                    </li>
-                    <li>
-                      <strong>Pureza por Quilate</strong> — Multiplicamos por el
-                      % de pureza del quilate (ej: 14K = 58.3%)
-                    </li>
-                    <li>
-                      <strong>Precio Base</strong> — El resultado es el valor
-                      del metal puro. <strong>No incluye</strong> mano de obra,
-                      diseño, marca ni margen comercial
-                    </li>
-                  </ol>
-                </div>
-                <div class="jewd-metals-info-card">
-                  <h4>📐 Fórmula</h4>
-                  <div class="jewd-metals-formula">
-                    <code
-                      >Precio por gramo (Xk) = (Spot USD/oz ÷ 31.1035) × (X ÷
-                      24)</code
-                    >
-                  </div>
-                  <p class="jewd-metals-formula-example">
-                    <strong>Ejemplo:</strong> Oro 14K con spot a $2,650/oz<br />
-                    = ($2,650 ÷ 31.1035) × (14 ÷ 24)<br />
-                    = $85.20 × 0.5833<br />
-                    = <strong>$49.70 por gramo</strong>
-                  </p>
-                </div>
-                <div class="jewd-metals-info-card">
-                  <h4>🕐 Estado de la Caché</h4>
-                  <div class="jewd-metals-cache-info">
-                    <div class="jewd-metals-cache-row">
-                      <span>Última actualización:</span>
-                      <strong id="metalsCacheTime">—</strong>
-                    </div>
-                    <div class="jewd-metals-cache-row">
-                      <span>Caché expira:</span>
-                      <strong id="metalsCacheExpires">—</strong>
-                    </div>
-                    <div class="jewd-metals-cache-row">
-                      <span>Fuente actual:</span>
-                      <strong id="metalsCacheSource">—</strong>
-                    </div>
-                    <div class="jewd-metals-cache-row">
-                      <span>Modo:</span>
-                      <strong id="metalsCacheMode">—</strong>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- GLOSSARY -->
-            <div class="jewd-metals-section">
-              <h3 class="jewd-metals-section-title">📖 Glosario</h3>
-              <div class="jewd-metals-glossary">
-                <div class="jewd-metals-glossary-item">
-                  <dt>Onza Troy</dt>
-                  <dd>
-                    Unidad de medida estándar para metales preciosos. Equivale a
-                    <strong>31.1035 gramos</strong> (diferente a la onza común
-                    de 28.35g). Todas las cotizaciones internacionales de oro y
-                    plata se expresan en onzas troy.
-                  </dd>
-                </div>
-                <div class="jewd-metals-glossary-item">
-                  <dt>Precio Spot</dt>
-                  <dd>
-                    Precio actual del metal en el mercado internacional para
-                    entrega inmediata. Se actualiza constantemente durante las
-                    horas de mercado (lunes a viernes). Es diferente al precio
-                    de futuros.
-                  </dd>
-                </div>
-                <div class="jewd-metals-glossary-item">
-                  <dt>LBMA</dt>
-                  <dd>
-                    <strong>London Bullion Market Association</strong> —
-                    Autoridad global que establece los precios de referencia del
-                    oro y la plata. El "LBMA Gold Price" se fija dos veces al
-                    día (10:30 AM y 3:00 PM hora Londres).
-                  </dd>
-                </div>
-                <div class="jewd-metals-glossary-item">
-                  <dt>Quilate (Karat)</dt>
-                  <dd>
-                    Medida de pureza del oro.
-                    <strong>24 quilates = oro puro (99.9%)</strong>. En joyería
-                    se usan aleaciones: 18K (75%), 14K (58.3%), 10K (41.7%). No
-                    confundir con "quilate" de gemas (unidad de peso = 0.2g).
-                  </dd>
-                </div>
-                <div class="jewd-metals-glossary-item">
-                  <dt>Sterling Silver (Plata 925)</dt>
-                  <dd>
-                    Aleación de plata más usada en joyería:
-                    <strong>92.5% plata pura + 7.5% otros metales</strong>
-                    (generalmente cobre). Ofrece mayor durabilidad que la plata
-                    pura 999.
-                  </dd>
-                </div>
-                <div class="jewd-metals-glossary-item">
-                  <dt>XAU / XAG</dt>
-                  <dd>
-                    Símbolos ISO 4217 para el oro (XAU) y la plata (XAG) como
-                    commodities. La "X" indica que no es moneda de un país; "AU"
-                    viene del latín <em>aurum</em> y "AG" de <em>argentum</em>.
-                  </dd>
-                </div>
-                <div class="jewd-metals-glossary-item">
-                  <dt>Premium / Sobreprecio</dt>
-                  <dd>
-                    Diferencia entre el valor del metal base y el precio final
-                    de la joya. Incluye mano de obra, diseño, marca, garantía y
-                    margen comercial. Varía según complejidad y artesano.
-                  </dd>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          <!-- ======= SECTION: USERS ======= -->
-          <section
-            class="jewd-section"
-            id="sectionUsers"
-            data-permission="manage_users"
-          >
-            <div class="jewd-section-header">
-              <h2 class="jewd-section-title">👥 Gestión de Usuarios</h2>
-              <button
-                class="jewd-btn jewd-btn-gold jewd-btn-sm"
-                id="btnNewUser"
-              >
-                ➕ Nuevo Usuario
-              </button>
-            </div>
-            <div class="jewd-role-summary" id="userRoleSummary"></div>
-            <div class="jewd-table-wrap">
-              <table class="jewd-table">
-                <thead>
-                  <tr>
-                    <th style="width: 40px"></th>
-                    <th>Nombre</th>
-                    <th>Email</th>
-                    <th>Rol</th>
-                    <th>Teléfono</th>
-                    <th>Registrado</th>
-                    <th class="jewd-center" style="width: 100px">Acciones</th>
-                  </tr>
-                </thead>
-                <tbody id="usersTable">
-                  <tr>
-                    <td colspan="7" class="jewd-loading-row">
-                      <div class="jewd-spinner"></div>
-                      Cargando usuarios...
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </section>
-        </main>
-      </div>
-
-      <!-- DETAIL MODAL -->
-      <div
-        class="jewd-modal"
-        id="detailModal"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="modalTitle"
-      >
-        <div class="jewd-modal-dialog">
-          <div class="jewd-modal-header">
-            <h2 id="modalTitle">Detalle del Producto</h2>
-            <button class="jewd-modal-close" id="modalClose">&times;</button>
-          </div>
-          <div class="jewd-modal-body" id="modalBody"></div>
-          <div class="jewd-modal-footer">
-            <a
-              href="#"
-              class="jewd-btn jewd-btn-outline"
-              id="modalEditLink"
-              target="_blank"
-              >✏️ Editar en WooCommerce</a
-            >
-            <a
-              href="#"
-              class="jewd-btn jewd-btn-outline"
-              id="modalViewLink"
-              target="_blank"
-              >👁 Ver en Tienda</a
-            >
-            <button class="jewd-btn jewd-btn-gold" id="modalCloseBtn">
-              Cerrar
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- EDIT MODAL -->
-      <div
-        class="jewd-modal"
-        id="editModal"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="editModalTitle"
-      >
-        <div class="jewd-modal-dialog jewd-modal-lg">
-          <div class="jewd-modal-header">
-            <h2 id="editModalTitle">✏️ Editar Producto</h2>
-            <button class="jewd-modal-close" id="editModalClose">
-              &times;
-            </button>
-          </div>
-          <div class="jewd-modal-body" id="editModalBody"></div>
-          <div class="jewd-modal-footer">
-            <button class="jewd-btn jewd-btn-outline" id="editModalCancel">
-              Cancelar
-            </button>
-            <button class="jewd-btn jewd-btn-gold" id="editModalSave">
-              💾 Guardar Cambios
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- ORDER DETAIL MODAL -->
-      <div
-        class="jewd-modal"
-        id="orderDetailModal"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="orderDetailTitle"
-      >
-        <div class="jewd-modal-dialog jewd-modal-lg">
-          <div class="jewd-modal-header">
-            <h2 id="orderDetailTitle">Detalle del Pedido</h2>
-            <button class="jewd-modal-close" id="orderDetailClose">
-              &times;
-            </button>
-          </div>
-          <div class="jewd-modal-body" id="orderDetailBody"></div>
-          <div class="jewd-modal-footer">
-            <button class="jewd-btn jewd-btn-outline" id="orderDetailCloseBtn">
-              Cerrar
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- IMAGE PREVIEW MODAL -->
-      <div class="jewd-img-modal" id="imgModal">
-        <img id="imgModalSrc" src="" alt="Preview" />
-      </div>
-
-      <!-- USER CREATE/EDIT MODAL -->
-      <div
-        class="jewd-modal"
-        id="userModal"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="userModalTitle"
-      >
-        <div class="jewd-modal-dialog">
-          <div class="jewd-modal-header">
-            <h2 id="userModalTitle">➕ Nuevo Usuario</h2>
-            <button class="jewd-modal-close" id="userModalClose">
-              &times;
-            </button>
-          </div>
-          <div class="jewd-modal-body">
-            <form id="userModalForm">
-              <input type="hidden" id="userModalId" />
-              <div class="jewd-form-grid">
-                <div class="jewd-form-group">
-                  <label for="userModalUsername">Usuario *</label>
-                  <input
-                    type="text"
-                    id="userModalUsername"
-                    class="jewd-input"
-                    required
-                    minlength="3"
-                    placeholder="nombre_usuario"
-                  />
-                </div>
-                <div class="jewd-form-group">
-                  <label for="userModalEmail">Email *</label>
-                  <input
-                    type="email"
-                    id="userModalEmail"
-                    class="jewd-input"
-                    required
-                    placeholder="correo@ejemplo.com"
-                  />
-                </div>
-                <div class="jewd-form-group">
-                  <label for="userModalDisplayName">Nombre completo</label>
-                  <input
-                    type="text"
-                    id="userModalDisplayName"
-                    class="jewd-input"
-                    placeholder="Nombre visible"
-                  />
-                </div>
-                <div class="jewd-form-group">
-                  <label for="userModalRole">Rol *</label>
-                  <select id="userModalRole" class="jewd-select" required>
-                    <option value="jewelry_seller">💎 Vendedor</option>
-                    <option value="jewelry_viewer">
-                      👁 Consultor / Contador
-                    </option>
-                    <option value="shop_manager">🏪 Gerente de Tienda</option>
-                    <option value="administrator">👑 Dueño / Admin</option>
-                  </select>
-                </div>
-                <div class="jewd-form-group">
-                  <label for="userModalFirstName">Nombre</label>
-                  <input
-                    type="text"
-                    id="userModalFirstName"
-                    class="jewd-input"
-                    placeholder="Primer nombre"
-                  />
-                </div>
-                <div class="jewd-form-group">
-                  <label for="userModalLastName">Apellido</label>
-                  <input
-                    type="text"
-                    id="userModalLastName"
-                    class="jewd-input"
-                    placeholder="Apellido"
-                  />
-                </div>
-                <div class="jewd-form-group">
-                  <label for="userModalPhone">Teléfono</label>
-                  <input
-                    type="tel"
-                    id="userModalPhone"
-                    class="jewd-input"
-                    placeholder="+1 (305) 555-0100"
-                  />
-                </div>
-                <div class="jewd-form-group" id="userPasswordGroup">
-                  <label for="userModalPassword">Contraseña</label>
-                  <input
-                    type="password"
-                    id="userModalPassword"
-                    class="jewd-input"
-                    minlength="8"
-                    placeholder="Mínimo 8 caracteres"
-                  />
-                </div>
-              </div>
-              <div id="generatedPasswordInfo" style="display: none"></div>
-              <div class="jewd-modal-footer">
-                <button
-                  type="button"
-                  class="jewd-btn jewd-btn-outline"
-                  id="userModalCancel"
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  class="jewd-btn jewd-btn-gold"
-                  id="userModalSave"
-                >
-                  💾 Guardar
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      </div>
-
-      <!-- TOAST -->
-      <div class="jewd-toast" id="toast"></div>
     </div>
 
-    <script src=".env.js?v=3.30.0"></script>
-    <script src="js/auth.js?v=3.30.0"></script>
-    <script src="js/api.js?v=3.30.0"></script>
-    <script src="js/users.js?v=3.30.0"></script>
-    <script src="js/pos.js?v=3.30.0"></script>
-    <script src="js/dashboard.js?v=3.30.0"></script>
-  </body>
+    <!-- LAYOUT: Sidebar + Main -->
+    <div class="jewd-layout">
+      <!-- SIDEBAR -->
+      <aside class="jewd-sidebar" id="sidebar">
+        <nav class="jewd-nav">
+          <a class="jewd-nav-item active" href="#/products" data-section="products">
+            <span class="jewd-nav-icon">📦</span>
+            <span class="jewd-nav-label">Productos</span>
+          </a>
+          <a class="jewd-nav-item" href="#/orders" data-section="orders">
+            <span class="jewd-nav-icon">🛒</span>
+            <span class="jewd-nav-label">Pedidos</span>
+            <span class="jewd-nav-badge" id="ordersBadge"></span>
+          </a>
+          <a class="jewd-nav-item" href="#/pos" data-section="pos" data-permission="create_orders"
+            style="display: none">
+            <span class="jewd-nav-icon">💰</span>
+            <span class="jewd-nav-label">Venta Local</span>
+          </a>
+          <a class="jewd-nav-item" href="#/reports" data-section="reports">
+            <span class="jewd-nav-icon">📊</span>
+            <span class="jewd-nav-label">Reportes</span>
+          </a>
+          <a class="jewd-nav-item" href="#/metals" data-section="metals">
+            <span class="jewd-nav-icon">🥇</span>
+            <span class="jewd-nav-label">Metales</span>
+          </a>
+          <a class="jewd-nav-item" href="#/settings" data-section="settings">
+            <span class="jewd-nav-icon">⚙️</span>
+            <span class="jewd-nav-label">Ajustes</span>
+          </a>
+          <a class="jewd-nav-item" href="#/users" data-section="users" data-permission="manage_users"
+            style="display: none">
+            <span class="jewd-nav-icon">👥</span>
+            <span class="jewd-nav-label">Usuarios</span>
+          </a>
+        </nav>
+        <div class="jewd-sidebar-footer" id="sidebarFooter" style="display: none">
+          <div class="jewd-sidebar-user">
+            <span id="sidebarUserName" class="jewd-sidebar-user-name"></span>
+            <span id="sidebarUserRole" class="jewd-sidebar-user-role"></span>
+          </div>
+          <button class="jewd-btn jewd-btn-sm jewd-btn-logout jewd-sidebar-logout" id="btnSidebarLogout"
+            title="Cerrar sesión">
+            🚪 Cerrar sesión
+          </button>
+        </div>
+      </aside>
+
+      <!-- MAIN CONTENT -->
+      <main class="jewd-main">
+        <!-- ======= SECTION: PRODUCTS ======= -->
+        <section class="jewd-section active" id="sectionProducts">
+          <div class="jewd-connection" id="connectionStatus">
+            <span class="jewd-conn-dot"></span>
+            <span id="connText">Conectando a WooCommerce...</span>
+          </div>
+          <div class="jewd-stats" id="statsContainer">
+            <div class="jewd-stat jewd-loading-pulse">
+              <div class="jewd-stat-label">Cargando...</div>
+              <div class="jewd-stat-value">—</div>
+            </div>
+          </div>
+          <!-- Sales Stats (Ticket #15) -->
+          <div id="salesStatsContainer" class="jewd-sales-stats"></div>
+          <div class="jewd-filters">
+            <input type="text" id="filterSearch" class="jewd-input" aria-label="Buscar productos"
+              placeholder="🔍 Buscar nombre, SKU, categoría..." />
+            <select id="filterCategory" class="jewd-select" aria-label="Filtrar por categoría">
+              <option value="">Todas categorías</option>
+            </select>
+            <select id="filterType" class="jewd-select" aria-label="Filtrar por tipo">
+              <option value="">Todos tipos</option>
+              <option value="variable">Variable</option>
+              <option value="simple">Simple</option>
+            </select>
+            <select id="filterStock" class="jewd-select" aria-label="Filtrar por stock">
+              <option value="">Todo stock</option>
+              <option value="instock">En stock</option>
+              <option value="outofstock">Sin stock</option>
+            </select>
+            <select id="filterStatus" class="jewd-select" aria-label="Filtrar por estado">
+              <option value="">Todos estados</option>
+              <option value="publish">Publicado</option>
+              <option value="draft">Borrador</option>
+              <option value="private">Privado</option>
+              <option value="trash">Papelera</option>
+            </select>
+            <span class="jewd-filter-count" id="filterCount"></span>
+          </div>
+          <div class="jewd-bulk-bar" id="bulkBar">
+            <span class="jewd-bulk-count" id="bulkCount">0 seleccionados</span>
+            <button id="bulkChangeStatus" title="Cambiar estado">
+              📝 Estado
+            </button>
+            <button id="bulkChangePrice" title="Cambiar precio">
+              💰 Precio
+            </button>
+            <button id="bulkChangeStock" title="Cambiar stock">
+              📦 Stock
+            </button>
+            <button id="bulkDelete" title="Mover a papelera">
+              🗑 Eliminar
+            </button>
+            <button id="bulkCancel" title="Cancelar selección">✕</button>
+          </div>
+          <div class="jewd-table-wrap">
+            <table class="jewd-table">
+              <thead>
+                <tr>
+                  <th class="jewd-checkbox-col">
+                    <input type="checkbox" id="selectAll" class="jewd-row-check" title="Seleccionar todo"
+                      aria-label="Seleccionar todos los productos" />
+                  </th>
+                  <th style="width: 30px"></th>
+                  <th style="width: 44px">Img</th>
+                  <th>SKU</th>
+                  <th>Nombre</th>
+                  <th>Tipo</th>
+                  <th>Categoría</th>
+                  <th class="jewd-right">Precio</th>
+                  <th class="jewd-right">Oferta</th>
+                  <th class="jewd-right">Stock</th>
+                  <th class="jewd-right">Peso</th>
+                  <th style="width: 140px" class="jewd-center">Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="productsTable">
+                <tr>
+                  <td colspan="12" class="jewd-loading-row">
+                    <div class="jewd-spinner"></div>
+                    Cargando catálogo...
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="jewd-pagination" id="pagination"></div>
+        </section>
+
+        <!-- ======= SECTION: ORDERS ======= -->
+        <section class="jewd-section" id="sectionOrders">
+          <div class="jewd-section-header">
+            <h2 class="jewd-section-title">🛒 Pedidos</h2>
+          </div>
+          <div class="jewd-filters">
+            <input type="text" id="orderSearch" class="jewd-input" aria-label="Buscar pedidos"
+              placeholder="🔍 Buscar pedido, cliente..." />
+            <select id="orderStatusFilter" class="jewd-select" aria-label="Filtrar pedidos por estado">
+              <option value="">Todos estados</option>
+              <option value="pending">Pendiente</option>
+              <option value="processing">Procesando</option>
+              <option value="on-hold">En espera</option>
+              <option value="completed">Completado</option>
+              <option value="cancelled">Cancelado</option>
+              <option value="refunded">Reembolsado</option>
+              <option value="failed">Fallido</option>
+            </select>
+            <span class="jewd-filter-count" id="orderFilterCount"></span>
+          </div>
+          <div class="jewd-table-wrap">
+            <table class="jewd-table">
+              <thead>
+                <tr>
+                  <th>#Orden</th>
+                  <th>Cliente</th>
+                  <th>Items</th>
+                  <th class="jewd-right">Total</th>
+                  <th>Estado</th>
+                  <th>Fecha</th>
+                  <th class="jewd-center" style="width: 100px">Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="ordersTable">
+                <tr>
+                  <td colspan="7" class="jewd-loading-row">
+                    <div class="jewd-spinner"></div>
+                    Cargando pedidos...
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="jewd-pagination" id="ordersPagination"></div>
+        </section>
+
+        <!-- ======= SECTION: POS (Punto de Venta) v2.0 ======= -->
+        <section class="jewd-section" id="sectionPos">
+          <div class="jewd-pos-layout">
+            <!-- LEFT: Product Search + Catalog -->
+            <div class="jewd-pos-catalog">
+              <div class="jewd-pos-search">
+                <input type="text" id="posSearch" class="jewd-input jewd-pos-search-input"
+                  placeholder="🔍 Buscar por nombre, SKU... (F2)" autocomplete="off" />
+                <div class="jewd-pos-results" id="posResults"></div>
+              </div>
+              <div class="jewd-pos-categories" id="posCategories">
+                <button class="jewd-pos-cat-btn active" data-cat="">
+                  Todos
+                </button>
+              </div>
+              <div class="jewd-pos-grid" id="posGrid">
+                <div class="jewd-pos-grid-empty">
+                  Busca un producto o selecciona una categoría
+                </div>
+              </div>
+            </div>
+
+            <!-- RIGHT: Cart + Checkout -->
+            <div class="jewd-pos-cart">
+              <div class="jewd-pos-cart-header">
+                <h3>🛒 Carrito <span id="posCartCount"></span></h3>
+                <div class="jewd-pos-cart-header-actions">
+                  <button class="jewd-btn jewd-btn-sm jewd-btn-outline" id="posHoldCart"
+                    title="Guardar carrito para después">
+                    📌 Guardar
+                    <span id="posHeldCount" style="display: none" class="jewd-pos-held-badge"></span>
+                  </button>
+                  <button class="jewd-btn jewd-btn-sm jewd-btn-outline" id="posTodayToggle" title="Ventas de hoy">
+                    📊 Hoy
+                  </button>
+                  <button class="jewd-btn jewd-btn-sm jewd-btn-outline jewd-btn-danger" id="posClearCart"
+                    title="Vaciar carrito">
+                    🗑
+                  </button>
+                </div>
+              </div>
+
+              <!-- Held carts list (hidden when empty) -->
+              <div id="posHeldList" style="display: none"></div>
+
+              <!-- Today's sales panel (toggle) -->
+              <div id="posTodayPanel" class="jewd-pos-today-panel">
+                <div id="posTodaySummary"></div>
+                <!-- Seller summary for gerente/admin (Ticket #26) -->
+                <div id="posSellerSummary" style="display: none"></div>
+              </div>
+
+              <!-- Cart items -->
+              <div class="jewd-pos-cart-items" id="posCartItems">
+                <div class="jewd-pos-cart-empty">
+                  <span class="jewd-pos-cart-empty-icon">🛒</span>
+                  <p>Agrega productos para iniciar la venta</p>
+                  <p class="jewd-pos-text-muted jewd-pos-text-sm">
+                    Busca o selecciona del catálogo
+                  </p>
+                </div>
+              </div>
+
+              <!-- Totals summary -->
+              <div class="jewd-pos-cart-summary">
+                <div class="jewd-pos-summary-row">
+                  <span>Subtotal
+                    <small class="jewd-pos-text-muted" id="posTotalItems"></small></span>
+                  <span id="posSubtotal">$0.00</span>
+                </div>
+                <div class="jewd-pos-summary-row jewd-pos-discount-row" style="display: none">
+                  <span>Descuento
+                    <span id="posDiscountLabel" style="display: none" class="jewd-pos-discount-label"></span>
+                    <button class="jewd-pos-discount-btn" id="posDiscountBtn" title="Aplicar descuento">
+                      ✏️
+                    </button>
+                    <button class="jewd-pos-discount-remove-btn" id="posDiscountRemove" title="Quitar descuento"
+                      style="display: none">
+                      ✕
+                    </button>
+                  </span>
+                  <span id="posDiscount">-$0.00</span>
+                </div>
+                <!-- Discount panel (collapsible) -->
+                <div class="jewd-pos-discount-panel" id="posDiscountPanel">
+                  <select id="posDiscountType" class="jewd-select jewd-pos-discount-select">
+                    <option value="percent">%</option>
+                    <option value="fixed">$</option>
+                  </select>
+                  <input type="number" id="posDiscountValue" class="jewd-input jewd-pos-discount-input" placeholder="0"
+                    min="0" step="0.01" />
+                  <button class="jewd-btn jewd-btn-sm jewd-btn-gold" id="posDiscountApply">
+                    Aplicar
+                  </button>
+                </div>
+                <div class="jewd-pos-summary-row jewd-pos-tax-row">
+                  <span>Tax (7%)</span>
+                  <span id="posTax">$0.00</span>
+                </div>
+                <div class="jewd-pos-summary-row jewd-pos-total-row">
+                  <span>TOTAL</span>
+                  <span id="posTotal">$0.00</span>
+                </div>
+              </div>
+
+              <!-- Customer (collapsible) -->
+              <div class="jewd-pos-customer">
+                <details>
+                  <summary>👤 Cliente (opcional)</summary>
+                  <div class="jewd-pos-customer-fields">
+                    <input type="text" id="posCustName" class="jewd-input" placeholder="Nombre del cliente" />
+                    <input type="email" id="posCustEmail" class="jewd-input" placeholder="Email" />
+                    <input type="tel" id="posCustPhone" class="jewd-input" placeholder="Teléfono" />
+                  </div>
+                </details>
+              </div>
+
+              <!-- Notes -->
+              <div class="jewd-pos-notes">
+                <textarea id="posNotes" class="jewd-input jewd-pos-notes-input"
+                  placeholder="Notas de la venta (opcional)" rows="2"></textarea>
+              </div>
+
+              <!-- Checkout button (opens payment modal) -->
+              <button class="jewd-btn jewd-btn-gold jewd-btn-lg jewd-pos-checkout-btn" id="posCheckout" disabled>
+                💎 Cobrar Venta (F4)
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <!-- ======= SECTION: REPORTS ======= -->
+        <section class="jewd-section" id="sectionReports">
+          <div class="jewd-section-header">
+            <h2 class="jewd-section-title">📊 Reportes</h2>
+            <div class="jewd-report-period">
+              <button class="jewd-btn jewd-btn-sm jewd-btn-outline active" data-period="7" id="reportPeriod7">
+                7 días
+              </button>
+              <button class="jewd-btn jewd-btn-sm jewd-btn-outline" data-period="30" id="reportPeriod30">
+                30 días
+              </button>
+            </div>
+          </div>
+          <div class="jewd-report-grid">
+            <div class="jewd-report-card jewd-report-chart-card">
+              <h3>Ventas por Día</h3>
+              <canvas id="salesChart" width="600" height="260"></canvas>
+            </div>
+            <div class="jewd-report-card">
+              <h3>Resumen de Ventas</h3>
+              <div id="reportSummary" class="jewd-report-summary">
+                <div class="jewd-loading-pulse" style="padding: 20px; text-align: center">
+                  Cargando...
+                </div>
+              </div>
+            </div>
+            <div class="jewd-report-card">
+              <h3>Top 5 Productos</h3>
+              <div id="topSellers" class="jewd-top-sellers">
+                <div class="jewd-loading-pulse" style="padding: 20px; text-align: center">
+                  Cargando...
+                </div>
+              </div>
+            </div>
+            <div class="jewd-report-card" id="sellerSalesCard" style="display: none">
+              <h3>Ventas por Vendedor</h3>
+              <div id="sellerSalesContainer" class="jewd-seller-sales">
+                <div class="jewd-loading-pulse" style="padding: 20px; text-align: center">
+                  Cargando...
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ======= SECTION: SETTINGS ======= -->
+        <section class="jewd-section" id="sectionSettings">
+          <div class="jewd-section-header">
+            <h2 class="jewd-section-title">⚙️ Ajustes</h2>
+          </div>
+          <div class="jewd-settings-grid">
+            <div class="jewd-settings-card">
+              <h3>🏪 Configuración de Tienda</h3>
+              <div id="settingsStore" class="jewd-settings-body">
+                <div class="jewd-loading-pulse" style="padding: 20px; text-align: center">
+                  Cargando configuración...
+                </div>
+              </div>
+            </div>
+            <div class="jewd-settings-card">
+              <h3>🔑 API del Dashboard</h3>
+              <div id="settingsAPI" class="jewd-settings-body"></div>
+            </div>
+            <div class="jewd-settings-card">
+              <h3>ℹ️ Sistema</h3>
+              <div id="settingsSystem" class="jewd-settings-body">
+                <div class="jewd-loading-pulse" style="padding: 20px; text-align: center">
+                  Cargando...
+                </div>
+              </div>
+            </div>
+            <div class="jewd-settings-card">
+              <h3>🌐 CORS Origins</h3>
+              <div id="settingsOrigins" class="jewd-settings-body">
+                <div class="jewd-loading-pulse" style="padding: 20px; text-align: center">
+                  Cargando origins...
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ======= SECTION: METALS ======= -->
+        <section class="jewd-section" id="sectionMetals">
+          <div class="jewd-section-header">
+            <h2 class="jewd-section-title">🥇 Metales Preciosos</h2>
+            <div class="jewd-metals-header-actions">
+              <span class="jewd-metals-source-badge" id="metalsSourceBadge"></span>
+              <button class="jewd-btn jewd-btn-sm jewd-btn-outline" id="btnMetalsRefresh"
+                title="Actualizar precios desde la fuente">
+                🔄 Actualizar
+              </button>
+            </div>
+          </div>
+
+          <!-- PRICE CARDS -->
+          <div class="jewd-metals-grid" id="metalsPriceGrid">
+            <!-- Gold Spot -->
+            <div class="jewd-metals-card jewd-metals-card-gold jewd-metals-card-hero">
+              <div class="jewd-metals-card-icon">🥇</div>
+              <div class="jewd-metals-card-body">
+                <div class="jewd-metals-card-label">Oro Spot (24K)</div>
+                <div class="jewd-metals-card-price" id="metalsGoldSpot">
+                  —
+                </div>
+                <div class="jewd-metals-card-unit">por onza troy (31.1g)</div>
+                <div class="jewd-metals-card-change" id="metalsGoldChange"></div>
+              </div>
+            </div>
+            <!-- Gold 22K -->
+            <div class="jewd-metals-card jewd-metals-card-gold">
+              <div class="jewd-metals-card-body">
+                <div class="jewd-metals-card-label">
+                  Oro 22K <span class="jewd-metals-purity">91.7%</span>
+                </div>
+                <div class="jewd-metals-card-row">
+                  <div>
+                    <div class="jewd-metals-card-price-sm" id="metals22kOz">
+                      —
+                    </div>
+                    <div class="jewd-metals-card-unit">por onza</div>
+                  </div>
+                  <div>
+                    <div class="jewd-metals-card-price-sm" id="metals22kG">
+                      —
+                    </div>
+                    <div class="jewd-metals-card-unit">por gramo</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- Gold 18K -->
+            <div class="jewd-metals-card jewd-metals-card-gold">
+              <div class="jewd-metals-card-body">
+                <div class="jewd-metals-card-label">
+                  Oro 18K <span class="jewd-metals-purity">75.0%</span>
+                </div>
+                <div class="jewd-metals-card-row">
+                  <div>
+                    <div class="jewd-metals-card-price-sm" id="metals18kOz">
+                      —
+                    </div>
+                    <div class="jewd-metals-card-unit">por onza</div>
+                  </div>
+                  <div>
+                    <div class="jewd-metals-card-price-sm" id="metals18kG">
+                      —
+                    </div>
+                    <div class="jewd-metals-card-unit">por gramo</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- Gold 14K -->
+            <div class="jewd-metals-card jewd-metals-card-gold jewd-metals-card-popular">
+              <div class="jewd-metals-card-badge">⭐ Popular</div>
+              <div class="jewd-metals-card-body">
+                <div class="jewd-metals-card-label">
+                  Oro 14K <span class="jewd-metals-purity">58.3%</span>
+                </div>
+                <div class="jewd-metals-card-row">
+                  <div>
+                    <div class="jewd-metals-card-price-sm" id="metals14kOz">
+                      —
+                    </div>
+                    <div class="jewd-metals-card-unit">por onza</div>
+                  </div>
+                  <div>
+                    <div class="jewd-metals-card-price-sm" id="metals14kG">
+                      —
+                    </div>
+                    <div class="jewd-metals-card-unit">por gramo</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- Gold 10K -->
+            <div class="jewd-metals-card jewd-metals-card-gold jewd-metals-card-popular">
+              <div class="jewd-metals-card-badge">⭐ Popular</div>
+              <div class="jewd-metals-card-body">
+                <div class="jewd-metals-card-label">
+                  Oro 10K <span class="jewd-metals-purity">41.7%</span>
+                </div>
+                <div class="jewd-metals-card-row">
+                  <div>
+                    <div class="jewd-metals-card-price-sm" id="metals10kOz">
+                      —
+                    </div>
+                    <div class="jewd-metals-card-unit">por onza</div>
+                  </div>
+                  <div>
+                    <div class="jewd-metals-card-price-sm" id="metals10kG">
+                      —
+                    </div>
+                    <div class="jewd-metals-card-unit">por gramo</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- Silver -->
+            <div class="jewd-metals-card jewd-metals-card-silver">
+              <div class="jewd-metals-card-icon">🥈</div>
+              <div class="jewd-metals-card-body">
+                <div class="jewd-metals-card-label">Plata</div>
+                <div class="jewd-metals-card-row">
+                  <div>
+                    <div class="jewd-metals-card-price" id="metalsSilverSpot">
+                      —
+                    </div>
+                    <div class="jewd-metals-card-unit">Spot/oz (999)</div>
+                  </div>
+                  <div>
+                    <div class="jewd-metals-card-price-sm" id="metalsSilver925">
+                      —
+                    </div>
+                    <div class="jewd-metals-card-unit">Sterling 925/g</div>
+                  </div>
+                </div>
+                <div class="jewd-metals-card-change" id="metalsSilverChange"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- CALCULATOR -->
+          <div class="jewd-metals-section">
+            <h3 class="jewd-metals-section-title">
+              🧮 Calculadora de Valor del Metal
+            </h3>
+            <p class="jewd-metals-section-desc">
+              Calcula el valor del metal precioso según peso y quilataje. Este
+              es el valor base del metal — no incluye mano de obra, diseño ni
+              margen comercial.
+            </p>
+            <div class="jewd-metals-calc">
+              <div class="jewd-metals-calc-inputs">
+                <div class="jewd-metals-calc-field">
+                  <label for="calcWeight">Peso (gramos)</label>
+                  <input type="number" id="calcWeight" min="0.1" step="0.1" value="10" class="jewd-input" />
+                </div>
+                <div class="jewd-metals-calc-field">
+                  <label for="calcMetal">Metal</label>
+                  <select id="calcMetal" class="jewd-select">
+                    <option value="gold">Oro</option>
+                    <option value="silver">Plata</option>
+                  </select>
+                </div>
+                <div class="jewd-metals-calc-field" id="calcKaratGroup">
+                  <label for="calcKarat">Quilataje</label>
+                  <select id="calcKarat" class="jewd-select">
+                    <option value="24k">24K (99.9%)</option>
+                    <option value="22k">22K (91.7%)</option>
+                    <option value="18k">18K (75.0%)</option>
+                    <option value="14k" selected>14K (58.3%)</option>
+                    <option value="10k">10K (41.7%)</option>
+                  </select>
+                </div>
+                <div class="jewd-metals-calc-field" id="calcPurityGroup" style="display: none">
+                  <label for="calcPurity">Pureza</label>
+                  <select id="calcPurity" class="jewd-select">
+                    <option value="999">999 (99.9%)</option>
+                    <option value="925" selected>925 Sterling (92.5%)</option>
+                  </select>
+                </div>
+              </div>
+              <div class="jewd-metals-calc-result">
+                <div class="jewd-metals-calc-result-label">
+                  Valor del metal
+                </div>
+                <div class="jewd-metals-calc-result-price" id="calcResult">
+                  $0.00
+                </div>
+                <div class="jewd-metals-calc-result-detail" id="calcDetail"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- KARAT COMPARISON TABLE -->
+          <div class="jewd-metals-section">
+            <h3 class="jewd-metals-section-title">
+              📊 Tabla Comparativa de Quilates
+            </h3>
+            <p class="jewd-metals-section-desc">
+              Comparación de precios por quilataje basada en el precio spot
+              actual del oro.
+            </p>
+            <div class="jewd-metals-table-wrap">
+              <table class="jewd-metals-table" id="metalsKaratTable">
+                <thead>
+                  <tr>
+                    <th>Quilate</th>
+                    <th>Pureza</th>
+                    <th>Precio/oz</th>
+                    <th>Precio/gramo</th>
+                    <th>Precio 10g</th>
+                    <th>Precio 1oz</th>
+                  </tr>
+                </thead>
+                <tbody id="metalsKaratTableBody">
+                  <tr>
+                    <td colspan="6" class="jewd-metals-loading">
+                      Cargando datos...
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- DATA SOURCE -->
+          <div class="jewd-metals-section">
+            <h3 class="jewd-metals-section-title">🌐 Fuente de Datos</h3>
+            <div class="jewd-metals-info-grid">
+              <div class="jewd-metals-info-card">
+                <h4>📡 Proveedor de Precios</h4>
+                <p>
+                  <strong>MetalPriceAPI.com</strong> — Servicio profesional de
+                  datos de metales preciosos que agrega precios de múltiples
+                  fuentes del mercado internacional.
+                </p>
+                <ul class="jewd-metals-info-list">
+                  <li>
+                    Datos basados en el mercado <strong>LBMA</strong> (London
+                    Bullion Market Association)
+                  </li>
+                  <li>
+                    Precios de referencia global utilizados por bancos,
+                    refinerías y joyerías
+                  </li>
+                  <li>
+                    Actualización
+                    <strong id="metalsUpdateFreq">cada 8 horas</strong> (plan
+                    gratuito)
+                  </li>
+                  <li>
+                    Moneda de referencia:
+                    <strong>USD (Dólar estadounidense)</strong>
+                  </li>
+                </ul>
+              </div>
+              <div class="jewd-metals-info-card">
+                <h4>⚙️ Cómo Funciona</h4>
+                <ol class="jewd-metals-info-list jewd-metals-info-steps">
+                  <li>
+                    <strong>Precio Spot</strong> — Obtenemos el precio XAU
+                    (oro) y XAG (plata) en USD por onza troy desde
+                    MetalPriceAPI
+                  </li>
+                  <li>
+                    <strong>Onza Troy → Gramos</strong> — Dividimos entre
+                    31.1035g (1 onza troy = 31.1035 gramos)
+                  </li>
+                  <li>
+                    <strong>Pureza por Quilate</strong> — Multiplicamos por el
+                    % de pureza del quilate (ej: 14K = 58.3%)
+                  </li>
+                  <li>
+                    <strong>Precio Base</strong> — El resultado es el valor
+                    del metal puro. <strong>No incluye</strong> mano de obra,
+                    diseño, marca ni margen comercial
+                  </li>
+                </ol>
+              </div>
+              <div class="jewd-metals-info-card">
+                <h4>📐 Fórmula</h4>
+                <div class="jewd-metals-formula">
+                  <code>Precio por gramo (Xk) = (Spot USD/oz ÷ 31.1035) × (X ÷
+                      24)</code>
+                </div>
+                <p class="jewd-metals-formula-example">
+                  <strong>Ejemplo:</strong> Oro 14K con spot a $2,650/oz<br />
+                  = ($2,650 ÷ 31.1035) × (14 ÷ 24)<br />
+                  = $85.20 × 0.5833<br />
+                  = <strong>$49.70 por gramo</strong>
+                </p>
+              </div>
+              <div class="jewd-metals-info-card">
+                <h4>🕐 Estado de la Caché</h4>
+                <div class="jewd-metals-cache-info">
+                  <div class="jewd-metals-cache-row">
+                    <span>Última actualización:</span>
+                    <strong id="metalsCacheTime">—</strong>
+                  </div>
+                  <div class="jewd-metals-cache-row">
+                    <span>Caché expira:</span>
+                    <strong id="metalsCacheExpires">—</strong>
+                  </div>
+                  <div class="jewd-metals-cache-row">
+                    <span>Fuente actual:</span>
+                    <strong id="metalsCacheSource">—</strong>
+                  </div>
+                  <div class="jewd-metals-cache-row">
+                    <span>Modo:</span>
+                    <strong id="metalsCacheMode">—</strong>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- GLOSSARY -->
+          <div class="jewd-metals-section">
+            <h3 class="jewd-metals-section-title">📖 Glosario</h3>
+            <div class="jewd-metals-glossary">
+              <div class="jewd-metals-glossary-item">
+                <dt>Onza Troy</dt>
+                <dd>
+                  Unidad de medida estándar para metales preciosos. Equivale a
+                  <strong>31.1035 gramos</strong> (diferente a la onza común
+                  de 28.35g). Todas las cotizaciones internacionales de oro y
+                  plata se expresan en onzas troy.
+                </dd>
+              </div>
+              <div class="jewd-metals-glossary-item">
+                <dt>Precio Spot</dt>
+                <dd>
+                  Precio actual del metal en el mercado internacional para
+                  entrega inmediata. Se actualiza constantemente durante las
+                  horas de mercado (lunes a viernes). Es diferente al precio
+                  de futuros.
+                </dd>
+              </div>
+              <div class="jewd-metals-glossary-item">
+                <dt>LBMA</dt>
+                <dd>
+                  <strong>London Bullion Market Association</strong> —
+                  Autoridad global que establece los precios de referencia del
+                  oro y la plata. El "LBMA Gold Price" se fija dos veces al
+                  día (10:30 AM y 3:00 PM hora Londres).
+                </dd>
+              </div>
+              <div class="jewd-metals-glossary-item">
+                <dt>Quilate (Karat)</dt>
+                <dd>
+                  Medida de pureza del oro.
+                  <strong>24 quilates = oro puro (99.9%)</strong>. En joyería
+                  se usan aleaciones: 18K (75%), 14K (58.3%), 10K (41.7%). No
+                  confundir con "quilate" de gemas (unidad de peso = 0.2g).
+                </dd>
+              </div>
+              <div class="jewd-metals-glossary-item">
+                <dt>Sterling Silver (Plata 925)</dt>
+                <dd>
+                  Aleación de plata más usada en joyería:
+                  <strong>92.5% plata pura + 7.5% otros metales</strong>
+                  (generalmente cobre). Ofrece mayor durabilidad que la plata
+                  pura 999.
+                </dd>
+              </div>
+              <div class="jewd-metals-glossary-item">
+                <dt>XAU / XAG</dt>
+                <dd>
+                  Símbolos ISO 4217 para el oro (XAU) y la plata (XAG) como
+                  commodities. La "X" indica que no es moneda de un país; "AU"
+                  viene del latín <em>aurum</em> y "AG" de <em>argentum</em>.
+                </dd>
+              </div>
+              <div class="jewd-metals-glossary-item">
+                <dt>Premium / Sobreprecio</dt>
+                <dd>
+                  Diferencia entre el valor del metal base y el precio final
+                  de la joya. Incluye mano de obra, diseño, marca, garantía y
+                  margen comercial. Varía según complejidad y artesano.
+                </dd>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ======= SECTION: USERS ======= -->
+        <section class="jewd-section" id="sectionUsers" data-permission="manage_users">
+          <div class="jewd-section-header">
+            <h2 class="jewd-section-title">👥 Gestión de Usuarios</h2>
+            <button class="jewd-btn jewd-btn-gold jewd-btn-sm" id="btnNewUser">
+              ➕ Nuevo Usuario
+            </button>
+          </div>
+          <div class="jewd-role-summary" id="userRoleSummary"></div>
+          <div class="jewd-table-wrap">
+            <table class="jewd-table">
+              <thead>
+                <tr>
+                  <th style="width: 40px"></th>
+                  <th>Nombre</th>
+                  <th>Email</th>
+                  <th>Rol</th>
+                  <th>Teléfono</th>
+                  <th>Registrado</th>
+                  <th class="jewd-center" style="width: 100px">Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="usersTable">
+                <tr>
+                  <td colspan="7" class="jewd-loading-row">
+                    <div class="jewd-spinner"></div>
+                    Cargando usuarios...
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <!-- DETAIL MODAL -->
+    <div class="jewd-modal" id="detailModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <div class="jewd-modal-dialog">
+        <div class="jewd-modal-header">
+          <h2 id="modalTitle">Detalle del Producto</h2>
+          <button class="jewd-modal-close" id="modalClose">&times;</button>
+        </div>
+        <div class="jewd-modal-body" id="modalBody"></div>
+        <div class="jewd-modal-footer">
+          <a href="#" class="jewd-btn jewd-btn-outline" id="modalEditLink" target="_blank">✏️ Editar en WooCommerce</a>
+          <a href="#" class="jewd-btn jewd-btn-outline" id="modalViewLink" target="_blank">👁 Ver en Tienda</a>
+          <button class="jewd-btn jewd-btn-gold" id="modalCloseBtn">
+            Cerrar
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- EDIT MODAL -->
+    <div class="jewd-modal" id="editModal" role="dialog" aria-modal="true" aria-labelledby="editModalTitle">
+      <div class="jewd-modal-dialog jewd-modal-lg">
+        <div class="jewd-modal-header">
+          <h2 id="editModalTitle">✏️ Editar Producto</h2>
+          <button class="jewd-modal-close" id="editModalClose">
+            &times;
+          </button>
+        </div>
+        <div class="jewd-modal-body" id="editModalBody"></div>
+        <div class="jewd-modal-footer">
+          <button class="jewd-btn jewd-btn-outline" id="editModalCancel">
+            Cancelar
+          </button>
+          <button class="jewd-btn jewd-btn-gold" id="editModalSave">
+            💾 Guardar Cambios
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ORDER DETAIL MODAL -->
+    <div class="jewd-modal" id="orderDetailModal" role="dialog" aria-modal="true" aria-labelledby="orderDetailTitle">
+      <div class="jewd-modal-dialog jewd-modal-lg">
+        <div class="jewd-modal-header">
+          <h2 id="orderDetailTitle">Detalle del Pedido</h2>
+          <button class="jewd-modal-close" id="orderDetailClose">
+            &times;
+          </button>
+        </div>
+        <div class="jewd-modal-body" id="orderDetailBody"></div>
+        <div class="jewd-modal-footer">
+          <button class="jewd-btn jewd-btn-outline" id="orderDetailCloseBtn">
+            Cerrar
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- IMAGE PREVIEW MODAL -->
+    <div class="jewd-img-modal" id="imgModal">
+      <img id="imgModalSrc" src="" alt="Preview" />
+    </div>
+
+    <!-- USER CREATE/EDIT MODAL -->
+    <div class="jewd-modal" id="userModal" role="dialog" aria-modal="true" aria-labelledby="userModalTitle">
+      <div class="jewd-modal-dialog">
+        <div class="jewd-modal-header">
+          <h2 id="userModalTitle">➕ Nuevo Usuario</h2>
+          <button class="jewd-modal-close" id="userModalClose">
+            &times;
+          </button>
+        </div>
+        <div class="jewd-modal-body">
+          <form id="userModalForm">
+            <input type="hidden" id="userModalId" />
+            <div class="jewd-form-grid">
+              <div class="jewd-form-group">
+                <label for="userModalUsername">Usuario *</label>
+                <input type="text" id="userModalUsername" class="jewd-input" required minlength="3"
+                  placeholder="nombre_usuario" />
+              </div>
+              <div class="jewd-form-group">
+                <label for="userModalEmail">Email *</label>
+                <input type="email" id="userModalEmail" class="jewd-input" required placeholder="correo@ejemplo.com" />
+              </div>
+              <div class="jewd-form-group">
+                <label for="userModalDisplayName">Nombre completo</label>
+                <input type="text" id="userModalDisplayName" class="jewd-input" placeholder="Nombre visible" />
+              </div>
+              <div class="jewd-form-group">
+                <label for="userModalRole">Rol *</label>
+                <select id="userModalRole" class="jewd-select" required>
+                  <option value="jewelry_seller">💎 Vendedor</option>
+                  <option value="jewelry_viewer">
+                    👁 Consultor / Contador
+                  </option>
+                  <option value="shop_manager">🏪 Gerente de Tienda</option>
+                  <option value="administrator">👑 Dueño / Admin</option>
+                </select>
+              </div>
+              <div class="jewd-form-group">
+                <label for="userModalFirstName">Nombre</label>
+                <input type="text" id="userModalFirstName" class="jewd-input" placeholder="Primer nombre" />
+              </div>
+              <div class="jewd-form-group">
+                <label for="userModalLastName">Apellido</label>
+                <input type="text" id="userModalLastName" class="jewd-input" placeholder="Apellido" />
+              </div>
+              <div class="jewd-form-group">
+                <label for="userModalPhone">Teléfono</label>
+                <input type="tel" id="userModalPhone" class="jewd-input" placeholder="+1 (305) 555-0100" />
+              </div>
+              <div class="jewd-form-group" id="userPasswordGroup">
+                <label for="userModalPassword">Contraseña</label>
+                <input type="password" id="userModalPassword" class="jewd-input" minlength="8"
+                  placeholder="Mínimo 8 caracteres" />
+              </div>
+            </div>
+            <div id="generatedPasswordInfo" style="display: none"></div>
+            <div class="jewd-modal-footer">
+              <button type="button" class="jewd-btn jewd-btn-outline" id="userModalCancel">
+                Cancelar
+              </button>
+              <button type="submit" class="jewd-btn jewd-btn-gold" id="userModalSave">
+                💾 Guardar
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- TOAST -->
+    <div class="jewd-toast" id="toast"></div>
+  </div>
+
+  <script src=".env.js?v=3.31.0"></script>
+  <script src="js/auth.js?v=3.31.0"></script>
+  <script src="js/api.js?v=3.31.0"></script>
+  <script src="js/core.js?v=3.31.0"></script>
+  <script src="js/ui-helpers.js?v=3.31.0"></script>
+  <script src="js/products.js?v=3.31.0"></script>
+  <script src="js/orders.js?v=3.31.0"></script>
+  <script src="js/reports.js?v=3.31.0"></script>
+  <script src="js/settings.js?v=3.31.0"></script>
+  <script src="js/metals.js?v=3.31.0"></script>
+  <script src="js/users.js?v=3.31.0"></script>
+  <script src="js/pos.js?v=3.31.0"></script>
+  <script src="js/app.js?v=3.31.0"></script>
+</body>
+
 </html>
