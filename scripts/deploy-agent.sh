@@ -284,7 +284,7 @@ phase1_local_validation() {
         log_warn "Node.js o build.js no disponible"
     fi
 
-    [ "$PHASE_ERRORS" -gt 0 ] && log_warn "Fase 1: $PHASE_ERRORS errores"
+    [ "$PHASE_ERRORS" -gt 0 ] && log_warn "Fase 1: $PHASE_ERRORS errores" || true
 }
 
 # ═════════════════════════════════════════════════════════════════════════════
@@ -402,7 +402,7 @@ phase2_remote_validation() {
         log_warn "Dashboard: HTTP $http_code"
     fi
 
-    [ "$PHASE_ERRORS" -gt 0 ] && log_warn "Fase 2: $PHASE_ERRORS errores"
+    [ "$PHASE_ERRORS" -gt 0 ] && log_warn "Fase 2: $PHASE_ERRORS errores" || true
 }
 
 # ═════════════════════════════════════════════════════════════════════════════
@@ -531,7 +531,7 @@ phase4_code_sync() {
     rsync -avz --quiet "$PROJECT_DIR/scripts/" "$PROD_HOST:$PROD_DIR/scripts/"
     log_ok "Scripts sincronizados"
 
-    [ "$PHASE_ERRORS" -gt 0 ] && log_warn "Fase 4: $PHASE_ERRORS errores"
+    [ "$PHASE_ERRORS" -gt 0 ] && log_warn "Fase 4: $PHASE_ERRORS errores" || true
 }
 
 # ═════════════════════════════════════════════════════════════════════════════
@@ -699,7 +699,7 @@ phase6_provision() {
         log_ok "Sin comentario default"
     fi
 
-    [ "$PHASE_ERRORS" -gt 0 ] && log_warn "Fase 6: $PHASE_ERRORS errores"
+    [ "$PHASE_ERRORS" -gt 0 ] && log_warn "Fase 6: $PHASE_ERRORS errores" || true
 }
 
 # ═════════════════════════════════════════════════════════════════════════════
@@ -756,7 +756,7 @@ phase7_health() {
     ssh_prod "cd $PROD_DIR && docker compose -f docker-compose.production.yml ps --format 'table {{.Name}}\t{{.Status}}'" 2>/dev/null || \
         log_warn "No se pudo obtener estado"
 
-    [ "$PHASE_ERRORS" -gt 0 ] && log_warn "Fase 7: $PHASE_ERRORS errores"
+    [ "$PHASE_ERRORS" -gt 0 ] && log_warn "Fase 7: $PHASE_ERRORS errores" || true
 }
 
 # ═════════════════════════════════════════════════════════════════════════════
