@@ -93,5 +93,13 @@ docker-compose.yml.backup*
 !.vscode/tasks.json
 !.vscode/jewelry.code-snippets
 dashboard/.env.production.js
+
+# ===== BUILD ARTIFACTS =====
+dashboard/dist/
+
+# ===== FORCE-TRACKED MU-PLUGINS =====
 !data/wordpress/wp-content/mu-plugins/jewelry-roles.php
+!data/wordpress/wp-content/mu-plugins/jewelry-auth.php
+!data/wordpress/wp-content/mu-plugins/jewelry-api-users.php
+!data/wordpress/wp-content/mu-plugins/jewelry-api-sales.php
 !data/wordpress/wp-content/mu-plugins/jewelry-gold-prices.php

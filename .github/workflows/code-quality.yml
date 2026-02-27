@@ -339,6 +339,16 @@ jobs:
           cd tests/sales
           bash run-tests.sh
 
+      - name: Build dashboard bundle
+        run: |
+          echo "📦 Building dashboard bundle..."
+          npm ci --ignore-scripts
+          node dashboard/build.js
+          test -f dashboard/dist/bundle.min.js || (echo "❌ bundle.min.js missing" && exit 1)
+          test -f dashboard/dist/bundle.min.css || (echo "❌ bundle.min.css missing" && exit 1)
+          test -f dashboard/dist/index.html || (echo "❌ dist/index.html missing" && exit 1)
+          echo "✅ Build successful"
+
   repo-structure:
     name: Repository Structure Check
     runs-on: ubuntu-latest

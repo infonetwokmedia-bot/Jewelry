@@ -1,6 +1,11 @@
 {
+  "scripts": {
+    "build": "node dashboard/build.js",
+    "build:dev": "node dashboard/build.js --dev"
+  },
   "devDependencies": {
     "@playwright/mcp": "^0.0.68",
+    "esbuild": "^0.27.3",
     "mcp-wordpress": "^1.2.3"
   }
 }

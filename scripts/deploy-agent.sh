@@ -495,10 +495,23 @@ deploy_code() {
         done
     fi
 
-    # 4b. Sincronizar Dashboard
-    echo -e "\n  ${YELLOW}4b. Dashboard SPA${NC}"
+    # 4b. Build Dashboard (bundle + minify)
+    echo -e "\n  ${YELLOW}4b. Build Dashboard${NC}"
+    if command -v node &>/dev/null && [ -f "$PROJECT_DIR/dashboard/build.js" ]; then
+        (cd "$PROJECT_DIR" && node dashboard/build.js)
+        if [ -f "$PROJECT_DIR/dashboard/dist/bundle.min.js" ]; then
+            log_ok "Dashboard built (JS + CSS minified)"
+        else
+            log_warn "Build completed but bundle.min.js not found"
+        fi
+    else
+        log_warn "Node.js or build.js not found — deploying unminified"
+    fi
+
+    # 4c. Sincronizar Dashboard
+    echo -e "\n  ${YELLOW}4c. Dashboard SPA${NC}"
     if [ -d "$PROJECT_DIR/dashboard" ]; then
-        # Sincronizar dashboard (excluyendo secrets)
+        # Sincronizar dashboard (excluyendo secrets and source JS/CSS)
         rsync -avz --quiet --delete \
             --exclude='.env.js' \
             --exclude='.env.production.js' \
@@ -506,9 +519,17 @@ deploy_code() {
             --exclude='.env.js.example' \
             --exclude='nginx/wc-auth.conf' \
             --exclude='nginx/wc-auth.production.conf' \
+            --exclude='build.js' \
             "$PROJECT_DIR/dashboard/" \
             "$PROD_HOST:$PROD_DIR/dashboard/"
-        log_ok "Dashboard sincronizado"
+
+        # If bundle exists, use dist/index.html as the main index
+        if [ -f "$PROJECT_DIR/dashboard/dist/index.html" ]; then
+            scp -q "$PROJECT_DIR/dashboard/dist/index.html" "$PROD_HOST:$PROD_DIR/dashboard/index.html"
+            log_ok "Dashboard sincronizado (bundled)"
+        else
+            log_ok "Dashboard sincronizado (unbundled)"
+        fi
 
         # Verificar que wc-auth.production.conf existe en VPS
         if ! ssh_prod "test -f $PROD_DIR/dashboard/nginx/wc-auth.production.conf"; then
@@ -519,13 +540,13 @@ deploy_code() {
         fi
     fi
 
-    # 4c. Sincronizar docker-compose.production.yml
-    echo -e "\n  ${YELLOW}4c. Configuración Docker${NC}"
+    # 4d. Sincronizar docker-compose.production.yml
+    echo -e "\n  ${YELLOW}4d. Configuración Docker${NC}"
     scp -q "$PROJECT_DIR/docker-compose.production.yml" "$PROD_HOST:$PROD_DIR/docker-compose.production.yml"
     log_ok "docker-compose.production.yml actualizado"
 
-    # 4d. Sincronizar scripts
-    echo -e "\n  ${YELLOW}4d. Scripts${NC}"
+    # 4e. Sincronizar scripts
+    echo -e "\n  ${YELLOW}4e. Scripts${NC}"
     rsync -avz --quiet \
         "$PROJECT_DIR/scripts/" \
         "$PROD_HOST:$PROD_DIR/scripts/"
