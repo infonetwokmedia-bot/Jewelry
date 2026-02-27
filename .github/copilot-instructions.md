@@ -183,7 +183,10 @@ NUNCA SQL directo — usar WP_Query, get_posts(), WPDB abstraction.
 ### 5. Funciones Custom
 
 Usar mu-plugins (prefijo `jewelry-`):
-- `data/wordpress/wp-content/mu-plugins/jewelry-roles.php` — Roles, JWT auth, Users API, Sales API
+- `data/wordpress/wp-content/mu-plugins/jewelry-roles.php` — Custom roles & capabilities, order stats sync
+- `data/wordpress/wp-content/mu-plugins/jewelry-auth.php` — JWT token auth, Bearer extraction, WC API key auth
+- `data/wordpress/wp-content/mu-plugins/jewelry-api-users.php` — Users REST API (CRUD), role listing, user formatting
+- `data/wordpress/wp-content/mu-plugins/jewelry-api-sales.php` — Sales REST API (stats, by-seller, today)
 - `data/wordpress/wp-content/mu-plugins/jewelry-security.php` — XML-RPC off, version hiding, rate limiting
 - `data/wordpress/wp-content/mu-plugins/jewelry-dev-domain.php` — Domain mirroring local/public
 - `data/wordpress/wp-content/mu-plugins/jewelry-gold-prices.php` — MetalPriceAPI integration
