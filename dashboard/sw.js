@@ -8,25 +8,14 @@
  * @version 1.0.0
  */
 
-const CACHE_NAME = "jewd-v3.31.0";
+const CACHE_NAME = "jewd-v3.31.1";
 
 // Assets to pre-cache on install
+// NOTE: Production uses bundled dist/ files, not individual JS modules.
 const PRECACHE_ASSETS = [
   "/dashboard/",
-  "/dashboard/index.html",
-  "/dashboard/css/dashboard.css",
-  "/dashboard/js/auth.js",
-  "/dashboard/js/api.js",
-  "/dashboard/js/core.js",
-  "/dashboard/js/ui-helpers.js",
-  "/dashboard/js/products.js",
-  "/dashboard/js/orders.js",
-  "/dashboard/js/reports.js",
-  "/dashboard/js/settings.js",
-  "/dashboard/js/metals.js",
-  "/dashboard/js/users.js",
-  "/dashboard/js/pos.js",
-  "/dashboard/js/app.js",
+  "/dashboard/dist/bundle.min.css",
+  "/dashboard/dist/bundle.min.js",
   "/dashboard/manifest.json",
   "/dashboard/icons/icon-192.png",
   "/dashboard/icons/icon-512.png",
