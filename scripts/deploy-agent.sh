@@ -540,10 +540,19 @@ deploy_code() {
         fi
     fi
 
-    # 4d. Sincronizar docker-compose.production.yml
+    # 4d. Sincronizar docker-compose.production.yml + Dockerfile
     echo -e "\n  ${YELLOW}4d. Configuración Docker${NC}"
     scp -q "$PROJECT_DIR/docker-compose.production.yml" "$PROD_HOST:$PROD_DIR/docker-compose.production.yml"
     log_ok "docker-compose.production.yml actualizado"
+
+    # Sync Dockerfile for custom WordPress image (PHP Redis)
+    if [ -d "$PROJECT_DIR/docker/wordpress" ]; then
+        ssh_prod "mkdir -p $PROD_DIR/docker/wordpress"
+        rsync -avz --quiet \
+            "$PROJECT_DIR/docker/wordpress/" \
+            "$PROD_HOST:$PROD_DIR/docker/wordpress/"
+        log_ok "Dockerfile (wordpress + redis) sincronizado"
+    fi
 
     # 4e. Sincronizar scripts
     echo -e "\n  ${YELLOW}4e. Scripts${NC}"
@@ -559,10 +568,24 @@ deploy_containers() {
     echo -e "  ${DIM}Recreando solo WordPress y Dashboard (DB intacta)${NC}"
     echo ""
 
-    # Pull latest images
-    echo -e "  Pulling imágenes..."
-    ssh_prod "cd $PROD_DIR && docker compose -f docker-compose.production.yml pull --quiet wordpress dashboard" 2>/dev/null || true
+    # Pull/build images
+    echo -e "  Pulling/building imágenes..."
+    ssh_prod "cd $PROD_DIR && docker compose -f docker-compose.production.yml pull --quiet dashboard" 2>/dev/null || true
+    # Build custom WordPress image (has PHP Redis extension)
+    if ssh_prod "test -f $PROD_DIR/docker/wordpress/Dockerfile"; then
+        echo -e "  Building WordPress image (PHP + Redis)..."
+        ssh_prod "cd $PROD_DIR && docker compose -f docker-compose.production.yml build --no-cache wordpress" 2>/dev/null
+        log_ok "WordPress image built (PHP Redis)"
+    else
+        ssh_prod "cd $PROD_DIR && docker compose -f docker-compose.production.yml pull --quiet wordpress" 2>/dev/null || true
+    fi
     log_ok "Imágenes actualizadas"
+
+    # Start Redis first (new dependency)
+    echo -e "  Asegurando Redis..."
+    ssh_prod "cd $PROD_DIR && docker compose -f docker-compose.production.yml up -d redis" 2>/dev/null || true
+    sleep 3
+    log_ok "Redis disponible"
 
     # Recrear solo WordPress y Dashboard (NO mysql)
     echo -e "  Recreando contenedores (MySQL NO se toca)..."
