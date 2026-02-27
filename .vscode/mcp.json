@@ -43,7 +43,7 @@
                 "MYSQL_HOST": "127.0.0.1",
                 "MYSQL_PORT": "3307",
                 "MYSQL_USER": "jewelry_user",
-                "MYSQL_PASSWORD": "jewelry_pass_2026!",
+                "MYSQL_PASSWORD": "${env:MCP_MYSQL_LOCAL_PASSWORD}",
                 "MYSQL_DATABASE": "jewelry_db"
             }
         },
@@ -66,7 +66,7 @@
                 "MYSQL_HOST": "127.0.0.1",
                 "MYSQL_PORT": "3311",
                 "MYSQL_USER": "mcp_readonly",
-                "MYSQL_PASSWORD": "McpReadonly2026",
+                "MYSQL_PASSWORD": "${env:MCP_MYSQL_PROD_PASSWORD}",
                 "MYSQL_DATABASE": "tujoyita_db"
             }
         },
@@ -122,7 +122,7 @@
             "env": {
                 "WORDPRESS_SITE_URL": "https://dev.tujoyita.com",
                 "WORDPRESS_USERNAME": "ppcapiro",
-                "WORDPRESS_APP_PASSWORD": "dGFgWx2Hu6m3vP2XUHNRpIUz"
+                "WORDPRESS_APP_PASSWORD": "${env:MCP_WP_APP_PASSWORD}"
             }
         }
     }
