@@ -60,6 +60,9 @@ __pycache__/
 .coverage
 htmlcov/
 
+# ===== PLAYWRIGHT =====
+.playwright-mcp/
+
 # ===== CACHE =====
 .cache/
 
