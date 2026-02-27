@@ -1166,6 +1166,29 @@ function jewelry_get_sales_by_seller($request)
     // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
     $rows = $wpdb->get_results($sql);
 
+    // Pre-fetch all line item quantities in a single batch query (avoids N+1)
+    $qty_map = array();
+    if (!empty($rows)) {
+        $order_ids = array_map(function ($r) { return intval($r->id); }, $rows);
+        $placeholders = implode(',', array_fill(0, count($order_ids), '%d'));
+        // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+        $qty_sql = $wpdb->prepare(
+            "SELECT oi.order_id, COALESCE(SUM(oim.meta_value), 0) as qty
+             FROM {$wpdb->prefix}woocommerce_order_items oi
+             INNER JOIN {$wpdb->prefix}woocommerce_order_itemmeta oim
+                 ON oi.order_item_id = oim.order_item_id AND oim.meta_key = '_qty'
+             WHERE oi.order_item_type = 'line_item'
+               AND oi.order_id IN ($placeholders)
+             GROUP BY oi.order_id",
+            ...$order_ids
+        );
+        // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+        $qty_rows = $wpdb->get_results($qty_sql);
+        foreach ($qty_rows as $qr) {
+            $qty_map[intval($qr->order_id)] = intval($qr->qty);
+        }
+    }
+
     // Group by seller with detailed breakdown
     $grouped = array();
     foreach ($rows as $row) {
@@ -1179,15 +1202,8 @@ function jewelry_get_sales_by_seller($request)
         $total  = round(floatval($row->total), 2);
         $method = $row->payment_method ?: 'pos';
 
-        // Get line items count
-        $qty = intval($wpdb->get_var($wpdb->prepare(
-            "SELECT COALESCE(SUM(oim.meta_value), 0)
-             FROM {$wpdb->prefix}woocommerce_order_items oi
-             INNER JOIN {$wpdb->prefix}woocommerce_order_itemmeta oim
-                 ON oi.order_item_id = oim.order_item_id AND oim.meta_key = '_qty'
-             WHERE oi.order_id = %d AND oi.order_item_type = 'line_item'",
-            intval($row->id)
-        )));
+        // Get line items count from pre-fetched map
+        $qty = isset($qty_map[intval($row->id)]) ? $qty_map[intval($row->id)] : 0;
 
         $grouped[$seller]['orders'][] = array(
             'id'     => intval($row->id),
@@ -1330,31 +1346,76 @@ function jewelry_get_sales_today($request)
     // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
     $rows = $wpdb->get_results($sql);
 
+    // Pre-fetch all line item quantities in a single batch query (avoids N+1)
+    $qty_map = array();
+    $seller_map = array();
+    if (!empty($rows)) {
+        $order_ids = array_map(function ($r) { return intval($r->id); }, $rows);
+        $placeholders = implode(',', array_fill(0, count($order_ids), '%d'));
+
+        // Batch qty query
+        // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+        $qty_sql = $wpdb->prepare(
+            "SELECT oi.order_id, COALESCE(SUM(oim.meta_value), 0) as qty
+             FROM {$wpdb->prefix}woocommerce_order_items oi
+             INNER JOIN {$wpdb->prefix}woocommerce_order_itemmeta oim
+                 ON oi.order_item_id = oim.order_item_id AND oim.meta_key = '_qty'
+             WHERE oi.order_item_type = 'line_item'
+               AND oi.order_id IN ($placeholders)
+             GROUP BY oi.order_id",
+            ...$order_ids
+        );
+        // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+        $qty_rows = $wpdb->get_results($qty_sql);
+        foreach ($qty_rows as $qr) {
+            $qty_map[intval($qr->order_id)] = intval($qr->qty);
+        }
+
+        // Batch seller lookup (only when not filtering by seller)
+        if (empty($seller)) {
+            if ($use_hpos) {
+                // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+                $seller_sql = $wpdb->prepare(
+                    "SELECT order_id, meta_value as seller
+                     FROM {$meta_table}
+                     WHERE meta_key = '_pos_seller'
+                       AND order_id IN ($placeholders)",
+                    ...$order_ids
+                );
+                // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+                $seller_rows = $wpdb->get_results($seller_sql);
+                foreach ($seller_rows as $sr) {
+                    $seller_map[intval($sr->order_id)] = $sr->seller;
+                }
+            } else {
+                // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+                $seller_sql = $wpdb->prepare(
+                    "SELECT post_id as order_id, meta_value as seller
+                     FROM {$wpdb->postmeta}
+                     WHERE meta_key = '_pos_seller'
+                       AND post_id IN ($placeholders)",
+                    ...$order_ids
+                );
+                // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+                $seller_rows = $wpdb->get_results($seller_sql);
+                foreach ($seller_rows as $sr) {
+                    $seller_map[intval($sr->order_id)] = $sr->seller;
+                }
+            }
+        }
+    }
+
     $orders = array();
     foreach ($rows as $row) {
         $order_id = intval($row->id);
 
-        // Get line items count
-        $qty = intval($wpdb->get_var($wpdb->prepare(
-            "SELECT COALESCE(SUM(oim.meta_value), 0)
-             FROM {$wpdb->prefix}woocommerce_order_items oi
-             INNER JOIN {$wpdb->prefix}woocommerce_order_itemmeta oim
-                 ON oi.order_item_id = oim.order_item_id AND oim.meta_key = '_qty'
-             WHERE oi.order_id = %d AND oi.order_item_type = 'line_item'",
-            $order_id
-        )));
+        // Get line items count from pre-fetched map
+        $qty = isset($qty_map[$order_id]) ? $qty_map[$order_id] : 0;
 
-        // Get seller from meta if not filtering
+        // Get seller from pre-fetched map or filter parameter
         $order_seller = $seller;
         if (empty($order_seller)) {
-            if ($use_hpos) {
-                $order_seller = $wpdb->get_var($wpdb->prepare(
-                    "SELECT meta_value FROM {$meta_table} WHERE order_id = %d AND meta_key = '_pos_seller'",
-                    $order_id
-                ));
-            } else {
-                $order_seller = get_post_meta($order_id, '_pos_seller', true);
-            }
+            $order_seller = isset($seller_map[$order_id]) ? $seller_map[$order_id] : '';
         }
 
         $orders[] = array(
