@@ -314,6 +314,31 @@ jobs:
             !data/**
             !node_modules/**
 
+  dashboard-tests:
+    name: Dashboard Tests (POS + Sales)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Run POS test suite
+        run: |
+          echo "🧪 Running POS tests..."
+          cd tests/pos
+          bash run-tests.sh
+
+      - name: Run Sales test suite
+        run: |
+          echo "🧪 Running Sales tests..."
+          cd tests/sales
+          bash run-tests.sh
+
   repo-structure:
     name: Repository Structure Check
     runs-on: ubuntu-latest
@@ -389,6 +414,7 @@ jobs:
         phpcs,
         php-tests,
         e2e-tests,
+        dashboard-tests,
         markdown-lint,
         repo-structure,
       ]
@@ -405,6 +431,7 @@ jobs:
           echo "PHP Tests: ${{ needs.php-tests.result }}"
           echo "PHPCS: ${{ needs.phpcs.result }}"
           echo "E2E Tests: ${{ needs.e2e-tests.result }}"
+          echo "Dashboard Tests: ${{ needs.dashboard-tests.result }}"
           echo "Markdown Lint: ${{ needs.markdown-lint.result }}"
           echo "Repo Structure: ${{ needs.repo-structure.result }}"
           echo ""
@@ -414,6 +441,7 @@ jobs:
              [[ "${{ needs.phpcs.result }}" == "failure" ]] || \
              [[ "${{ needs.php-tests.result }}" == "failure" ]] || \
              [[ "${{ needs.e2e-tests.result }}" == "failure" ]] || \
+             [[ "${{ needs.dashboard-tests.result }}" == "failure" ]] || \
              [[ "${{ needs.markdown-lint.result }}" == "failure" ]] || \
              [[ "${{ needs.repo-structure.result }}" == "failure" ]]; then
             echo "❌ Some checks failed. Please review the logs above."
