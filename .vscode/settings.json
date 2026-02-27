@@ -217,7 +217,9 @@
   "github.gitProtocol": "ssh",
   "github.gitAuthentication": true,
   // GitHub PR extension
-  "githubPullRequests.remotes": ["origin"],
+  "githubPullRequests.remotes": [
+    "origin"
+  ],
   "githubPullRequests.defaultMergeMethod": "squash",
   "githubPullRequests.showInSCM": true,
   // GitHub Actions

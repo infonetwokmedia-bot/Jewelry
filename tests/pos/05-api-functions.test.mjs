@@ -6,11 +6,11 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import {
-  isContainerRunning,
-  readDashFile,
-  wcApiDelete,
-  wcApiGet,
-  wcApiPost,
+    isContainerRunning,
+    readDashFile,
+    wcApiDelete,
+    wcApiGet,
+    wcApiPost,
 } from "./helpers.mjs";
 
 // Detect containers synchronously at module level so skip works
@@ -43,19 +43,28 @@ describe("API — Container health", () => {
 });
 
 describe("API — .env.js configuration", () => {
-  it("has valid WooCommerce consumer key", () => {
-    const env = readDashFile(".env.js");
-    assert.match(env, /consumerKey:\s*["']ck_[a-f0-9]+/);
-  });
-
-  it("has valid WooCommerce consumer secret", () => {
-    const env = readDashFile(".env.js");
-    assert.match(env, /consumerSecret:\s*["']cs_[a-f0-9]+/);
-  });
-
   it("uses proxied wcBaseUrl (/api/wc/v3)", () => {
     const env = readDashFile(".env.js");
     assert.match(env, /wcBaseUrl:\s*["']\/api\/wc\/v3/);
+  });
+
+  it("has wpBaseUrl for REST API", () => {
+    const env = readDashFile(".env.js");
+    assert.match(env, /wpBaseUrl:\s*["']\/api/);
+  });
+
+  it("has a version string", () => {
+    const env = readDashFile(".env.js");
+    assert.match(env, /version:\s*["']\d+\.\d+\.\d+/);
+  });
+
+  it("WC keys are NOT in .env.js (injected server-side by Nginx)", () => {
+    const env = readDashFile(".env.js");
+    assert.doesNotMatch(
+      env,
+      /consumerKey:\s*["']ck_/,
+      "WC keys should not be in .env.js — Nginx injects them server-side",
+    );
   });
 });
 

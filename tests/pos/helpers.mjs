@@ -85,27 +85,19 @@ export function isContainerRunning(name) {
   }
 }
 
-// ── WooCommerce API helper (through Docker proxy) ───────────────────
+// ── WooCommerce API helper (through Docker nginx proxy) ───────────────────
+// Nginx injects WC Basic Auth server-side, so no consumer keys are needed.
 
 export function wcApiGet(endpoint, extraParams = "") {
-  const envJs = readDashFile(".env.js");
-  const ck = envJs.match(/consumerKey:\s*["']([^"']+)/)?.[1];
-  const cs = envJs.match(/consumerSecret:\s*["']([^"']+)/)?.[1];
-  if (!ck || !cs) throw new Error("Cannot read WC keys from .env.js");
-
   const sep = endpoint.includes("?") ? "&" : "?";
-  const url = `http://localhost/api/wc/v3/${endpoint}${sep}consumer_key=${ck}&consumer_secret=${cs}${extraParams ? "&" + extraParams : ""}`;
+  const extra = extraParams ? `${sep}${extraParams}` : "";
+  const url = `http://localhost/api/wc/v3/${endpoint}${extra}`;
 
   return JSON.parse(dockerExec("jewelry_dashboard", `curl -sf "${url}"`));
 }
 
 export function wcApiPost(endpoint, data) {
-  const envJs = readDashFile(".env.js");
-  const ck = envJs.match(/consumerKey:\s*["']([^"']+)/)?.[1];
-  const cs = envJs.match(/consumerSecret:\s*["']([^"']+)/)?.[1];
-  if (!ck || !cs) throw new Error("Cannot read WC keys from .env.js");
-
-  const url = `http://localhost/api/wc/v3/${endpoint}?consumer_key=${ck}&consumer_secret=${cs}`;
+  const url = `http://localhost/api/wc/v3/${endpoint}`;
   const json = JSON.stringify(data).replace(/'/g, "'\\''");
 
   return JSON.parse(
@@ -118,12 +110,7 @@ export function wcApiPost(endpoint, data) {
 }
 
 export function wcApiDelete(endpoint) {
-  const envJs = readDashFile(".env.js");
-  const ck = envJs.match(/consumerKey:\s*["']([^"']+)/)?.[1];
-  const cs = envJs.match(/consumerSecret:\s*["']([^"']+)/)?.[1];
-  if (!ck || !cs) throw new Error("Cannot read WC keys from .env.js");
-
-  const url = `http://localhost/api/wc/v3/${endpoint}?consumer_key=${ck}&consumer_secret=${cs}&force=true`;
+  const url = `http://localhost/api/wc/v3/${endpoint}?force=true`;
   return JSON.parse(
     dockerExec("jewelry_dashboard", `curl -sf -X DELETE "${url}"`, {
       timeout: 15000,

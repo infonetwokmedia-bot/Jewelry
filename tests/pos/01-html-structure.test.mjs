@@ -37,10 +37,12 @@ describe("POS HTML — Required input IDs", () => {
     "posSubtotal",
     "posDiscount",
     "posDiscountBtn",
-    "posDiscountForm",
+    "posDiscountPanel",
     "posDiscountType",
     "posDiscountValue",
     "posDiscountApply",
+    "posDiscountLabel",
+    "posDiscountRemove",
     "posTax",
     "posTotal",
     "posCustName",
@@ -48,6 +50,15 @@ describe("POS HTML — Required input IDs", () => {
     "posCustPhone",
     "posNotes",
     "posCheckout",
+    "posCartCount",
+    "posTotalItems",
+    "posHoldCart",
+    "posHeldList",
+    "posHeldCount",
+    "posTodayToggle",
+    "posTodaySummary",
+    "posTodayPanel",
+    "posSellerSummary",
   ];
 
   for (const id of requiredIds) {
@@ -82,20 +93,17 @@ describe("POS HTML — Navigation", () => {
   });
 });
 
-describe("POS HTML — Payment methods", () => {
-  const methods = ["cash", "card", "zelle", "other"];
+describe("POS HTML — Payment methods (handled via modal)", () => {
+  it("pos.js defines payment methods (cash, card, zelle, other)", () => {
+    const posJs = readDashFile("js/pos.js");
+    assert.match(posJs, /cash.*Efectivo/s);
+    assert.match(posJs, /card.*Tarjeta/s);
+    assert.match(posJs, /zelle.*Zelle/s);
+    assert.match(posJs, /other.*Otro/s);
+  });
 
-  for (const method of methods) {
-    it(`has payment button data-method="${method}"`, () => {
-      assert.match(html, new RegExp(`data-method=["']${method}["']`));
-    });
-  }
-
-  it("cash button is active by default", () => {
-    const cashBtn = html.match(
-      /class=["'][^"']*active[^"']*["'][^>]*data-method=["']cash["']/,
-    );
-    assert.ok(cashBtn, "Cash button should have 'active' class");
+  it("payment is triggered via posCheckout button (modal flow)", () => {
+    assert.match(html, /id=["']posCheckout["']/);
   });
 });
 

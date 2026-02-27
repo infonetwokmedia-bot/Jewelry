@@ -6,11 +6,11 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import {
-  cssHasClass,
-  dashFileExists,
-  dockerExec,
-  isContainerRunning,
-  readDashFile,
+    cssHasClass,
+    dashFileExists,
+    dockerExec,
+    isContainerRunning,
+    readDashFile,
 } from "./helpers.mjs";
 
 // Detect containers synchronously at module level
@@ -107,8 +107,14 @@ describe("Integration — HTML ↔ JS element ID bindings", () => {
 
   for (const id of uniqueJsIds) {
     it(`JS references #${id} which exists in HTML`, () => {
-      // Some IDs are dynamic (toast is from dashboard) — skip those
-      const dynamicIds = ["toast"];
+      // Some IDs are dynamic (created at runtime by JS) — skip those
+      const dynamicIds = [
+        "toast",
+        "posPaymentOverlay",
+        "posReceiptOverlay",
+        "posReceiptPrint",
+        "posReceiptClose",
+      ];
       if (dynamicIds.includes(id)) return;
       assert.match(
         html,

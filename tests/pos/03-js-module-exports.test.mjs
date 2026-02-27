@@ -24,8 +24,8 @@ describe("pos.js — Module structure", () => {
     assert.match(posJs, /window\.JewdPOS\s*=\s*JewdPOS/);
   });
 
-  it("returns an object with init method", () => {
-    assert.match(posJs, /return\s*\{\s*init\s*\}/);
+  it("returns an object with init and other public methods", () => {
+    assert.match(posJs, /return\s*\{\s*init,/);
   });
 });
 
@@ -37,7 +37,7 @@ describe("pos.js — Required internal functions exist", () => {
     "renderCategories",
     "loadCategoryProducts",
     "searchProducts",
-    "renderSearchItem",
+    "renderSearchResults",
     "renderProductGrid",
     "showVariationPicker",
     "addToCart",
@@ -49,15 +49,23 @@ describe("pos.js — Required internal functions exist", () => {
     "calcSubtotal",
     "calcDiscount",
     "updateTotals",
-    "toggleDiscountForm",
+    "toggleDiscountPanel",
     "applyDiscount",
-    "checkout",
+    "processCheckout",
+    "openPaymentModal",
+    "closePaymentModal",
     "showReceipt",
+    "closeReceiptOverlay",
     "printReceipt",
     "getProductPrice",
-    "getStockLabel",
+    "getStockInfo",
     "getPaymentTitle",
     "toast",
+    "holdCart",
+    "restoreHeldCart",
+    "renderHeldCartsIndicator",
+    "addTodaySale",
+    "renderTodaySummary",
   ];
 
   for (const fn of requiredFunctions) {

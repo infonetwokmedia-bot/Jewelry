@@ -6,21 +6,26 @@
  *   3. Sales by-seller endpoint returns per-seller breakdown
  *
  * REQUIRES: jewelry_dashboard, jewelry_wordpress, jewelry_mysql running
+ * NOTE: JEWD API tests require JWT authentication. They are skipped when
+ *       the API returns 401/403 (no auth token available in test runner).
  */
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import {
-  isContainerRunning,
-  jewdApiGet,
-  mysqlQuery,
-  wcApiDelete,
-  wcApiPost,
+    isContainerRunning,
+    isJewdApiAccessible,
+    jewdApiGet,
+    mysqlQuery,
+    wcApiDelete,
+    wcApiPost,
 } from "./helpers.mjs";
 
 const containersUp =
   isContainerRunning("jewelry_dashboard") &&
   isContainerRunning("jewelry_wordpress") &&
   isContainerRunning("jewelry_mysql");
+
+const jewdApiUp = containersUp && isJewdApiAccessible();
 
 let testOrderId = null;
 
@@ -86,7 +91,7 @@ describe(
 
 describe(
   "Integration — Sales stats endpoint",
-  { skip: !containersUp && "Containers not running" },
+  { skip: !jewdApiUp && "JEWD API not accessible (requires JWT auth)" },
   () => {
     it("returns valid JSON from /jewd/v1/sales/stats", () => {
       const data = jewdApiGet("sales/stats");
@@ -145,7 +150,7 @@ describe(
 
 describe(
   "Integration — Sales by-seller endpoint",
-  { skip: !containersUp && "Containers not running" },
+  { skip: !jewdApiUp && "JEWD API not accessible (requires JWT auth)" },
   () => {
     it("returns valid JSON from /jewd/v1/sales/by-seller", () => {
       const data = jewdApiGet("sales/by-seller");

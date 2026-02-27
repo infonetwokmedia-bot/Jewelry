@@ -65,25 +65,17 @@ export function isContainerRunning(name) {
 }
 
 // ── WC API helpers ──────────────────────────────────────────────────
-
-function getWcKeys() {
-  const envJs = readDashFile(".env.js");
-  const ck = envJs.match(/consumerKey:\s*["']([^"']+)/)?.[1];
-  const cs = envJs.match(/consumerSecret:\s*["']([^"']+)/)?.[1];
-  if (!ck || !cs) throw new Error("Cannot read WC keys from .env.js");
-  return { ck, cs };
-}
+// Nginx injects WC Basic Auth server-side, so no consumer keys are needed.
 
 export function wcApiGet(endpoint, extraParams = "") {
-  const { ck, cs } = getWcKeys();
   const sep = endpoint.includes("?") ? "&" : "?";
-  const url = `http://localhost/api/wc/v3/${endpoint}${sep}consumer_key=${ck}&consumer_secret=${cs}${extraParams ? "&" + extraParams : ""}`;
+  const extra = extraParams ? `${sep}${extraParams}` : "";
+  const url = `http://localhost/api/wc/v3/${endpoint}${extra}`;
   return JSON.parse(dockerExec("jewelry_dashboard", `curl -sf "${url}"`));
 }
 
 export function wcApiPost(endpoint, data) {
-  const { ck, cs } = getWcKeys();
-  const url = `http://localhost/api/wc/v3/${endpoint}?consumer_key=${ck}&consumer_secret=${cs}`;
+  const url = `http://localhost/api/wc/v3/${endpoint}`;
   const json = JSON.stringify(data).replace(/'/g, "'\\''");
   return JSON.parse(
     dockerExec(
@@ -95,8 +87,7 @@ export function wcApiPost(endpoint, data) {
 }
 
 export function wcApiDelete(endpoint) {
-  const { ck, cs } = getWcKeys();
-  const url = `http://localhost/api/wc/v3/${endpoint}?consumer_key=${ck}&consumer_secret=${cs}&force=true`;
+  const url = `http://localhost/api/wc/v3/${endpoint}?force=true`;
   return JSON.parse(
     dockerExec("jewelry_dashboard", `curl -sf -X DELETE "${url}"`, {
       timeout: 15000,
@@ -107,22 +98,38 @@ export function wcApiDelete(endpoint) {
 // ── Custom JEWD API helper (through nginx proxy) ────────────────────
 
 export function jewdApiGet(endpoint, extraParams = "") {
-  const { ck, cs } = getWcKeys();
   const sep = endpoint.includes("?") ? "&" : "?";
-  const url = `http://localhost/api/jewd/v1/${endpoint}${sep}consumer_key=${ck}&consumer_secret=${cs}${extraParams ? "&" + extraParams : ""}`;
+  const extra = extraParams ? `${sep}${extraParams}` : "";
+  const url = `http://localhost/api/jewd/v1/${endpoint}${extra}`;
   return JSON.parse(dockerExec("jewelry_dashboard", `curl -sf "${url}"`));
+}
+
+/**
+ * Check if the JEWD custom REST API is accessible (requires JWT auth).
+ * Returns false if the endpoint returns 401/403 or is unreachable.
+ */
+export function isJewdApiAccessible() {
+  if (!isContainerRunning("jewelry_dashboard")) return false;
+  try {
+    const result = dockerExec(
+      "jewelry_dashboard",
+      'curl -s -o /dev/null -w "%{http_code}" "http://localhost/api/jewd/v1/sales/stats"',
+      { timeout: 5000 },
+    );
+    return result === "200";
+  } catch {
+    return false;
+  }
 }
 
 // ── MySQL helper ────────────────────────────────────────────────────
 
 export function mysqlQuery(query) {
-  const envFile = readFileSync(resolve(ROOT, ".env"), "utf-8");
-  const password = envFile.match(/MYSQL_ROOT_PASSWORD=(.+)/)?.[1]?.trim();
-  if (!password) throw new Error("Cannot read MYSQL_ROOT_PASSWORD from .env");
   const escaped = query.replace(/"/g, '\\"');
+  // Use $MYSQL_ROOT_PASSWORD from inside the container (set via docker-compose)
   return dockerExec(
     "jewelry_mysql",
-    `mysql -u root -p'${password}' --ssl-mode=DISABLED jewelry_db -N -e "${escaped}"`,
+    `sh -c 'mysql -u root -p"$MYSQL_ROOT_PASSWORD" --ssl-mode=DISABLED jewelry_db -N -e "${escaped}"'`,
     { timeout: 10000 },
   );
 }
