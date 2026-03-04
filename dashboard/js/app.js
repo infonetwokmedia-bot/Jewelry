@@ -48,6 +48,9 @@
       logoutBtn.addEventListener("click", () => JewdAuth.logout());
     }
 
+    // ── Password visibility toggles (login + user modal) ──
+    initPasswordToggles();
+
     // ── Auth: check existing session ──
     const authed = await JewdAuth.init();
     if (authed) initAfterAuth();
@@ -241,19 +244,19 @@
     const btnNew = $("#btnNewProduct");
     if (btnNew) btnNew.addEventListener("click", openNewProductWizard);
 
-    // Modal close.
+    // Product detail modal (read-only) — safe to close on backdrop.
     $("#modalClose").addEventListener("click", closeModal);
     $("#modalCloseBtn").addEventListener("click", closeModal);
     $("#detailModal").addEventListener("click", (e) => {
       if (e.target === $("#detailModal")) closeModal();
     });
 
-    // Edit modal.
+    // Edit product modal — DISABLE backdrop close to prevent data loss.
     $("#editModalClose").addEventListener("click", closeEditModal);
     $("#editModalCancel").addEventListener("click", closeEditModal);
     $("#editModalSave").addEventListener("click", saveProduct);
     $("#editModal").addEventListener("click", (e) => {
-      if (e.target === $("#editModal")) closeEditModal();
+      if (e.target === $("#editModal")) { /* no-op: require explicit close */ }
     });
 
     // Image modal — close on background click (not nav buttons).
@@ -263,15 +266,15 @@
       }
     });
 
-    // Order detail modal.
+    // Order detail modal — DISABLE backdrop close, protect unsaved notes (#71).
     const orderDetailClose = $("#orderDetailClose");
-    if (orderDetailClose) orderDetailClose.addEventListener("click", closeOrderDetailModal);
+    if (orderDetailClose) orderDetailClose.addEventListener("click", safeCloseOrderDetail);
     const orderDetailCloseBtn = $("#orderDetailCloseBtn");
-    if (orderDetailCloseBtn) orderDetailCloseBtn.addEventListener("click", closeOrderDetailModal);
+    if (orderDetailCloseBtn) orderDetailCloseBtn.addEventListener("click", safeCloseOrderDetail);
     const orderDetailModal = $("#orderDetailModal");
     if (orderDetailModal)
       orderDetailModal.addEventListener("click", (e) => {
-        if (e.target === orderDetailModal) closeOrderDetailModal();
+        if (e.target === orderDetailModal) { /* no-op: require explicit close */ }
       });
 
     // Order filters.
@@ -318,9 +321,13 @@
         // If a confirm dialog is open, let its own Escape handler deal with it.
         if (document.querySelector(".jewd-confirm-overlay")) return;
 
+        // userModal has its own Escape handler in users.js (#72)
+        const userModal = $("#userModal");
+        if (userModal && userModal.classList.contains("active")) return;
+
         closeModal();
         closeEditModal();
-        closeOrderDetailModal();
+        safeCloseOrderDetail();
         $("#imgModal").classList.remove("active");
       }
       // Lightbox arrow navigation.
@@ -337,6 +344,54 @@
         }
       }
     });
+  }
+
+  /* ===== PASSWORD VISIBILITY TOGGLE ===== */
+  /**
+   * Binds click events on all .jewd-pw-toggle buttons (current & future).
+   * Uses document-level delegation so dynamically-rendered toggles work too.
+   * Each button needs data-target="<inputId>".
+   * SVG icons inside the button have pointer-events:none via CSS.
+   */
+  function initPasswordToggles() {
+    document.addEventListener('click', function (e) {
+      var btn = e.target.closest('.jewd-pw-toggle');
+      if (!btn) return;
+
+      e.preventDefault();
+      e.stopPropagation();
+
+      var targetId = btn.getAttribute('data-target');
+      if (!targetId) return;
+      var input = document.getElementById(targetId);
+      if (!input) return;
+
+      var showing = input.type === 'password';
+      input.type = showing ? 'text' : 'password';
+
+      // Toggle SVG icons
+      var eyeOpen = btn.querySelector('.jewd-pw-eye-open');
+      var eyeClosed = btn.querySelector('.jewd-pw-eye-closed');
+      if (eyeOpen) eyeOpen.style.display = showing ? 'none' : '';
+      if (eyeClosed) eyeClosed.style.display = showing ? '' : 'none';
+
+      // Accessibility
+      btn.setAttribute('aria-pressed', String(showing));
+      btn.title = showing ? 'Ocultar contrase\u00f1a' : 'Mostrar contrase\u00f1a';
+      btn.setAttribute('aria-label', btn.title);
+    }, true); // useCapture=true to ensure we catch it before anything else
+  }
+
+  /* ===== SAFE CLOSE: ORDER DETAIL MODAL (#71) ===== */
+  /**
+   * Close orderDetailModal, but warn if the notes textarea has unsaved text.
+   */
+  function safeCloseOrderDetail() {
+    const noteInput = $("#orderNoteInput");
+    if (noteInput && noteInput.value.trim() !== '') {
+      if (!confirm('Tienes una nota sin guardar. \u00bfDescartar y cerrar?')) return;
+    }
+    closeOrderDetailModal();
   }
 
 })(window.Jewd);

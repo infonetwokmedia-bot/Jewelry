@@ -314,33 +314,33 @@ add_action('rest_api_init', function () {
 
 /**
  * Permission check for media endpoints.
- * Validates WC API keys or logged-in admin.
+ *
+ * Authentication priority:
+ *   1. Dashboard JWT token (Bearer header) — primary method from SPA.
+ *   2. WC API keys (Basic auth header or query/POST params) — legacy/external.
+ *   3. WordPress cookie session — admin logged into wp-admin.
  *
  * @return bool
  */
 function jewd_media_permission_check()
 {
-    // Check query params (GET-style auth used by dashboard).
-    $ck = '';
-    $cs = '';
-
-    // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-    if (! empty($_GET['consumer_key']) && ! empty($_GET['consumer_secret'])) {
-        $ck = sanitize_text_field(wp_unslash($_GET['consumer_key']));
-        $cs = sanitize_text_field(wp_unslash($_GET['consumer_secret']));
+    // 1. Try JWT Bearer token (dashboard session) — primary auth path.
+    if (function_exists('jewelry_authenticate_dashboard_token')) {
+        $user = jewelry_authenticate_dashboard_token();
+        if (! is_wp_error($user)) {
+            return user_can($user, 'upload_files');
+        }
     }
 
-    // Also check POST body for multipart uploads.
-    // phpcs:ignore WordPress.Security.NonceVerification.Missing
-    if (empty($ck) && ! empty($_POST['consumer_key']) && ! empty($_POST['consumer_secret'])) {
-        $ck = sanitize_text_field(wp_unslash($_POST['consumer_key']));
-        $cs = sanitize_text_field(wp_unslash($_POST['consumer_secret']));
+    // 2. Try WC API keys (Basic auth or query/POST params).
+    if (function_exists('jewelry_authenticate_api_request')) {
+        $user = jewelry_authenticate_api_request();
+        if (! is_wp_error($user)) {
+            return user_can($user, 'upload_files');
+        }
     }
 
-    if (! empty($ck) && ! empty($cs)) {
-        return jewd_validate_wc_keys($ck, $cs);
-    }
-
+    // 3. Fallback: WordPress cookie session (admin in wp-admin).
     return current_user_can('upload_files');
 }
 

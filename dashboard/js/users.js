@@ -10,6 +10,8 @@ const JewdUsers = (function () {
   let _users = [];
   let _roles = [];
   let _loaded = false;
+  let _formDirty = false;       // Dirty-form tracking (#73)
+  let _closingModal = false;    // Prevent re-entrancy during confirm
 
   // Role badges colors
   const ROLE_COLORS = {
@@ -227,11 +229,17 @@ const JewdUsers = (function () {
     document.querySelector("#userModalId").value = "";
     document.querySelector("#userModalPassword").required = true;
     document.querySelector("#userModalPassword").placeholder = "Contraseña (obligatoria)";
-    // Show password field for new users
     document.querySelector("#userPasswordGroup").style.display = "";
     document.querySelector("#generatedPasswordInfo").style.display = "none";
+    // Update section labels for create mode
+    var pwTitle = document.querySelector("#userPwSectionTitle");
+    var pwHint = document.querySelector("#userPwSectionHint");
+    if (pwTitle) pwTitle.textContent = "Contraseña";
+    if (pwHint) pwHint.textContent = "(obligatoria)";
 
+    _formDirty = false;
     modal.classList.add("active");
+    _trackDirty();
     document.querySelector("#userModalUsername").focus();
   }
 
@@ -254,8 +262,24 @@ const JewdUsers = (function () {
     document.querySelector("#userModalRole").value = user.role;
     document.querySelector("#userModalPassword").value = "";
     document.querySelector("#userModalPassword").required = false;
-    document.querySelector("#userModalPassword").placeholder = "Dejar vacío para no cambiar";
+    document.querySelector("#userModalPassword").placeholder = "Nueva contraseña (mínimo 8 caracteres)";
+    document.querySelector("#userPasswordGroup").style.display = "";
     document.querySelector("#generatedPasswordInfo").style.display = "none";
+    // Update section labels for edit mode
+    var pwTitle = document.querySelector("#userPwSectionTitle");
+    var pwHint = document.querySelector("#userPwSectionHint");
+    if (pwTitle) pwTitle.textContent = "Cambiar Contraseña";
+    if (pwHint) pwHint.textContent = "(dejar vacío para no cambiar)";
+    // Reset toggle state
+    var pwToggle = document.querySelector('#userPasswordGroup .jewd-pw-toggle');
+    if (pwToggle) {
+      document.querySelector('#userModalPassword').type = 'password';
+      var eyeOpen = pwToggle.querySelector('.jewd-pw-eye-open');
+      var eyeClosed = pwToggle.querySelector('.jewd-pw-eye-closed');
+      if (eyeOpen) eyeOpen.style.display = '';
+      if (eyeClosed) eyeClosed.style.display = 'none';
+      pwToggle.setAttribute('aria-pressed', 'false');
+    }
 
     // Protect admin role change for user ID 1
     if (user.is_protected) {
@@ -264,13 +288,61 @@ const JewdUsers = (function () {
       document.querySelector("#userModalRole").disabled = false;
     }
 
+    _formDirty = false;
     modal.classList.add("active");
+    _trackDirty();
     document.querySelector("#userModalEmail").focus();
   }
 
-  function closeModal() {
+  /** Attach input listeners to detect form changes. */
+  function _trackDirty() {
+    const form = document.querySelector("#userModalForm");
+    if (!form) return;
+    // Remove previous listeners by cloning trick — not needed,
+    // we just reset _formDirty on open and listen for any input.
+    const handler = () => { _formDirty = true; };
+    form.querySelectorAll('input, select, textarea').forEach(el => {
+      el.removeEventListener('input', handler);
+      el.addEventListener('input', handler, { once: false });
+    });
+    // Also detect select changes
+    form.querySelectorAll('select').forEach(el => {
+      el.removeEventListener('change', handler);
+      el.addEventListener('change', handler, { once: false });
+    });
+  }
+
+  /**
+   * Attempt to close the user modal, with dirty-form protection.
+   * @param {boolean} force - Skip dirty check if true.
+   * @returns {Promise<void>}
+   */
+  async function closeModal(force) {
+    if (_closingModal) return;
     const modal = document.querySelector("#userModal");
-    if (modal) modal.classList.remove("active");
+    if (!modal || !modal.classList.contains("active")) return;
+
+    if (!force && _formDirty) {
+      _closingModal = true;
+      try {
+        // Reuse the global showConfirm from Jewd namespace
+        const confirmFn = (window.Jewd && window.Jewd.showConfirm)
+          ? window.Jewd.showConfirm
+          : (opts) => Promise.resolve(confirm(opts.message || opts.title || '¿Descartar cambios?'));
+        const ok = await confirmFn({
+          title: '⚠️ Cambios sin guardar',
+          html: '<span>Tienes cambios sin guardar en el formulario de usuario. ¿Descartar los cambios?</span>',
+          confirmText: 'Descartar',
+          danger: true,
+        });
+        if (!ok) return;
+      } finally {
+        _closingModal = false;
+      }
+    }
+
+    modal.classList.remove("active");
+    _formDirty = false;
     document.querySelector("#userModalUsername").disabled = false;
     document.querySelector("#userModalRole").disabled = false;
   }
@@ -330,7 +402,8 @@ const JewdUsers = (function () {
       }
 
       await refresh();
-      if (isEdit) closeModal();
+      _formDirty = false;  // Reset dirty flag after successful save
+      if (isEdit) closeModal(true);
     } catch (e) {
       showToast("❌ " + e.message, true);
     } finally {
@@ -405,18 +478,30 @@ const JewdUsers = (function () {
     if (form) form.addEventListener("submit", handleFormSubmit);
 
     const closeBtn = document.querySelector("#userModalClose");
-    if (closeBtn) closeBtn.addEventListener("click", closeModal);
+    if (closeBtn) closeBtn.addEventListener("click", () => closeModal(false));
 
     const cancelBtn = document.querySelector("#userModalCancel");
-    if (cancelBtn) cancelBtn.addEventListener("click", closeModal);
+    if (cancelBtn) cancelBtn.addEventListener("click", () => closeModal(false));
 
-    // Close on overlay click
+    // Backdrop click — DISABLED to prevent accidental data loss (#73)
+    // User must use close/cancel button or Escape key.
     const modal = document.querySelector("#userModal");
     if (modal) {
       modal.addEventListener("click", (e) => {
-        if (e.target === modal) closeModal();
+        if (e.target === modal) { /* no-op: require explicit close button */ }
       });
     }
+
+    // Escape key — with dirty-form protection (#72)
+    document.addEventListener("keydown", (e) => {
+      if (e.key !== "Escape") return;
+      const m = document.querySelector("#userModal");
+      if (!m || !m.classList.contains("active")) return;
+      // Don't interfere if a confirm dialog is open
+      if (document.querySelector(".jewd-confirm-overlay")) return;
+      e.stopPropagation();
+      closeModal(false);
+    });
   }
 
   // ── Public API ──────────────────────────────────────────────────────

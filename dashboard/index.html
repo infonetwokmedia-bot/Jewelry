@@ -4,6 +4,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- Cache purge: external file (passes CSP script-src 'self') -->
+  <script src="cache-purge.js?v=3.34.0"></script>
   <title>Tu Joyita Miami — Dashboard</title>
   <link rel="icon"
     href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💎</text></svg>" />
@@ -13,7 +15,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Joyita POS" />
   <link rel="apple-touch-icon" href="icons/icon-192.png" />
-  <link rel="stylesheet" href="css/dashboard.css?v=3.31.0" />
+  <link rel="stylesheet" href="css/dashboard.css?v=3.34.0" />
 </head>
 
 <body>
@@ -31,8 +33,24 @@
         </div>
         <div class="jewd-login-field">
           <label for="loginPassword">Contraseña</label>
-          <input type="password" id="loginPassword" name="password" class="jewd-input" placeholder="Contraseña"
-            autocomplete="current-password" required />
+          <div class="jewd-password-wrap">
+            <input type="password" id="loginPassword" name="password" class="jewd-input" placeholder="Contraseña"
+              autocomplete="current-password" required />
+            <button type="button" class="jewd-pw-toggle" data-target="loginPassword" title="Mostrar contraseña"
+              aria-label="Mostrar contraseña" tabindex="0">
+              <svg class="jewd-pw-eye-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                <circle cx="12" cy="12" r="3" />
+              </svg>
+              <svg class="jewd-pw-eye-closed" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" style="display:none">
+                <path
+                  d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+                <line x1="1" y1="1" x2="23" y2="23" />
+              </svg>
+            </button>
+          </div>
         </div>
         <div id="loginError" class="jewd-login-error"></div>
         <button type="submit" id="loginBtn" class="jewd-btn jewd-btn-gold jewd-login-btn">
@@ -255,7 +273,7 @@
                   <th class="jewd-right">Precio</th>
                   <th class="jewd-right">Oferta</th>
                   <th class="jewd-right">Stock</th>
-                  <th class="jewd-right">Peso</th>
+                  <th class="jewd-right">Peso (g)</th>
                   <th style="width: 140px" class="jewd-center">Acciones</th>
                 </tr>
               </thead>
@@ -1064,10 +1082,32 @@
                 <label for="userModalPhone">Teléfono</label>
                 <input type="tel" id="userModalPhone" class="jewd-input" placeholder="+1 (305) 555-0100" />
               </div>
-              <div class="jewd-form-group" id="userPasswordGroup">
-                <label for="userModalPassword">Contraseña</label>
+            </div>
+
+            <!-- Password Section (separate from grid for visibility) -->
+            <div class="jewd-user-pw-section" id="userPasswordGroup">
+              <div class="jewd-user-pw-header">
+                <span class="jewd-user-pw-icon">🔑</span>
+                <span class="jewd-user-pw-title" id="userPwSectionTitle">Contraseña</span>
+                <span class="jewd-user-pw-hint" id="userPwSectionHint"></span>
+              </div>
+              <div class="jewd-password-wrap">
                 <input type="password" id="userModalPassword" class="jewd-input" minlength="8"
                   placeholder="Mínimo 8 caracteres" />
+                <button type="button" class="jewd-pw-toggle" data-target="userModalPassword" title="Mostrar contraseña"
+                  aria-label="Mostrar contraseña" tabindex="0">
+                  <svg class="jewd-pw-eye-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                    <circle cx="12" cy="12" r="3" />
+                  </svg>
+                  <svg class="jewd-pw-eye-closed" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round" style="display:none">
+                    <path
+                      d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+                    <line x1="1" y1="1" x2="23" y2="23" />
+                  </svg>
+                </button>
               </div>
             </div>
             <div id="generatedPasswordInfo" style="display: none"></div>
@@ -1088,26 +1128,42 @@
     <div class="jewd-toast" id="toast"></div>
   </div>
 
-  <script src=".env.js?v=3.31.0"></script>
-  <script src="js/auth.js?v=3.31.0"></script>
-  <script src="js/api.js?v=3.31.0"></script>
-  <script src="js/core.js?v=3.31.0"></script>
-  <script src="js/ui-helpers.js?v=3.31.0"></script>
-  <script src="js/products.js?v=3.31.0"></script>
-  <script src="js/orders.js?v=3.31.0"></script>
-  <script src="js/reports.js?v=3.31.0"></script>
-  <script src="js/settings.js?v=3.31.0"></script>
-  <script src="js/metals.js?v=3.31.0"></script>
-  <script src="js/users.js?v=3.31.0"></script>
-  <script src="js/pos.js?v=3.31.0"></script>
-  <script src="js/app.js?v=3.31.0"></script>
+  <script src=".env.js?v=3.34.0"></script>
+  <script src="js/auth.js?v=3.34.0"></script>
+  <script src="js/api.js?v=3.34.0"></script>
+  <script src="js/core.js?v=3.34.0"></script>
+  <script src="js/ui-helpers.js?v=3.34.0"></script>
+  <script src="js/products.js?v=3.34.0"></script>
+  <script src="js/orders.js?v=3.34.0"></script>
+  <script src="js/reports.js?v=3.34.0"></script>
+  <script src="js/settings.js?v=3.34.0"></script>
+  <script src="js/metals.js?v=3.34.0"></script>
+  <script src="js/users.js?v=3.34.0"></script>
+  <script src="js/pos.js?v=3.34.0"></script>
+  <script src="js/app.js?v=3.34.0"></script>
 
   <!-- Service Worker Registration -->
   <script>
     if ("serviceWorker" in navigator) {
       window.addEventListener("load", () => {
-        navigator.serviceWorker.register("sw.js").then(
-          (reg) => console.log("[PWA] SW registered, scope:", reg.scope),
+        navigator.serviceWorker.register("sw.js", { updateViaCache: "none" }).then(
+          (reg) => {
+            console.log("[PWA] SW registered, scope:", reg.scope);
+            // Force immediate update check on every page load
+            reg.update();
+            // When a new SW is found, reload to get fresh assets
+            reg.addEventListener("updatefound", () => {
+              const newSW = reg.installing;
+              if (newSW) {
+                newSW.addEventListener("statechange", () => {
+                  if (newSW.state === "activated" && navigator.serviceWorker.controller) {
+                    console.log("[PWA] New SW activated — reloading for fresh assets");
+                    window.location.reload();
+                  }
+                });
+              }
+            });
+          },
           (err) => console.warn("[PWA] SW registration failed:", err)
         );
       });

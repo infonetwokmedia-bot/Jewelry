@@ -244,17 +244,107 @@ const JewdAPI = (function () {
   }
 
   /**
+   * Compress and resize an image client-side before upload.
+   * Uses canvas to strip EXIF metadata, resize to max 1600px, and compress to JPEG 0.85.
+   * WebP-native files are passed through without re-encoding.
+   *
+   * @param {File} file - The original image file.
+   * @param {object} [opts] - Options.
+   * @param {number} [opts.maxDimension=1600] - Max width or height in pixels.
+   * @param {number} [opts.quality=0.85] - JPEG output quality (0-1).
+   * @returns {Promise<File>} - A compressed File ready for upload.
+   */
+  function compressImage(file, opts = {}) {
+    const maxDim = opts.maxDimension || 1600;
+    const quality = opts.quality || 0.85;
+
+    // Skip compression for WebP files (already optimized) and non-image files.
+    if (file.type === "image/webp" || !file.type.startsWith("image/")) {
+      return Promise.resolve(file);
+    }
+
+    // Skip tiny files (< 50KB) — already small enough.
+    if (file.size < 50 * 1024) {
+      return Promise.resolve(file);
+    }
+
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      const url = URL.createObjectURL(file);
+
+      img.onload = () => {
+        URL.revokeObjectURL(url);
+
+        let { width, height } = img;
+
+        // Scale down if either dimension exceeds maxDim.
+        if (width > maxDim || height > maxDim) {
+          const ratio = Math.min(maxDim / width, maxDim / height);
+          width = Math.round(width * ratio);
+          height = Math.round(height * ratio);
+        }
+
+        // Draw onto canvas (this also strips EXIF metadata).
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0, width, height);
+
+        // Export as JPEG with specified quality.
+        canvas.toBlob(
+          (blob) => {
+            if (!blob) {
+              resolve(file); // Fallback to original if canvas fails.
+              return;
+            }
+
+            // Only use compressed version if it's actually smaller.
+            if (blob.size >= file.size) {
+              resolve(file);
+              return;
+            }
+
+            const compressed = new File(
+              [blob],
+              file.name.replace(/\.\w+$/, ".jpg"),
+              { type: "image/jpeg", lastModified: Date.now() }
+            );
+            console.log(
+              `[ImageOpt] ${file.name}: ${(file.size / 1024).toFixed(0)}KB → ${(compressed.size / 1024).toFixed(0)}KB (${width}x${height})`
+            );
+            resolve(compressed);
+          },
+          "image/jpeg",
+          quality
+        );
+      };
+
+      img.onerror = () => {
+        URL.revokeObjectURL(url);
+        resolve(file); // Fallback to original on error.
+      };
+
+      img.src = url;
+    });
+  }
+
+  /**
    * UPLOAD an image to the media library.
    * Uses multipart/form-data (no JSON Content-Type).
+   * Automatically compresses the image client-side before upload.
    *
    * @param {File} file - The image file to upload.
    * @returns {Promise<{id:number, url:string, thumbnail:string, medium:string, filename:string, width:number, height:number, filesize:number}>}
    */
   async function uploadImage(file) {
+    // Compress/resize before upload (strips EXIF, max 1600px, JPEG 0.85).
+    const optimized = await compressImage(file);
+
     const c = cfg();
     const url = `${c.wpBaseUrl}/jewd/v1/media`;
     const formData = new FormData();
-    formData.append("file", file);
+    formData.append("file", optimized);
 
     const res = await fetch(url, {
       method: "POST",
@@ -536,6 +626,7 @@ const JewdAPI = (function () {
     batchProducts,
     uploadImage,
     deleteImage,
+    compressImage,
     getOrders,
     getOrder,
     updateOrder,

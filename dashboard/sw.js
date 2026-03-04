@@ -8,7 +8,7 @@
  * @version 1.0.0
  */
 
-const CACHE_NAME = "jewd-v3.31.1";
+const CACHE_NAME = "jewd-v3.34.0";
 
 // Assets to pre-cache on install
 // NOTE: Production uses bundled dist/ files, not individual JS modules.
@@ -94,9 +94,9 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // ── Dashboard pages → Cache-first (SPA, single HTML) ──
-  if (url.pathname.startsWith("/dashboard")) {
-    event.respondWith(cacheFirst(request));
+  // ── Dashboard HTML → Network-first (ensures latest HTML always loads) ──
+  if (url.pathname.startsWith("/dashboard") || url.pathname === "/") {
+    event.respondWith(networkFirst(request));
     return;
   }
 });

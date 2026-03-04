@@ -33,8 +33,14 @@ add_action('init', 'jewelry_register_custom_roles');
 
 function jewelry_register_custom_roles()
 {
+    // ── Always ensure upload_files on jewelry_seller (REG-006 fix) ──
+    $seller = get_role('jewelry_seller');
+    if ($seller && ! isset($seller->capabilities['upload_files'])) {
+        $seller->add_cap('upload_files');
+    }
+
     // Solo registrar si aún no existen
-    if (get_role('jewelry_seller') && get_role('jewelry_viewer')) {
+    if ($seller && get_role('jewelry_viewer')) {
         return;
     }
 
@@ -67,6 +73,8 @@ function jewelry_register_custom_roles()
             // WooCommerce general
             'view_woocommerce_reports' => false,
             'manage_woocommerce'     => false,
+            // Media — requerido para subir imágenes en POS y pedidos custom
+            'upload_files'           => true,
             // Dashboard access
             'jewelry_dashboard_access' => true,
             'jewelry_view_products'    => true,

@@ -2923,7 +2923,7 @@ body {
   position: fixed;
   inset: 0;
   background: var(--jewd-overlay);
-  z-index: 500000;
+  z-index: 600000; /* #74: above all modals (base=10000, confirm=600000) */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -3297,6 +3297,57 @@ body {
   font-size: var(--jewd-font-base);
 }
 
+/* ── Password Toggle ── */
+.jewd-password-wrap {
+  position: relative;
+  width: 100%;
+}
+
+.jewd-password-wrap .jewd-input {
+  width: 100%;
+  padding-right: 48px;
+}
+
+.jewd-pw-toggle {
+  position: absolute;
+  right: 1px;
+  top: 1px;
+  bottom: 1px;
+  width: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  border-left: 1px solid var(--jewd-border);
+  border-radius: 0 5px 5px 0;
+  cursor: pointer;
+  color: var(--jewd-text2);
+  transition: color 0.2s, background 0.2s;
+}
+
+.jewd-pw-toggle:hover {
+  color: var(--jewd-gold);
+  background: var(--jewd-surface2);
+}
+
+.jewd-pw-toggle:focus-visible {
+  outline: 2px solid var(--jewd-gold);
+  outline-offset: -2px;
+  color: var(--jewd-gold);
+}
+
+.jewd-pw-toggle[aria-pressed="true"] {
+  color: var(--jewd-gold);
+  background: var(--jewd-surface3, rgba(0,0,0,0.04));
+}
+
+.jewd-pw-toggle svg {
+  width: 18px;
+  height: 18px;
+  pointer-events: none;
+}
+
 .jewd-login-error {
   color: var(--jewd-red);
   font-size: var(--jewd-font-base);
@@ -3455,6 +3506,42 @@ body {
 .jewd-form-group .jewd-input,
 .jewd-form-group .jewd-select {
   width: 100%;
+}
+
+/* ── User Password Section ── */
+.jewd-user-pw-section {
+  margin-top: 20px;
+  padding: 16px;
+  border: 1px solid var(--jewd-border);
+  border-radius: 10px;
+  background: var(--jewd-surface2);
+}
+
+.jewd-user-pw-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.jewd-user-pw-icon {
+  font-size: 1.1rem;
+}
+
+.jewd-user-pw-title {
+  font-size: var(--jewd-font-base);
+  font-weight: 600;
+  color: var(--jewd-text);
+}
+
+.jewd-user-pw-hint {
+  font-size: var(--jewd-font-sm);
+  color: var(--jewd-text2);
+  font-style: italic;
+}
+
+.jewd-user-pw-section .jewd-password-wrap {
+  max-width: 400px;
 }
 
 .jewd-generated-pw {

@@ -290,7 +290,7 @@
       html += `<td class="jewd-right">${priceHtml}</td>`;
       html += `<td class="jewd-right">${saleHtml}</td>`;
       html += `<td class="jewd-right">${stockHtml}</td>`;
-      html += `<td class="jewd-right">${esc(p.weight || "—")}</td>`;
+      html += `<td class="jewd-right">${p.weight ? esc(p.weight) + " g" : "—"}</td>`;
       html += '<td class="jewd-center">';
       const canEdit = window.JewdAuth && window.JewdAuth.can("edit_products");
       if (p.status === "trash") {
@@ -353,7 +353,7 @@
           html += `<td class="jewd-right">${vPriceHtml}</td>`;
           html += `<td class="jewd-right">${vSaleHtml}</td>`;
           html += `<td class="jewd-right">${vStockHtml}</td>`;
-          html += `<td class="jewd-right">${esc(v.weight || "—")}</td>`;
+          html += `<td class="jewd-right">${v.weight ? esc(v.weight) + " g" : "—"}</td>`;
           html += "<td></td>";
           html += "</tr>";
         });
@@ -504,7 +504,7 @@
       html += detailField("Precio Regular", `$${fmtN(p.regular_price)}`);
       html += detailField("Precio Oferta", p.sale_price ? `$${fmtN(p.sale_price)}` : "—");
       html += detailField("Stock", p.stock_quantity !== null ? p.stock_quantity : p.stock_status);
-      html += detailField("Peso", p.weight || "—");
+      html += detailField("Peso", p.weight ? p.weight + " g" : "—");
     }
 
     html += detailField("Fecha Creación", p.date_created ? p.date_created.split("T")[0] : "—");
@@ -543,7 +543,7 @@
       html +=
         '<div style="overflow-x:auto;margin-top:6px"><table class="jewd-table" style="font-size:.78rem">';
       html +=
-        '<thead><tr><th>SKU</th><th>Atributos</th><th class="jewd-right">Precio</th><th class="jewd-right">Oferta</th><th class="jewd-right">Stock</th><th class="jewd-right">Peso</th></tr></thead><tbody>';
+        '<thead><tr><th>SKU</th><th>Atributos</th><th class="jewd-right">Precio</th><th class="jewd-right">Oferta</th><th class="jewd-right">Stock</th><th class="jewd-right">Peso (g)</th></tr></thead><tbody>';
       vs.forEach((v) => {
         const va = v.attributes ? v.attributes.map((a) => `${a.name}: ${a.option}`).join(", ") : "";
         html += "<tr>";
@@ -552,7 +552,7 @@
         html += `<td class="jewd-right">${v.regular_price ? "$" + fmtN(v.regular_price) : "$" + fmtN(v.price)}</td>`;
         html += `<td class="jewd-right">${v.sale_price ? "$" + fmtN(v.sale_price) : "—"}</td>`;
         html += `<td class="jewd-right">${v.stock_quantity !== null ? v.stock_quantity : "—"}</td>`;
-        html += `<td class="jewd-right">${v.weight || "—"}</td>`;
+        html += `<td class="jewd-right">${v.weight ? v.weight + " g" : "—"}</td>`;
         html += "</tr>";
       });
       html += "</tbody></table></div></div>";
@@ -630,7 +630,7 @@
       { value: "draft", label: "Borrador" },
       { value: "private", label: "Privado" },
     ]);
-    html += editField("Peso (oz)", "edit_weight", p.weight || "", "text");
+    html += editField("Peso (g)", "edit_weight", p.weight || "", "text");
 
     if (p.type === "simple") {
       html += editField(
@@ -756,7 +756,7 @@
       html += `<h3 class="jewd-edit-section-title">🔀 Variaciones (${vs.length})</h3>`;
       html += '<div class="jewd-edit-vtable"><table class="jewd-table" style="font-size:.82rem">';
       html +=
-        "<thead><tr><th style='width:50px'>Img</th><th>Atributos</th><th>SKU</th><th>Precio Regular</th><th>Precio Oferta</th><th>Stock</th><th>Peso</th></tr></thead><tbody>";
+        "<thead><tr><th style='width:50px'>Img</th><th>Atributos</th><th>SKU</th><th>Precio Regular</th><th>Precio Oferta</th><th>Stock</th><th>Peso (g)</th></tr></thead><tbody>";
       vs.forEach((v, vi) => {
         const vAttr = v.attributes
           ? v.attributes.map((a) => `${a.name}: ${a.option}`).join(", ")
@@ -1663,7 +1663,7 @@
             <div class="jewd-edit-field jewd-edit-wide"><label class="jewd-edit-label">Precio oferta</label><input class="jewd-edit-input" id="wizSalePrice" type="number" step="0.01" placeholder="0.00 (opcional)"></div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
               <div class="jewd-edit-field"><label class="jewd-edit-label">Stock</label><input class="jewd-edit-input" id="wizStock" type="number" placeholder="Cantidad"></div>
-              <div class="jewd-edit-field"><label class="jewd-edit-label">Peso (oz)</label><input class="jewd-edit-input" id="wizWeight" placeholder="0.00"></div>
+              <div class="jewd-edit-field"><label class="jewd-edit-label">Peso (g)</label><input class="jewd-edit-input" id="wizWeight" placeholder="0.00"></div>
             </div>
           </div>
 
@@ -2357,7 +2357,7 @@
         "Precio Regular",
         "Precio Oferta",
         "Stock",
-        "Peso",
+        "Peso (g)",
         "Categorías",
       ].join(","),
     );

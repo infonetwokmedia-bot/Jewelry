@@ -571,8 +571,9 @@ const JewdPOS = (function () {
       overlay
         .querySelector(".jewd-pos-modal-close")
         .addEventListener("click", () => overlay.remove());
+      // Backdrop click — disabled to prevent accidental loss of selection
       overlay.addEventListener("click", (e) => {
-        if (e.target === overlay) overlay.remove();
+        if (e.target === overlay) { /* no-op: require explicit close */ }
       });
       const onEsc = (e) => {
         if (e.key === "Escape") {
@@ -977,21 +978,32 @@ const JewdPOS = (function () {
       setItemPrice(item.id, input.value);
       overlay.remove();
     });
+    /** Check if price was modified from the original value. */
+    function priceChanged() {
+      return fmtN(parseFloat(input.value) || 0) !== fmtN(item.price);
+    }
+
+    function confirmClosePrice() {
+      if (!priceChanged()) { overlay.remove(); return; }
+      if (confirm('¿Descartar el cambio de precio?')) overlay.remove();
+    }
+
     overlay
       .querySelector(".jewd-pos-price-cancel")
-      .addEventListener("click", () => overlay.remove());
+      .addEventListener("click", confirmClosePrice);
     overlay
       .querySelector(".jewd-pos-modal-close")
-      .addEventListener("click", () => overlay.remove());
+      .addEventListener("click", confirmClosePrice);
+    // Backdrop click — disabled to prevent accidental data loss (#70)
     overlay.addEventListener("click", (e) => {
-      if (e.target === overlay) overlay.remove();
+      if (e.target === overlay) { /* no-op: require explicit close button */ }
     });
     input.addEventListener("keydown", (e) => {
       if (e.key === "Enter") {
         setItemPrice(item.id, input.value);
         overlay.remove();
       }
-      if (e.key === "Escape") overlay.remove();
+      if (e.key === "Escape") confirmClosePrice();
     });
   }
 
@@ -1310,10 +1322,21 @@ const JewdPOS = (function () {
       });
     }
 
-    overlay.querySelector("#posPayClose").addEventListener("click", () => overlay.remove());
-    overlay.querySelector("#posPayCancel").addEventListener("click", () => overlay.remove());
+    /** Check if the user has interacted with the payment form. */
+    function hasPaymentData() {
+      return selectedMethod !== '' || (cashInput && cashInput.value !== '') || splitPayments.length > 0;
+    }
+
+    function confirmClosePayment() {
+      if (!hasPaymentData()) { overlay.remove(); return; }
+      if (confirm('¿Cancelar el pago? Se perderán los datos ingresados.')) overlay.remove();
+    }
+
+    overlay.querySelector("#posPayClose").addEventListener("click", confirmClosePayment);
+    overlay.querySelector("#posPayCancel").addEventListener("click", confirmClosePayment);
+    // Backdrop click — disabled to prevent accidental data loss (#69)
     overlay.addEventListener("click", (e) => {
-      if (e.target === overlay) overlay.remove();
+      if (e.target === overlay) { /* no-op: require explicit close button */ }
     });
 
     confirmBtn.addEventListener("click", () => {
