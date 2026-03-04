@@ -190,6 +190,13 @@ phase1_local_validation() {
         log_warn "Directorio mu-plugins no encontrado"
     fi
 
+    # jewelry-dashboard plugin
+    if [ -f "$PROJECT_DIR/data/wordpress/wp-content/plugins/jewelry-dashboard/jewelry-dashboard.php" ]; then
+        log_ok "Plugin jewelry-dashboard presente"
+    else
+        log_warn "Plugin jewelry-dashboard no encontrado"
+    fi
+
     # Nginx production.conf points to tujoyita_wordpress
     if grep -q "tujoyita_wordpress" "$PROJECT_DIR/dashboard/nginx/production.conf" 2>/dev/null; then
         log_ok "production.conf → tujoyita_wordpress"
@@ -473,6 +480,25 @@ phase4_code_sync() {
         done
     else
         log_warn "mu-plugins no encontrado"
+    fi
+
+    # ── 4a.2 Custom plugins ──────────────────────────────────────────────
+    log_section "Custom Plugins"
+
+    local plugin_dir="$PROJECT_DIR/data/wordpress/wp-content/plugins/jewelry-dashboard"
+    if [ -d "$plugin_dir" ]; then
+        for plugin_file in "$plugin_dir"/*.php; do
+            [ -f "$plugin_file" ] || continue
+            local pbasename
+            pbasename=$(basename "$plugin_file")
+            scp -q "$plugin_file" "$PROD_HOST:/tmp/$pbasename"
+            ssh_prod "docker exec $PROD_WP_CONTAINER mkdir -p /var/www/html/wp-content/plugins/jewelry-dashboard && \
+                docker cp /tmp/$pbasename $PROD_WP_CONTAINER:/var/www/html/wp-content/plugins/jewelry-dashboard/$pbasename && \
+                rm /tmp/$pbasename"
+            log_ok "jewelry-dashboard/$pbasename"
+        done
+    else
+        log_warn "Plugin jewelry-dashboard no encontrado"
     fi
 
     # ── 4b. Dashboard ────────────────────────────────────────────────────
@@ -819,6 +845,7 @@ print_manifest() {
 │                                                                │
 │  SE DESPLIEGA:                                                 │
 │    ✔ mu-plugins/jewelry-*.php (código custom)                  │
+│    ✔ plugins/jewelry-dashboard/ (CORS, media upload, stats)    │
 │    ✔ dashboard/ (SPA bundled + nginx config)                   │
 │    ✔ docker-compose.production.yml                             │
 │    ✔ scripts/ (utilidades)                                     │
