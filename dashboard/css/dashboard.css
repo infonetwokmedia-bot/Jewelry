@@ -5181,3 +5181,276 @@ body {
 .jewd-seller-table tr:hover td {
   background: var(--jewd-hover);
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   RESPONSIVE AUDIT FIXES (2026-03-04)
+   Breakpoints: 1024px, 768px, 600px, 480px, 375px, 320px
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── 1024px: Tablet landscape / Small laptop ─────────────────────────── */
+@media (max-width: 1024px) {
+  .jewd-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+  .jewd-gold-ticker {
+    padding: 6px 12px;
+  }
+  .jewd-gold-ticker-inner {
+    justify-content: flex-start;
+  }
+}
+
+/* ── 768px: Tablet portrait ──────────────────────────────────────────── */
+@media (max-width: 768px) {
+  /* Topbar: stack vertically, keep compact */
+  .jewd-topbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+  .jewd-topbar-left {
+    justify-content: space-between;
+  }
+  .jewd-actions {
+    justify-content: flex-start;
+    gap: 6px;
+  }
+  /* Gold ticker: horizontal scroll indicator */
+  .jewd-gold-ticker {
+    padding: 6px 8px;
+    -webkit-overflow-scrolling: touch;
+  }
+  .jewd-gold-ticker-inner {
+    justify-content: flex-start;
+    gap: 4px;
+  }
+  /* Stats: 2 columns */
+  .jewd-stats {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px;
+  }
+  /* Stat value: prevent text overflow */
+  .jewd-stat-value {
+    font-size: clamp(1.2rem, 4vw, 1.8rem);
+    word-break: break-word;
+  }
+  /* Table: force horizontal scroll at tablet */
+  .jewd-table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .jewd-table {
+    min-width: 700px;
+  }
+}
+
+/* ── 600px: Large phone / Small tablet ───────────────────────────────── */
+@media (max-width: 600px) {
+  /* Hide export buttons text, keep essential actions */
+  #btnExportJSON,
+  #btnExportCSV,
+  #btnExpandAll {
+    font-size: 0;
+    padding: 6px 10px;
+  }
+  #btnExportJSON::before {
+    content: "⬇";
+    font-size: var(--jewd-font-sm);
+  }
+  #btnExportCSV::before {
+    content: "📊";
+    font-size: var(--jewd-font-sm);
+  }
+  #btnExpandAll::before {
+    content: "⊞";
+    font-size: var(--jewd-font-sm);
+  }
+  .jewd-title .jewd-version {
+    display: none;
+  }
+}
+
+/* ── 480px: Mobile (Bottom nav active) ───────────────────────────────── */
+@media (max-width: 480px) {
+  /* CRITICAL: Hide sidebar footer in bottom nav mode */
+  .jewd-sidebar-footer {
+    display: none !important;
+  }
+  /* Reset table min-width (card mode active) */
+  .jewd-table {
+    min-width: 0;
+  }
+  /* Ensure enough bottom padding for bottom nav */
+  .jewd-layout {
+    padding-bottom: 68px;
+  }
+  .jewd-main {
+    padding-bottom: 64px;
+  }
+  /* Topbar: ultra compact */
+  .jewd-topbar {
+    padding: 6px 10px;
+    gap: 6px;
+  }
+  .jewd-title {
+    font-size: var(--jewd-font-base);
+  }
+  .jewd-title .jewd-icon {
+    font-size: 1rem;
+  }
+  /* Actions: icon-only mode */
+  .jewd-actions {
+    gap: 4px;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 2px;
+  }
+  .jewd-actions::-webkit-scrollbar {
+    display: none;
+  }
+  #btnNewProduct {
+    font-size: 0;
+    padding: 6px 10px;
+  }
+  #btnNewProduct::before {
+    content: "➕";
+    font-size: var(--jewd-font-sm);
+  }
+  /* Gold ticker: compact */
+  .jewd-gold-ticker {
+    padding: 4px 8px;
+  }
+  .jewd-gold-item {
+    padding: 3px 8px;
+    font-size: var(--jewd-font-xs);
+    border-radius: 6px;
+  }
+  .jewd-gold-ticker-meta {
+    gap: 4px;
+    padding-left: 2px;
+  }
+  .jewd-gold-detail-link {
+    padding: 3px 6px;
+    font-size: 0.6rem;
+  }
+  /* Stat cards: compact for mobile */
+  .jewd-stat {
+    padding: 6px 8px;
+  }
+  .jewd-stat-label {
+    font-size: var(--jewd-font-xs);
+  }
+  .jewd-stat-value {
+    font-size: clamp(1rem, 5vw, 1.5rem);
+  }
+  .jewd-stat-sub {
+    font-size: var(--jewd-font-xs);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  /* Bottom nav: ensure proper spacing & no text truncation */
+  .jewd-nav-item {
+    overflow: hidden;
+    min-width: 0;
+  }
+  .jewd-nav-label {
+    font-size: 0.6rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 100%;
+  }
+}
+
+/* ── 375px: iPhone / Standard phone ──────────────────────────────────── */
+@media (max-width: 375px) {
+  .jewd-topbar {
+    padding: 4px 8px;
+    gap: 4px;
+  }
+  .jewd-title {
+    font-size: var(--jewd-font-sm);
+    gap: 4px;
+  }
+  /* Hide less essential action buttons */
+  #btnExpandAll,
+  #btnExportJSON,
+  #btnExportCSV,
+  #btnWPAdmin {
+    display: none;
+  }
+  /* Gold ticker: minimal */
+  .jewd-gold-item {
+    padding: 2px 6px;
+  }
+  .jewd-gold-sep {
+    display: none;
+  }
+  /* Cards: single column for stat cards */
+  .jewd-stats {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 4px;
+  }
+  .jewd-stat {
+    padding: 6px;
+  }
+  .jewd-stat-value {
+    font-size: clamp(0.9rem, 5vw, 1.3rem);
+  }
+  /* Table cards: compact */
+  .jewd-table tbody tr {
+    padding: 8px;
+    margin-bottom: 6px;
+  }
+  .jewd-table tbody td {
+    font-size: var(--jewd-font-xs);
+    padding: 3px 0;
+  }
+  /* Filters: super compact */
+  .jewd-filters {
+    gap: 4px;
+    padding: 4px 8px;
+  }
+  .jewd-input,
+  .jewd-select {
+    font-size: var(--jewd-font-xs);
+    padding: 6px 8px;
+  }
+  /* Bottom nav: smaller icons, shorter labels */
+  .jewd-nav-icon {
+    font-size: 1rem;
+  }
+  .jewd-nav-item {
+    padding: 4px 2px;
+    gap: 1px;
+  }
+}
+
+/* ── 320px: Smallest phones ──────────────────────────────────────────── */
+@media (max-width: 320px) {
+  .jewd-topbar-user {
+    display: none;
+  }
+  #btnRefresh {
+    display: none;
+  }
+  .jewd-gold-ticker-meta {
+    display: none;
+  }
+  .jewd-stats {
+    grid-template-columns: 1fr 1fr;
+    gap: 3px;
+  }
+  .jewd-stat-value {
+    font-size: 0.95rem;
+  }
+  .jewd-nav-label {
+    font-size: 0.5rem;
+  }
+}

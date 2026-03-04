@@ -8,7 +8,7 @@
  * @version 1.0.0
  */
 
-const CACHE_NAME = "jewd-v3.34.0";
+const CACHE_NAME = "jewd-v3.35.0";
 
 // Assets to pre-cache on install
 // NOTE: Production uses bundled dist/ files, not individual JS modules.
