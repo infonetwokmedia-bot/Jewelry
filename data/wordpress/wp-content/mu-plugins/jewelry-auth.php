@@ -332,15 +332,16 @@ function jewelry_authenticate_api_request()
 function jewelry_get_user_permissions($user)
 {
     return array(
-        'dashboard_access' => user_can($user, 'jewelry_dashboard_access') || user_can($user, 'manage_options'),
-        'view_products'    => user_can($user, 'jewelry_view_products') || user_can($user, 'manage_options'),
-        'edit_products'    => user_can($user, 'jewelry_edit_products') || user_can($user, 'manage_options'),
-        'create_orders'    => user_can($user, 'jewelry_create_orders') || user_can($user, 'manage_options'),
-        'view_orders'      => user_can($user, 'jewelry_view_orders') || user_can($user, 'manage_options'),
-        'view_reports'     => user_can($user, 'jewelry_view_reports') || user_can($user, 'manage_options'),
-        'manage_coupons'   => user_can($user, 'jewelry_manage_coupons') || user_can($user, 'manage_options'),
-        'manage_users'     => user_can($user, 'jewelry_manage_users') || user_can($user, 'manage_options'),
-        'manage_settings'  => user_can($user, 'manage_options'),
+        'dashboard_access'   => user_can($user, 'jewelry_dashboard_access') || user_can($user, 'manage_options'),
+        'view_products'      => user_can($user, 'jewelry_view_products') || user_can($user, 'manage_options'),
+        'edit_products'      => user_can($user, 'jewelry_edit_products') || user_can($user, 'manage_options'),
+        'create_orders'      => user_can($user, 'jewelry_create_orders') || user_can($user, 'manage_options'),
+        'view_orders'        => user_can($user, 'jewelry_view_orders') || user_can($user, 'manage_options'),
+        'view_reports'       => user_can($user, 'jewelry_view_reports') || user_can($user, 'manage_options'),
+        'manage_coupons'     => user_can($user, 'jewelry_manage_coupons') || user_can($user, 'manage_options'),
+        'manage_users'       => user_can($user, 'jewelry_manage_users') || user_can($user, 'manage_options'),
+        'manage_settings'    => user_can($user, 'manage_options'),
+        'manage_woocommerce' => user_can($user, 'manage_woocommerce') || user_can($user, 'manage_options'),
     );
 }
 

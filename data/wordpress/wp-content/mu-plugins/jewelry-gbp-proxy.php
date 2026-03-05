@@ -184,26 +184,36 @@ function jewelry_register_gbp_api()
 
 /**
  * Only administrators and shop_managers can manage GBP (write operations).
+ * Tries JWT first (dashboard), falls back to WC API keys.
  */
 function jewelry_gbp_can_manage()
 {
-    $user = jewelry_authenticate_api_request();
+    $user = jewelry_authenticate_dashboard_token();
     if (is_wp_error($user)) {
-        return $user;
+        $user = jewelry_authenticate_api_request();
+        if (is_wp_error($user)) {
+            return $user;
+        }
     }
-    return current_user_can('manage_woocommerce') || current_user_can('manage_options');
+    wp_set_current_user($user->ID);
+    return user_can($user, 'manage_woocommerce') || user_can($user, 'manage_options');
 }
 
 /**
  * Viewers, sellers, managers, admins can view GBP data.
+ * Tries JWT first (dashboard), falls back to WC API keys.
  */
 function jewelry_gbp_can_view()
 {
-    $user = jewelry_authenticate_api_request();
+    $user = jewelry_authenticate_dashboard_token();
     if (is_wp_error($user)) {
-        return $user;
+        $user = jewelry_authenticate_api_request();
+        if (is_wp_error($user)) {
+            return $user;
+        }
     }
-    return current_user_can('read');
+    wp_set_current_user($user->ID);
+    return user_can($user, 'read');
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
