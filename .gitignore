@@ -2,6 +2,10 @@
 data/
 data/mysql/
 
+# ===== MCP SERVERS BUILD ARTIFACTS =====
+mcp-servers/*/node_modules/
+mcp-servers/*/dist/
+
 # ===== EXCEPT: custom WP plugin tracked in git =====
 !data/wordpress/
 !data/wordpress/wp-content/
@@ -103,3 +107,4 @@ dashboard/dist/
 !data/wordpress/wp-content/mu-plugins/jewelry-api-users.php
 !data/wordpress/wp-content/mu-plugins/jewelry-api-sales.php
 !data/wordpress/wp-content/mu-plugins/jewelry-gold-prices.php
+!data/wordpress/wp-content/mu-plugins/jewelry-gbp-proxy.php

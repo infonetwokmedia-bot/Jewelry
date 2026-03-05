@@ -607,6 +607,121 @@ const JewdAPI = (function () {
     return request(url, { method: "POST" });
   }
 
+  // ── Google Business Profile ─────────────────────────────────────────
+
+  async function getGBPStatus() {
+    const c = cfg();
+    return request(`${c.wpBaseUrl}/jewd/v1/gbp/status`);
+  }
+
+  async function initGBPOAuth(clientId, clientSecret) {
+    const c = cfg();
+    return request(`${c.wpBaseUrl}/jewd/v1/gbp/oauth/init`, {
+      method: "POST",
+      body: JSON.stringify({ client_id: clientId, client_secret: clientSecret }),
+    });
+  }
+
+  async function getGBPReviews({ pageSize, pageToken, orderBy } = {}) {
+    const c = cfg();
+    const params = new URLSearchParams();
+    if (pageSize) params.set("pageSize", pageSize);
+    if (pageToken) params.set("pageToken", pageToken);
+    if (orderBy) params.set("orderBy", orderBy);
+    return request(`${c.wpBaseUrl}/jewd/v1/gbp/reviews?${params}`);
+  }
+
+  async function replyGBPReview(reviewId, comment) {
+    const c = cfg();
+    return request(`${c.wpBaseUrl}/jewd/v1/gbp/reviews/${reviewId}/reply`, {
+      method: "POST",
+      body: JSON.stringify({ comment }),
+    });
+  }
+
+  async function deleteGBPReply(reviewId) {
+    const c = cfg();
+    return request(`${c.wpBaseUrl}/jewd/v1/gbp/reviews/${reviewId}/reply`, {
+      method: "DELETE",
+    });
+  }
+
+  async function getGBPPosts({ pageSize, pageToken } = {}) {
+    const c = cfg();
+    const params = new URLSearchParams();
+    if (pageSize) params.set("pageSize", pageSize);
+    if (pageToken) params.set("pageToken", pageToken);
+    return request(`${c.wpBaseUrl}/jewd/v1/gbp/posts?${params}`);
+  }
+
+  async function createGBPPost(data) {
+    const c = cfg();
+    return request(`${c.wpBaseUrl}/jewd/v1/gbp/posts`, {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+  }
+
+  async function deleteGBPPost(postId) {
+    const c = cfg();
+    return request(`${c.wpBaseUrl}/jewd/v1/gbp/posts/${postId}`, {
+      method: "DELETE",
+    });
+  }
+
+  async function getGBPMetrics({ startDate, endDate, metric } = {}) {
+    const c = cfg();
+    const params = new URLSearchParams();
+    if (startDate) params.set("startDate", startDate);
+    if (endDate) params.set("endDate", endDate);
+    if (metric) params.set("metric", metric);
+    return request(`${c.wpBaseUrl}/jewd/v1/gbp/metrics?${params}`);
+  }
+
+  async function getGBPKeywords({ startDate, endDate } = {}) {
+    const c = cfg();
+    const params = new URLSearchParams();
+    if (startDate) params.set("startDate", startDate);
+    if (endDate) params.set("endDate", endDate);
+    return request(`${c.wpBaseUrl}/jewd/v1/gbp/keywords?${params}`);
+  }
+
+  async function getGBPInfo() {
+    const c = cfg();
+    return request(`${c.wpBaseUrl}/jewd/v1/gbp/info`);
+  }
+
+  async function updateGBPInfo(data) {
+    const c = cfg();
+    return request(`${c.wpBaseUrl}/jewd/v1/gbp/info`, {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+  }
+
+  async function getGBPMedia({ pageSize } = {}) {
+    const c = cfg();
+    const params = new URLSearchParams();
+    if (pageSize) params.set("pageSize", pageSize);
+    return request(`${c.wpBaseUrl}/jewd/v1/gbp/media?${params}`);
+  }
+
+  async function getGBPQuestions({ pageSize, pageToken } = {}) {
+    const c = cfg();
+    const params = new URLSearchParams();
+    if (pageSize) params.set("pageSize", pageSize);
+    if (pageToken) params.set("pageToken", pageToken);
+    return request(`${c.wpBaseUrl}/jewd/v1/gbp/questions?${params}`);
+  }
+
+  async function answerGBPQuestion(questionId, text) {
+    const c = cfg();
+    return request(`${c.wpBaseUrl}/jewd/v1/gbp/questions/${questionId}/answer`, {
+      method: "POST",
+      body: JSON.stringify({ text }),
+    });
+  }
+
   // Public API
   return {
     getProducts,
@@ -646,5 +761,21 @@ const JewdAPI = (function () {
     updateOrigins,
     getGoldPrices,
     refreshGoldPrices,
+    // GBP
+    getGBPStatus,
+    initGBPOAuth,
+    getGBPReviews,
+    replyGBPReview,
+    deleteGBPReply,
+    getGBPPosts,
+    createGBPPost,
+    deleteGBPPost,
+    getGBPMetrics,
+    getGBPKeywords,
+    getGBPInfo,
+    updateGBPInfo,
+    getGBPMedia,
+    getGBPQuestions,
+    answerGBPQuestion,
   };
 })();

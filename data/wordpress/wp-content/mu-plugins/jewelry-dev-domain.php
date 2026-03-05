@@ -33,8 +33,8 @@ function jewelry_dev_replace_domain( $url ) {
         return $url;
     }
     return str_replace(
-        array( 'https://jewelry.local.dev', 'http://jewelry.local.dev' ),
-        array( 'https://dev.tujoyita.com', 'https://dev.tujoyita.com' ),
+        array( 'https://jewelry.local.dev', 'http://jewelry.local.dev', 'https://tujoyita.local', 'http://tujoyita.local' ),
+        array( 'https://dev.tujoyita.com', 'https://dev.tujoyita.com', 'https://dev.tujoyita.com', 'https://dev.tujoyita.com' ),
         $url
     );
 }
@@ -43,7 +43,9 @@ function jewelry_dev_replace_content_urls( $content ) {
     if ( ! is_string( $content ) ) {
         return $content;
     }
-    return str_replace( 'jewelry.local.dev', 'dev.tujoyita.com', $content );
+    $content = str_replace( 'jewelry.local.dev', 'dev.tujoyita.com', $content );
+    $content = str_replace( 'tujoyita.local', 'dev.tujoyita.com', $content );
+    return $content;
 }
 
 // Must run before WordPress processes the request

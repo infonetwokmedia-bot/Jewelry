@@ -18,6 +18,7 @@
     loadReports,
     loadSettingsPage,
     loadMetalsSection, loadGoldTicker,
+    loadGBPSection,
     renderLightbox, getLightboxState, setLightboxIdx,
   } = J;
 
@@ -153,7 +154,7 @@
   function handleRoute() {
     const hash = window.location.hash || "#/products";
     const section = hash.replace("#/", "") || "products";
-    const validSections = ["products", "orders", "pos", "reports", "settings", "users", "metals"];
+    const validSections = ["products", "orders", "pos", "reports", "settings", "users", "metals", "gbp"];
     const target = validSections.includes(section) ? section : "products";
 
     navigateTo(target);
@@ -196,6 +197,7 @@
       if (section === "users" && typeof JewdUsers !== "undefined") JewdUsers.init();
       if (section === "pos" && typeof JewdPOS !== "undefined") JewdPOS.init();
       if (section === "metals") loadMetalsSection();
+      if (section === "gbp") loadGBPSection();
     }
   }
 
@@ -213,6 +215,8 @@
         loadReports();
       } else if (s === "settings") {
         loadSettingsPage();
+      } else if (s === "gbp") {
+        loadGBPSection();
       }
       toast("Datos actualizados");
     });

@@ -117,6 +117,23 @@
             "args": [
                 "${workspaceFolder}/scripts/mcp-wordpress-wrapper.sh"
             ]
+        },
+        // ────────────────────────────────────────────────────────────
+        // Google Business Profile MCP - 21 herramientas GBP
+        // ────────────────────────────────────────────────────────────
+        // Reviews: listar, responder, eliminar respuestas
+        // Posts: crear, actualizar, eliminar (ofertas, eventos)
+        // Metrics: rendimiento, keywords de búsqueda
+        // Media: subir fotos/videos, listar, eliminar
+        // Q&A: preguntas, respuestas
+        // Info: cuenta, ubicación, actualizar datos de negocio
+        // Requiere: GBP_* variables en .env (Google Cloud OAuth)
+        "google-business": {
+            "type": "stdio",
+            "command": "bash",
+            "args": [
+                "${workspaceFolder}/scripts/mcp-gbp-wrapper.sh"
+            ]
         }
     }
 }

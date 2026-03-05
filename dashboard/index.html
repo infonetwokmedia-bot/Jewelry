@@ -177,6 +177,11 @@
             <span class="jewd-nav-icon">🥇</span>
             <span class="jewd-nav-label">Metales</span>
           </a>
+          <a class="jewd-nav-item" href="#/gbp" data-section="gbp" data-permission="manage_woocommerce"
+            style="display: none">
+            <span class="jewd-nav-icon">📍</span>
+            <span class="jewd-nav-label">Google Business</span>
+          </a>
           <a class="jewd-nav-item" href="#/settings" data-section="settings">
             <span class="jewd-nav-icon">⚙️</span>
             <span class="jewd-nav-label">Ajustes</span>
@@ -935,6 +940,19 @@
           </div>
         </section>
 
+        <!-- ======= SECTION: GOOGLE BUSINESS PROFILE ======= -->
+        <section class="jewd-section" id="sectionGbp" data-permission="manage_woocommerce">
+          <div class="jewd-section-header">
+            <h2 class="jewd-section-title">📍 Google Business Profile</h2>
+            <button class="jewd-btn jewd-btn-outline jewd-btn-sm" id="btnRefreshGbp">
+              🔄 Actualizar
+            </button>
+          </div>
+          <div class="gbp-content">
+            <div class="jewd-loading">Cargando...</div>
+          </div>
+        </section>
+
         <!-- ======= SECTION: USERS ======= -->
         <section class="jewd-section" id="sectionUsers" data-permission="manage_users">
           <div class="jewd-section-header">
@@ -1140,6 +1158,7 @@
   <script src="js/metals.js?v=3.34.0"></script>
   <script src="js/users.js?v=3.34.0"></script>
   <script src="js/pos.js?v=3.34.0"></script>
+  <script src="js/gbp.js?v=3.34.0"></script>
   <script src="js/app.js?v=3.34.0"></script>
 
   <!-- Service Worker Registration -->

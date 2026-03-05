@@ -43,6 +43,7 @@ const jsFiles = [
     'js/metals.js',
     'js/users.js',
     'js/pos.js',
+    'js/gbp.js',
     'js/app.js',
 ].map(f => path.join(dashboardDir, f));
 
