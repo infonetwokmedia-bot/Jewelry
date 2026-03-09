@@ -607,6 +607,41 @@ const JewdAPI = (function () {
     return request(url, { method: "POST" });
   }
 
+  // ── Dynamic Pricing ─────────────────────────────────────────────────
+
+  /**
+   * GET available metal types with current prices per gram.
+   * @returns {Promise<{data: {success: boolean, metal_types: Array}}>}
+   */
+  async function getMetalTypes() {
+    const c = cfg();
+    return request(`${c.wpBaseUrl}/jewd/v1/pricing/metal-types`);
+  }
+
+  /**
+   * POST calculate dynamic price from metal + weight + markup.
+   * @param {string} metalType - e.g. 'gold_14k'
+   * @param {number} weightG - weight in grams
+   * @param {number} [markupPct=0] - markup percentage
+   * @returns {Promise<{data: Object}>} Price breakdown.
+   */
+  async function calculateDynamicPrice(metalType, weightG, markupPct = 0) {
+    const c = cfg();
+    return request(`${c.wpBaseUrl}/jewd/v1/pricing/calculate`, {
+      method: "POST",
+      body: JSON.stringify({ metal_type: metalType, weight_g: weightG, markup_pct: markupPct }),
+    });
+  }
+
+  /**
+   * POST force-sync all by_weight product prices.
+   * @returns {Promise<{data: Object}>} Sync results.
+   */
+  async function syncDynamicPrices() {
+    const c = cfg();
+    return request(`${c.wpBaseUrl}/jewd/v1/pricing/sync`, { method: "POST" });
+  }
+
   // ── Google Business Profile ─────────────────────────────────────────
 
   async function getGBPStatus() {
@@ -761,6 +796,10 @@ const JewdAPI = (function () {
     updateOrigins,
     getGoldPrices,
     refreshGoldPrices,
+    // Dynamic Pricing
+    getMetalTypes,
+    calculateDynamicPrice,
+    syncDynamicPrices,
     // GBP
     getGBPStatus,
     initGBPOAuth,

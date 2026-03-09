@@ -5947,3 +5947,24 @@ body {
   .gbp-rating-big { font-size: 2rem; }
   .gbp-kpi-value { font-size: 1.4rem; }
 }
+
+/* ── Dynamic Pricing Preview ─────────────────────────────────────── */
+.jewd-dynamic-price-preview {
+  background: linear-gradient(135deg, #e8f5e9, #f1f8e9);
+  border: 1px solid #a5d6a7;
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin-top: 4px;
+}
+.jewd-dynamic-price-preview .jewd-price-label {
+  font-size: .9rem;
+  color: #555;
+}
+.jewd-dynamic-price-preview .jewd-price-value {
+  font-size: 1.25rem;
+  color: #2e7d32;
+}
+.jewd-dynamic-price-preview small {
+  color: #777;
+  font-size: .8rem;
+}

@@ -35,6 +35,7 @@ run_suite "06 — Modal Close Protection"   "06-modal-close-protection.test.mjs"
 run_suite "07 — Media Upload Auth"        "07-media-upload-auth.test.mjs"
 run_suite "08 — Weight Unit Labels"      "08-weight-units.test.mjs"
 run_suite "09 — Image Optimization"      "09-image-optimization.test.mjs"
+run_suite "10 — Dynamic Pricing"         "10-dynamic-pricing.test.mjs"
 
 echo "═══════════════════════════════════════════════"
 if [ "$FAIL" -eq 0 ]; then

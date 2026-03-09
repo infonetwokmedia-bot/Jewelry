@@ -302,18 +302,30 @@ function jewelry_fetch_from_api()
         return new \WP_Error('jewelry_api_error', $msg);
     }
 
-    // Parse rates — API returns 1 USD = X XAU (inverse)
+    // Parse rates — API returns USDXAU (USD per oz) and XAU (oz per USD)
     $rates = $json['rates'] ?? array();
-    $xau_rate = $rates['USDXAU'] ?? 0;
-    $xag_rate = $rates['USDXAG'] ?? 0;
 
-    if ($xau_rate <= 0 || $xag_rate <= 0) {
-        return new \WP_Error('jewelry_api_invalid_rates', 'API returned invalid rates');
+    // USDXAU/USDXAG = spot price in USD per troy oz (direct)
+    // XAU/XAG = troy oz per 1 USD (inverse)
+    // Use USDXAU/USDXAG directly when available, otherwise invert XAU/XAG
+    $gold_spot_oz  = 0;
+    $silver_spot_oz = 0;
+
+    if (! empty($rates['USDXAU']) && $rates['USDXAU'] > 0) {
+        $gold_spot_oz = round((float) $rates['USDXAU'], 2);
+    } elseif (! empty($rates['XAU']) && $rates['XAU'] > 0) {
+        $gold_spot_oz = round(1 / (float) $rates['XAU'], 2);
     }
 
-    // Convert: spot price = 1 / rate (since rate is "how many oz per 1 USD")
-    $gold_spot_oz  = round(1 / $xau_rate, 2);
-    $silver_spot_oz = round(1 / $xag_rate, 2);
+    if (! empty($rates['USDXAG']) && $rates['USDXAG'] > 0) {
+        $silver_spot_oz = round((float) $rates['USDXAG'], 2);
+    } elseif (! empty($rates['XAG']) && $rates['XAG'] > 0) {
+        $silver_spot_oz = round(1 / (float) $rates['XAG'], 2);
+    }
+
+    if ($gold_spot_oz <= 0 || $silver_spot_oz <= 0) {
+        return new \WP_Error('jewelry_api_invalid_rates', 'API returned invalid rates');
+    }
 
     return jewelry_build_price_data($gold_spot_oz, $silver_spot_oz, $json['timestamp'] ?? time());
 }

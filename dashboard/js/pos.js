@@ -1812,6 +1812,11 @@ const JewdPOS = (function () {
 
   // ── Utilities ───────────────────────────────────────────────────────
   function getProductPrice(product) {
+    // Dynamic pricing: use calculated price if available
+    const jp = product.jewelry_pricing;
+    if (jp && jp.mode === "by_weight" && jp.calculated_price > 0) {
+      return parseFloat(jp.calculated_price);
+    }
     if (product.sale_price && product.sale_price !== "") return parseFloat(product.sale_price);
     if (product.price) return parseFloat(product.price);
     if (product.regular_price) return parseFloat(product.regular_price);

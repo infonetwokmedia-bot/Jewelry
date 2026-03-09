@@ -108,3 +108,4 @@ dashboard/dist/
 !data/wordpress/wp-content/mu-plugins/jewelry-api-sales.php
 !data/wordpress/wp-content/mu-plugins/jewelry-gold-prices.php
 !data/wordpress/wp-content/mu-plugins/jewelry-gbp-proxy.php
+!data/wordpress/wp-content/mu-plugins/jewelry-dynamic-pricing.php

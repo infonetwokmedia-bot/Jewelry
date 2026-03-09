@@ -632,7 +632,69 @@
     ]);
     html += editField("Peso (g)", "edit_weight", p.weight || "", "text");
 
+    // ---- DYNAMIC PRICING SECTION ----
+    const jp = p.jewelry_pricing || {};
+    const pricingMode = jp.mode || "fixed";
+    const metalType = jp.metal_type || "gold_14k";
+    const metalWeight = jp.weight_g || "";
+    const markupPct = jp.markup_pct || "";
+
     if (p.type === "simple") {
+      html += '<div class="jewd-edit-field">';
+      html += '<label class="jewd-edit-label">Modo de Precio</label>';
+      html += `<select class="jewd-edit-input" name="edit_pricing_mode" id="editPricingMode">`;
+      html += `<option value="fixed"${pricingMode === "fixed" ? " selected" : ""}>💲 Fijo (manual)</option>`;
+      html += `<option value="by_weight"${pricingMode === "by_weight" ? " selected" : ""}>⚖️ Por peso del metal</option>`;
+      html += "</select></div>";
+
+      // Dynamic pricing fields (shown/hidden by JS)
+      const dpDisplay = pricingMode === "by_weight" ? "" : ' style="display:none"';
+      html += `<div id="editDynamicPricingFields"${dpDisplay}>`;
+
+      html += '<div class="jewd-edit-field">';
+      html += '<label class="jewd-edit-label">Tipo de Metal</label>';
+      html += '<select class="jewd-edit-input" name="edit_metal_type" id="editMetalType">';
+      const metalTypes = [
+        ["gold_24k", "Oro 24K (99.9%)"], ["gold_22k", "Oro 22K (91.7%)"],
+        ["gold_18k", "Oro 18K (75.0%)"], ["gold_14k", "Oro 14K (58.3%)"],
+        ["gold_10k", "Oro 10K (41.7%)"], ["silver_999", "Plata 999 (99.9%)"],
+        ["silver_925", "Plata 925 (92.5%)"],
+      ];
+      metalTypes.forEach(([val, label]) => {
+        html += `<option value="${val}"${metalType === val ? " selected" : ""}>${label}</option>`;
+      });
+      html += "</select></div>";
+
+      html += '<div class="jewd-edit-field">';
+      html += '<label class="jewd-edit-label">Peso Metal (g)</label>';
+      html += `<input class="jewd-edit-input" type="number" name="edit_metal_weight" id="editMetalWeight" value="${esc(String(metalWeight))}" step="0.01" min="0" max="9999.99" placeholder="Peso en gramos"/>`;
+      html += "</div>";
+
+      html += '<div class="jewd-edit-field">';
+      html += '<label class="jewd-edit-label">Markup (%)</label>';
+      html += `<input class="jewd-edit-input" type="number" name="edit_markup_pct" id="editMarkupPct" value="${esc(String(markupPct))}" step="0.01" min="0" max="500" placeholder="% sobre valor metal"/>`;
+      html += "</div>";
+
+      // Price preview
+      html += '<div class="jewd-edit-field jewd-edit-wide" id="editDynamicPricePreview">';
+      if (pricingMode === "by_weight" && jp.calculated_price) {
+        html += `<div class="jewd-dynamic-price-preview">`;
+        html += `<span class="jewd-price-label">💰 Precio calculado:</span> `;
+        html += `<strong class="jewd-price-value">$${parseFloat(jp.calculated_price).toFixed(2)}</strong>`;
+        if (jp.metal_price_per_g) {
+          html += ` <small>(${metalWeight}g × $${parseFloat(jp.metal_price_per_g).toFixed(2)}/g`;
+          if (markupPct > 0) html += ` + ${markupPct}%`;
+          html += ")</small>";
+        }
+        html += "</div>";
+      }
+      html += "</div>";
+
+      html += "</div>"; // close #editDynamicPricingFields
+
+      // Fixed price fields (shown/hidden opposite to dynamic)
+      const fpDisplay = pricingMode === "fixed" ? "" : ' style="display:none"';
+      html += `<div id="editFixedPriceFields"${fpDisplay}>`;
       html += editField(
         "Precio Regular ($)",
         "edit_regular_price",
@@ -640,6 +702,8 @@
         "number",
       );
       html += editField("Precio Oferta ($)", "edit_sale_price", p.sale_price || "", "number");
+      html += "</div>";
+
       html += editField("Stock", "edit_stock_quantity", p.stock_quantity ?? "", "number");
     }
 
@@ -835,6 +899,9 @@
     // ---- Bind tags events ----
     initEditTagHandlers();
 
+    // ---- Bind dynamic pricing toggle ----
+    initDynamicPricingHandlers();
+
     // ---- Bind new variation events ----
     initNewVariationHandlers(p);
 
@@ -854,6 +921,59 @@
     values.push("imgs=" + editImages.map((i) => i.id).join(","));
     values.push("tags=" + editTags.map((t) => t.id).join(","));
     return values.join("|");
+  }
+
+  /* ===== DYNAMIC PRICING HANDLERS ===== */
+  function initDynamicPricingHandlers() {
+    const modeSelect = $("#editPricingMode");
+    if (!modeSelect) return;
+
+    const dynamicFields = $("#editDynamicPricingFields");
+    const fixedFields = $("#editFixedPriceFields");
+
+    function toggleFields() {
+      const isByWeight = modeSelect.value === "by_weight";
+      if (dynamicFields) dynamicFields.style.display = isByWeight ? "" : "none";
+      if (fixedFields) fixedFields.style.display = isByWeight ? "none" : "";
+    }
+
+    modeSelect.addEventListener("change", toggleFields);
+
+    // Live price preview
+    const metalTypeSelect = $("#editMetalType");
+    const metalWeightInput = $("#editMetalWeight");
+    const markupInput = $("#editMarkupPct");
+    const previewEl = $("#editDynamicPricePreview");
+
+    async function updatePricePreview() {
+      if (modeSelect.value !== "by_weight") return;
+      const mt = metalTypeSelect ? metalTypeSelect.value : "gold_14k";
+      const wt = metalWeightInput ? parseFloat(metalWeightInput.value) : 0;
+      const mk = markupInput ? parseFloat(markupInput.value) || 0 : 0;
+      if (!wt || wt <= 0) {
+        if (previewEl) previewEl.innerHTML = '<small class="jewd-text-muted">Ingresa peso para ver precio</small>';
+        return;
+      }
+      try {
+        const res = await JewdAPI.calculateDynamicPrice(mt, wt, mk);
+        const d = res.data;
+        if (d && d.success && previewEl) {
+          let html = '<div class="jewd-dynamic-price-preview">';
+          html += '<span class="jewd-price-label">💰 Precio calculado:</span> ';
+          html += `<strong class="jewd-price-value">$${parseFloat(d.total).toFixed(2)}</strong>`;
+          html += ` <small>(${wt}g × $${parseFloat(d.price_per_gram).toFixed(2)}/g`;
+          if (mk > 0) html += ` + ${mk}%`;
+          html += ")</small></div>";
+          previewEl.innerHTML = html;
+        }
+      } catch (e) {
+        if (previewEl) previewEl.innerHTML = '<small class="jewd-text-muted">Error calculando precio</small>';
+      }
+    }
+
+    if (metalTypeSelect) metalTypeSelect.addEventListener("change", updatePricePreview);
+    if (metalWeightInput) metalWeightInput.addEventListener("input", updatePricePreview);
+    if (markupInput) markupInput.addEventListener("input", updatePricePreview);
   }
 
   /* ===== EDIT TABS ===== */
@@ -1377,6 +1497,26 @@
 
       const weightVal = fd.get("edit_weight");
       if (weightVal !== (editingProduct.weight || "")) payload.weight = weightVal;
+
+      // ---- DYNAMIC PRICING ----
+      const pricingMode = fd.get("edit_pricing_mode");
+      if (pricingMode) {
+        const origPricing = editingProduct.jewelry_pricing || {};
+        const newPricing = {
+          mode: pricingMode,
+          metal_type: fd.get("edit_metal_type") || "gold_14k",
+          weight_g: parseFloat(fd.get("edit_metal_weight")) || 0,
+          markup_pct: parseFloat(fd.get("edit_markup_pct")) || 0,
+        };
+        if (
+          newPricing.mode !== (origPricing.mode || "fixed") ||
+          newPricing.metal_type !== (origPricing.metal_type || "gold_14k") ||
+          newPricing.weight_g !== (origPricing.weight_g || 0) ||
+          newPricing.markup_pct !== (origPricing.markup_pct || 0)
+        ) {
+          payload.jewelry_pricing = newPricing;
+        }
+      }
 
       const descVal = fd.get("edit_short_description");
       if (descVal !== (editingProduct.short_description || "")) payload.short_description = descVal;
