@@ -88,8 +88,8 @@ describe('Dynamic Pricing — products.js UI integration', () => {
         assert.match(src, /editMetalType/, 'Metal type select must exist');
     });
 
-    it('has metal weight input', () => {
-        assert.match(src, /editMetalWeight/, 'Metal weight input must exist');
+    it('has unified weight input for dynamic pricing', () => {
+        assert.match(src, /editProductWeight/, 'Unified weight input (editProductWeight) must exist');
     });
 
     it('has markup percentage input', () => {

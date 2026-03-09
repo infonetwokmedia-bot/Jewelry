@@ -38,8 +38,8 @@ describe('08 — Weight Unit Labels', () => {
   // ── Edit form and wizard use "Peso (g)" ─────────────────────────
   it('edit form label must be "Peso (g)"', () => {
     assert.ok(
-      productsJs.includes('editField("Peso (g)"'),
-      'Edit form must use editField("Peso (g)", ...) label'
+      productsJs.includes('Peso (g)</label>'),
+      'Edit form must have a label with "Peso (g)"'
     );
   });
 

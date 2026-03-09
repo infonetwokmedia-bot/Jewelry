@@ -630,14 +630,19 @@
       { value: "draft", label: "Borrador" },
       { value: "private", label: "Privado" },
     ]);
-    html += editField("Peso (g)", "edit_weight", p.weight || "", "text");
-
     // ---- DYNAMIC PRICING SECTION ----
     const jp = p.jewelry_pricing || {};
     const pricingMode = jp.mode || "fixed";
     const metalType = jp.metal_type || "gold_14k";
     const metalWeight = jp.weight_g || "";
     const markupPct = jp.markup_pct || "";
+
+    // Unified weight field — used for BOTH WooCommerce shipping weight and dynamic pricing
+    const weightValue = p.weight || metalWeight || "";
+    html += '<div class="jewd-edit-field">';
+    html += '<label class="jewd-edit-label">Peso (g)</label>';
+    html += `<input class="jewd-edit-input" type="number" name="edit_weight" id="editProductWeight" value="${esc(String(weightValue))}" step="0.01" min="0" max="9999.99" placeholder="Peso en gramos"/>`;
+    html += '</div>';
 
     if (p.type === "simple") {
       html += '<div class="jewd-edit-field">';
@@ -664,11 +669,6 @@
         html += `<option value="${val}"${metalType === val ? " selected" : ""}>${label}</option>`;
       });
       html += "</select></div>";
-
-      html += '<div class="jewd-edit-field">';
-      html += '<label class="jewd-edit-label">Peso Metal (g)</label>';
-      html += `<input class="jewd-edit-input" type="number" name="edit_metal_weight" id="editMetalWeight" value="${esc(String(metalWeight))}" step="0.01" min="0" max="9999.99" placeholder="Peso en gramos"/>`;
-      html += "</div>";
 
       html += '<div class="jewd-edit-field">';
       html += '<label class="jewd-edit-label">Markup (%)</label>';
@@ -941,7 +941,7 @@
 
     // Live price preview
     const metalTypeSelect = $("#editMetalType");
-    const metalWeightInput = $("#editMetalWeight");
+    const metalWeightInput = $("#editProductWeight");
     const markupInput = $("#editMarkupPct");
     const previewEl = $("#editDynamicPricePreview");
 
@@ -1505,7 +1505,7 @@
         const newPricing = {
           mode: pricingMode,
           metal_type: fd.get("edit_metal_type") || "gold_14k",
-          weight_g: parseFloat(fd.get("edit_metal_weight")) || 0,
+          weight_g: parseFloat(fd.get("edit_weight")) || 0,
           markup_pct: parseFloat(fd.get("edit_markup_pct")) || 0,
         };
         if (
