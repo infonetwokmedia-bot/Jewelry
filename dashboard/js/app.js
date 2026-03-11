@@ -13,7 +13,7 @@
     toast, showStatSkeletons, initAccessibility,
     loadCategories, loadStats, loadSalesStats, loadProducts,
     initBulkActions, toggleExpandAll, exportJSON, exportCSV,
-    openNewProductWizard, closeModal, closeEditModal, saveProduct,
+    openNewProductWizard, openImportFromURL, closeModal, closeEditModal, saveProduct,
     loadOrders, closeOrderDetailModal,
     loadReports,
     loadSettingsPage,
@@ -247,6 +247,10 @@
     // New product button.
     const btnNew = $("#btnNewProduct");
     if (btnNew) btnNew.addEventListener("click", openNewProductWizard);
+
+    // Import from URL button.
+    const btnImport = $("#btnImportURL");
+    if (btnImport) btnImport.addEventListener("click", openImportFromURL);
 
     // Product detail modal (read-only) — safe to close on backdrop.
     $("#modalClose").addEventListener("click", closeModal);

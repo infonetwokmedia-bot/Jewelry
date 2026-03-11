@@ -757,6 +757,33 @@ const JewdAPI = (function () {
     });
   }
 
+  /**
+   * Scrape product data from a supplier URL.
+   * @param {string} url - The supplier product URL (e.g. Shopify store).
+   * @returns {Promise<{data: {success: boolean, platform: string, data: Object}}>}
+   */
+  async function scrapeSupplierProduct(url) {
+    const c = cfg();
+    return request(`${c.wpBaseUrl}/jewd/v1/supplier/scrape`, {
+      method: "POST",
+      body: JSON.stringify({ url }),
+    });
+  }
+
+  /**
+   * Sideload an external image into WordPress media library.
+   * @param {string} url - External image URL.
+   * @param {string} [alt] - Alt text for the image.
+   * @returns {Promise<{data: {id: number, url: string}}>}
+   */
+  async function sideloadSupplierImage(url, alt) {
+    const c = cfg();
+    return request(`${c.wpBaseUrl}/jewd/v1/supplier/sideload-image`, {
+      method: "POST",
+      body: JSON.stringify({ url, alt: alt || "" }),
+    });
+  }
+
   // Public API
   return {
     getProducts,
@@ -816,5 +843,8 @@ const JewdAPI = (function () {
     getGBPMedia,
     getGBPQuestions,
     answerGBPQuestion,
+    // Supplier Scraper
+    scrapeSupplierProduct,
+    sideloadSupplierImage,
   };
 })();

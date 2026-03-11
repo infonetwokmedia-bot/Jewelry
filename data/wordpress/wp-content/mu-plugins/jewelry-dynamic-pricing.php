@@ -43,6 +43,12 @@ define('JEWD_METAL_TYPES', array(
 define('JEWD_PRICING_MODES', array('fixed', 'by_weight'));
 
 /**
+ * Labor cost per gram (mano de obra) in USD.
+ * Applied to all by_weight products: labor_value = weight × JEWD_LABOR_PER_GRAM.
+ */
+define('JEWD_LABOR_PER_GRAM', 3.00);
+
+/**
  * In-memory cache to avoid repeated transient lookups within a single request.
  */
 global $jewd_metal_prices_cache;
@@ -103,6 +109,8 @@ function jewelry_register_pricing_meta()
 
     foreach ($meta_fields as $key => $args) {
         register_post_meta('product', $key, $args);
+        // Also register for product variations (WC uses post_type 'product_variation')
+        register_post_meta('product_variation', $key, $args);
     }
 }
 
@@ -208,6 +216,7 @@ function jewelry_add_pricing_to_rest_response($response, $product, $request)
         $pricing_data['calculated_price'] = $breakdown['total'];
         $pricing_data['metal_price_per_g'] = $breakdown['price_per_gram'];
         $pricing_data['metal_value']       = $breakdown['metal_value'];
+        $pricing_data['labor_value']       = $breakdown['labor_value'];
         $pricing_data['markup_value']      = $breakdown['markup_value'];
     }
 
@@ -257,6 +266,116 @@ function jewelry_save_pricing_from_rest($product, $request)
             $product->set_regular_price($calculated);
             $product->set_price($calculated);
             $product->save();
+        }
+    }
+}
+
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// WOOCOMMERCE REST API — VARIATION INTEGRATION
+// ═══════════════════════════════════════════════════════════════════════════════
+
+add_filter('woocommerce_rest_prepare_product_variation_object', 'jewelry_add_pricing_to_variation_rest_response', 10, 3);
+
+/**
+ * Add dynamic pricing data to WC REST API variation response.
+ * Includes both variation-specific data and inherited values from parent.
+ *
+ * @param WP_REST_Response        $response  The response object.
+ * @param WC_Product_Variation    $variation Variation object.
+ * @param WP_REST_Request         $request   Request object.
+ * @return WP_REST_Response
+ */
+function jewelry_add_pricing_to_variation_rest_response($response, $variation, $request)
+{
+    $variation_id = $variation->get_id();
+    $parent_id    = $variation->get_parent_id();
+
+    // Pricing mode comes from parent
+    $parent_mode = get_post_meta($parent_id, '_jewelry_pricing_mode', true) ?: 'fixed';
+
+    // Variation-level overrides (may be empty = inherit)
+    $var_metal_type = get_post_meta($variation_id, '_jewelry_metal_type', true);
+    $var_weight     = (float) get_post_meta($variation_id, '_jewelry_metal_weight', true);
+    $var_markup_raw = get_post_meta($variation_id, '_jewelry_markup_pct', true);
+
+    // Parent defaults
+    $parent_metal_type = get_post_meta($parent_id, '_jewelry_metal_type', true) ?: 'gold_14k';
+    $parent_markup     = (float) get_post_meta($parent_id, '_jewelry_markup_pct', true);
+
+    $pricing_data = array(
+        'parent_mode'  => $parent_mode,
+        'metal_type'   => $var_metal_type ?: '',
+        'weight_g'     => $var_weight,
+        'markup_pct'   => $var_markup_raw !== '' && $var_markup_raw !== false ? (float) $var_markup_raw : null,
+        'parent_metal_type' => $parent_metal_type,
+        'parent_markup_pct' => $parent_markup,
+    );
+
+    if ($parent_mode === 'by_weight') {
+        $breakdown = jewelry_calculate_variation_breakdown($variation_id, $parent_id);
+        $pricing_data['calculated_price']  = $breakdown['total'];
+        $pricing_data['metal_price_per_g'] = $breakdown['price_per_gram'];
+        $pricing_data['metal_value']       = $breakdown['metal_value'];
+        $pricing_data['labor_value']       = $breakdown['labor_value'];
+        $pricing_data['markup_value']      = $breakdown['markup_value'];
+        $pricing_data['effective_metal_type'] = $breakdown['metal_type'];
+        $pricing_data['effective_markup_pct'] = $breakdown['markup_pct'];
+        $pricing_data['inherited']         = $breakdown['inherited'];
+    }
+
+    $data = $response->get_data();
+    $data['jewelry_pricing'] = $pricing_data;
+    $response->set_data($data);
+
+    return $response;
+}
+
+add_action('woocommerce_rest_insert_product_variation_object', 'jewelry_save_pricing_from_variation_rest', 10, 2);
+
+/**
+ * Save dynamic pricing meta from WC REST API variation requests (PUT/POST).
+ * Reads from the 'jewelry_pricing' key in the request body.
+ *
+ * @param WC_Product_Variation $variation Variation object.
+ * @param WP_REST_Request      $request   Request object.
+ */
+function jewelry_save_pricing_from_variation_rest($variation, $request)
+{
+    $pricing = $request->get_param('jewelry_pricing');
+    if (! is_array($pricing)) {
+        return;
+    }
+
+    $variation_id = $variation->get_id();
+    $parent_id    = $variation->get_parent_id();
+
+    if (isset($pricing['metal_type'])) {
+        if ($pricing['metal_type'] === '' || $pricing['metal_type'] === null) {
+            delete_post_meta($variation_id, '_jewelry_metal_type');
+        } else {
+            update_post_meta($variation_id, '_jewelry_metal_type', jewelry_sanitize_metal_type($pricing['metal_type']));
+        }
+    }
+    if (isset($pricing['weight_g'])) {
+        update_post_meta($variation_id, '_jewelry_metal_weight', jewelry_sanitize_metal_weight($pricing['weight_g']));
+    }
+    if (array_key_exists('markup_pct', $pricing)) {
+        if ($pricing['markup_pct'] === '' || $pricing['markup_pct'] === null) {
+            delete_post_meta($variation_id, '_jewelry_markup_pct');
+        } else {
+            update_post_meta($variation_id, '_jewelry_markup_pct', jewelry_sanitize_markup_pct($pricing['markup_pct']));
+        }
+    }
+
+    // When parent is by_weight, update the WC regular_price as reference
+    $parent_mode = get_post_meta($parent_id, '_jewelry_pricing_mode', true);
+    if ($parent_mode === 'by_weight') {
+        $calculated = jewelry_calculate_variation_price($variation_id, $parent_id);
+        if ($calculated > 0) {
+            $variation->set_regular_price($calculated);
+            $variation->set_price($calculated);
+            $variation->save();
         }
     }
 }
@@ -362,8 +481,9 @@ function jewelry_calculate_price_endpoint(\WP_REST_Request $request)
     $prices  = jewelry_get_cached_metal_prices();
     $ppg     = jewelry_get_metal_price_per_gram($metal_type, $prices);
     $metal_value = round($weight * $ppg, 2);
+    $labor_value = round($weight * JEWD_LABOR_PER_GRAM, 2);
     $markup_value = round($metal_value * ($markup / 100), 2);
-    $total = round($metal_value + $markup_value, 2);
+    $total = round($metal_value + $labor_value + $markup_value, 2);
 
     $type_info = JEWD_METAL_TYPES[$metal_type] ?? array('label' => $metal_type);
 
@@ -374,6 +494,8 @@ function jewelry_calculate_price_endpoint(\WP_REST_Request $request)
         'weight_g'       => $weight,
         'price_per_gram' => $ppg,
         'metal_value'    => $metal_value,
+        'labor_per_gram' => JEWD_LABOR_PER_GRAM,
+        'labor_value'    => $labor_value,
         'markup_pct'     => $markup,
         'markup_value'   => $markup_value,
         'total'          => $total,
@@ -398,6 +520,8 @@ function jewelry_sync_prices_endpoint(\WP_REST_Request $request)
 
 add_filter('woocommerce_product_get_price', 'jewelry_dynamic_price_filter', 10, 2);
 add_filter('woocommerce_product_get_regular_price', 'jewelry_dynamic_price_filter', 10, 2);
+add_filter('woocommerce_product_variation_get_price', 'jewelry_dynamic_variation_price_filter', 10, 2);
+add_filter('woocommerce_product_variation_get_regular_price', 'jewelry_dynamic_variation_price_filter', 10, 2);
 
 /**
  * Filter WooCommerce product price for by_weight products.
@@ -434,6 +558,42 @@ function jewelry_dynamic_price_filter($price, $product)
     return $calculated > 0 ? $calculated : $price;
 }
 
+/**
+ * Filter WooCommerce variation price for by_weight products.
+ * Inherits pricing_mode from parent; uses variation's own weight/metal_type/markup
+ * or falls back to parent's values.
+ *
+ * @param string     $price     Current price.
+ * @param WC_Product $variation Variation object.
+ * @return string Filtered price.
+ */
+function jewelry_dynamic_variation_price_filter($price, $variation)
+{
+    global $jewd_price_filter_active;
+
+    if ($jewd_price_filter_active) {
+        return $price;
+    }
+
+    $variation_id = $variation->get_id();
+    $parent_id    = $variation->get_parent_id();
+    if (! $variation_id || ! $parent_id) {
+        return $price;
+    }
+
+    // Pricing mode is set at parent level
+    $mode = get_post_meta($parent_id, '_jewelry_pricing_mode', true);
+    if ($mode !== 'by_weight') {
+        return $price;
+    }
+
+    $jewd_price_filter_active = true;
+    $calculated = jewelry_calculate_variation_price($variation_id, $parent_id);
+    $jewd_price_filter_active = false;
+
+    return $calculated > 0 ? $calculated : $price;
+}
+
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // CORE CALCULATION FUNCTIONS
@@ -455,13 +615,14 @@ function jewelry_calculate_dynamic_price($product_id)
  * Calculate full price breakdown for a product.
  *
  * @param int $product_id WooCommerce product ID.
- * @return array{total: float, metal_value: float, markup_value: float, price_per_gram: float}
+ * @return array{total: float, metal_value: float, labor_value: float, markup_value: float, price_per_gram: float}
  */
 function jewelry_calculate_price_breakdown($product_id)
 {
     $empty = array(
         'total'          => 0.0,
         'metal_value'    => 0.0,
+        'labor_value'    => 0.0,
         'markup_value'   => 0.0,
         'price_per_gram' => 0.0,
     );
@@ -486,14 +647,103 @@ function jewelry_calculate_price_breakdown($product_id)
     }
 
     $metal_value  = round($weight * $price_per_gram, 2);
+    $labor_value  = round($weight * JEWD_LABOR_PER_GRAM, 2);
     $markup_value = round($metal_value * ($markup_pct / 100), 2);
-    $total        = round($metal_value + $markup_value, 2);
+    $total        = round($metal_value + $labor_value + $markup_value, 2);
 
     return array(
         'total'          => $total,
         'metal_value'    => $metal_value,
+        'labor_value'    => $labor_value,
         'markup_value'   => $markup_value,
         'price_per_gram' => $price_per_gram,
+    );
+}
+
+/**
+ * Calculate the dynamic price for a variation, inheriting parent defaults.
+ *
+ * @param int $variation_id Variation ID.
+ * @param int $parent_id    Parent product ID.
+ * @return float Calculated price, or 0 on failure.
+ */
+function jewelry_calculate_variation_price($variation_id, $parent_id)
+{
+    $breakdown = jewelry_calculate_variation_breakdown($variation_id, $parent_id);
+    return $breakdown['total'];
+}
+
+/**
+ * Calculate full price breakdown for a variation.
+ * Inherits metal_type and markup_pct from parent if not set on the variation.
+ * Weight MUST be set on the variation itself (each size/variant may weigh differently).
+ *
+ * @param int $variation_id Variation ID.
+ * @param int $parent_id    Parent product ID.
+ * @return array{total: float, metal_value: float, labor_value: float, markup_value: float, price_per_gram: float, metal_type: string, weight: float, markup_pct: float, inherited: array}
+ */
+function jewelry_calculate_variation_breakdown($variation_id, $parent_id)
+{
+    $empty = array(
+        'total'          => 0.0,
+        'metal_value'    => 0.0,
+        'labor_value'    => 0.0,
+        'markup_value'   => 0.0,
+        'price_per_gram' => 0.0,
+        'metal_type'     => '',
+        'weight'         => 0.0,
+        'markup_pct'     => 0.0,
+        'inherited'      => array(),
+    );
+
+    // Weight is variation-specific (required)
+    $weight = (float) get_post_meta($variation_id, '_jewelry_metal_weight', true);
+    if ($weight <= 0) {
+        return $empty;
+    }
+
+    // Metal type: variation override or inherit from parent
+    $inherited = array();
+    $metal_type = get_post_meta($variation_id, '_jewelry_metal_type', true);
+    if (! $metal_type || ! array_key_exists($metal_type, JEWD_METAL_TYPES)) {
+        $metal_type = get_post_meta($parent_id, '_jewelry_metal_type', true);
+        $inherited[] = 'metal_type';
+    }
+    if (! array_key_exists($metal_type, JEWD_METAL_TYPES)) {
+        return $empty;
+    }
+
+    // Markup: variation override or inherit from parent
+    $markup_pct_raw = get_post_meta($variation_id, '_jewelry_markup_pct', true);
+    if ($markup_pct_raw === '' || $markup_pct_raw === false) {
+        $markup_pct = (float) get_post_meta($parent_id, '_jewelry_markup_pct', true);
+        $inherited[] = 'markup_pct';
+    } else {
+        $markup_pct = (float) $markup_pct_raw;
+    }
+
+    $prices = jewelry_get_cached_metal_prices();
+    $price_per_gram = jewelry_get_metal_price_per_gram($metal_type, $prices);
+
+    if ($price_per_gram <= 0) {
+        return $empty;
+    }
+
+    $metal_value  = round($weight * $price_per_gram, 2);
+    $labor_value  = round($weight * JEWD_LABOR_PER_GRAM, 2);
+    $markup_value = round($metal_value * ($markup_pct / 100), 2);
+    $total        = round($metal_value + $labor_value + $markup_value, 2);
+
+    return array(
+        'total'          => $total,
+        'metal_value'    => $metal_value,
+        'labor_value'    => $labor_value,
+        'markup_value'   => $markup_value,
+        'price_per_gram' => $price_per_gram,
+        'metal_type'     => $metal_type,
+        'weight'         => $weight,
+        'markup_pct'     => $markup_pct,
+        'inherited'      => $inherited,
     );
 }
 
@@ -642,6 +892,22 @@ function jewelry_sync_all_dynamic_prices()
             $synced++;
         } else {
             $skipped++;
+        }
+
+        // Also sync all variations of this product
+        $product = wc_get_product($product_id);
+        if ($product && $product->is_type('variable')) {
+            $variation_ids = $product->get_children();
+            foreach ($variation_ids as $vid) {
+                $v_calculated = jewelry_calculate_variation_price($vid, $product_id);
+                if ($v_calculated > 0) {
+                    update_post_meta($vid, '_price', $v_calculated);
+                    update_post_meta($vid, '_regular_price', $v_calculated);
+                    $synced++;
+                } else {
+                    $skipped++;
+                }
+            }
         }
     }
 

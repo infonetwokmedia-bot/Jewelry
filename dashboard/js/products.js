@@ -644,7 +644,7 @@
     html += `<input class="jewd-edit-input" type="number" name="edit_weight" id="editProductWeight" value="${esc(String(weightValue))}" step="0.01" min="0" max="9999.99" placeholder="Peso en gramos"/>`;
     html += '</div>';
 
-    if (p.type === "simple") {
+    if (p.type === "simple" || p.type === "variable") {
       html += '<div class="jewd-edit-field">';
       html += '<label class="jewd-edit-label">Modo de Precio</label>';
       html += `<select class="jewd-edit-input" name="edit_pricing_mode" id="editPricingMode">`;
@@ -675,23 +675,37 @@
       html += `<input class="jewd-edit-input" type="number" name="edit_markup_pct" id="editMarkupPct" value="${esc(String(markupPct))}" step="0.01" min="0" max="500" placeholder="% sobre valor metal"/>`;
       html += "</div>";
 
-      // Price preview
-      html += '<div class="jewd-edit-field jewd-edit-wide" id="editDynamicPricePreview">';
-      if (pricingMode === "by_weight" && jp.calculated_price) {
-        html += `<div class="jewd-dynamic-price-preview">`;
-        html += `<span class="jewd-price-label">💰 Precio calculado:</span> `;
-        html += `<strong class="jewd-price-value">$${parseFloat(jp.calculated_price).toFixed(2)}</strong>`;
-        if (jp.metal_price_per_g) {
-          html += ` <small>(${metalWeight}g × $${parseFloat(jp.metal_price_per_g).toFixed(2)}/g`;
-          if (markupPct > 0) html += ` + ${markupPct}%`;
-          html += ")</small>";
-        }
-        html += "</div>";
-      }
+      // Labor cost info (read-only)
+      html += '<div class="jewd-edit-field jewd-edit-wide">';
+      html += '<div class="jewd-labor-info">🔧 Mano de obra: <strong>$3.00/g</strong> — se aplica automáticamente al precio calculado</div>';
       html += "</div>";
 
-      html += "</div>"; // close #editDynamicPricingFields
+      // Price preview (simple products only — variable prices are per-variation)
+      if (p.type === "simple") {
+        html += '<div class="jewd-edit-field jewd-edit-wide" id="editDynamicPricePreview">';
+        if (pricingMode === "by_weight" && jp.calculated_price) {
+          html += `<div class="jewd-dynamic-price-preview">`;
+          html += `<span class="jewd-price-label">💰 Precio calculado:</span> `;
+          html += `<strong class="jewd-price-value">$${parseFloat(jp.calculated_price).toFixed(2)}</strong>`;
+          if (jp.metal_price_per_g) {
+            html += ` <small>(${metalWeight}g × $${parseFloat(jp.metal_price_per_g).toFixed(2)}/g`;
+            if (jp.labor_value > 0) html += ` + $${parseFloat(jp.labor_value).toFixed(2)} mano de obra`;
+            if (markupPct > 0) html += ` + ${markupPct}%`;
+            html += ")</small>";
+          }
+          html += "</div>";
+        }
+        html += "</div>";
+      } else {
+        html += '<div class="jewd-edit-field jewd-edit-wide" id="editDynamicPricePreview">';
+        html += '<p class="jewd-edit-hint">⚖️ Para productos variables, el precio se calcula por variación en la pestaña Variaciones. Metal y Markup aquí son los defaults que heredan las variaciones.</p>';
+        html += "</div>";
+      }
 
+      html += "</div>"; // close #editDynamicPricingFields
+    }
+
+    if (p.type === "simple") {
       // Fixed price fields (shown/hidden opposite to dynamic)
       const fpDisplay = pricingMode === "fixed" ? "" : ' style="display:none"';
       html += `<div id="editFixedPriceFields"${fpDisplay}>`;
@@ -818,9 +832,32 @@
       html += '<div class="jewd-tab-panel" data-panel="variations">';
       html += '<div class="jewd-edit-section">';
       html += `<h3 class="jewd-edit-section-title">🔀 Variaciones (${vs.length})</h3>`;
+
+      // Check if parent product uses dynamic pricing
+      const parentPricingMode = (p.jewelry_pricing || {}).mode || "fixed";
+      const parentIsByWeight = parentPricingMode === "by_weight";
+
+      if (parentIsByWeight) {
+        html += '<div class="jewd-edit-hint" style="margin-bottom:8px;padding:6px 10px;background:var(--jewd-bg2);border-radius:6px">';
+        html += `⚖️ Precio por peso — Metal: <strong>${esc((p.jewelry_pricing || {}).metal_type || "gold_14k")}</strong>, Markup: <strong>${(p.jewelry_pricing || {}).markup_pct || 0}%</strong> (default del producto padre)`;
+        html += '</div>';
+      }
+
       html += '<div class="jewd-edit-vtable"><table class="jewd-table" style="font-size:.82rem">';
-      html +=
-        "<thead><tr><th style='width:50px'>Img</th><th>Atributos</th><th>SKU</th><th>Precio Regular</th><th>Precio Oferta</th><th>Stock</th><th>Peso (g)</th></tr></thead><tbody>";
+      if (parentIsByWeight) {
+        html += "<thead><tr><th style='width:50px'>Img</th><th>Atributos</th><th>SKU</th><th>Peso (g)</th><th>Tipo Metal</th><th>Markup (%)</th><th>Precio Calc.</th><th>Stock</th></tr></thead><tbody>";
+      } else {
+        html += "<thead><tr><th style='width:50px'>Img</th><th>Atributos</th><th>SKU</th><th>Precio Regular</th><th>Precio Oferta</th><th>Stock</th><th>Peso (g)</th></tr></thead><tbody>";
+      }
+
+      const metalTypeOptions = [
+        ["", "— Heredar del padre —"],
+        ["gold_24k", "Oro 24K"], ["gold_22k", "Oro 22K"],
+        ["gold_18k", "Oro 18K"], ["gold_14k", "Oro 14K"],
+        ["gold_10k", "Oro 10K"], ["silver_999", "Plata 999"],
+        ["silver_925", "Plata 925"],
+      ];
+
       vs.forEach((v, vi) => {
         const vAttr = v.attributes
           ? v.attributes.map((a) => `${a.name}: ${a.option}`).join(", ")
@@ -837,10 +874,33 @@
         html += "</td>";
         html += `<td class="jewd-var-attr">${esc(vAttr)}</td>`;
         html += `<td><input class="jewd-edit-input jewd-edit-sm" name="v_sku_${vi}" value="${esc(v.sku || "")}" data-vid="${v.id}"></td>`;
-        html += `<td><input class="jewd-edit-input jewd-edit-sm jewd-edit-num" type="number" step="0.01" name="v_regular_price_${vi}" value="${esc(v.regular_price || v.price || "")}" data-vid="${v.id}"></td>`;
-        html += `<td><input class="jewd-edit-input jewd-edit-sm jewd-edit-num" type="number" step="0.01" name="v_sale_price_${vi}" value="${esc(v.sale_price || "")}" data-vid="${v.id}"></td>`;
-        html += `<td><input class="jewd-edit-input jewd-edit-sm jewd-edit-num" type="number" step="1" name="v_stock_quantity_${vi}" value="${v.stock_quantity ?? ""}" data-vid="${v.id}"></td>`;
-        html += `<td><input class="jewd-edit-input jewd-edit-sm" name="v_weight_${vi}" value="${esc(v.weight || "")}" data-vid="${v.id}"></td>`;
+
+        if (parentIsByWeight) {
+          // Dynamic pricing columns for by_weight variations
+          const vjp = v.jewelry_pricing || {};
+          const vWeight = vjp.weight_g || parseFloat(v.weight) || "";
+          const vMetalType = vjp.metal_type || "";
+          const vMarkup = vjp.markup_pct !== null && vjp.markup_pct !== undefined ? vjp.markup_pct : "";
+          const calcPrice = vjp.calculated_price || 0;
+
+          html += `<td><input class="jewd-edit-input jewd-edit-sm jewd-edit-num" type="number" step="0.01" min="0" name="v_metal_weight_${vi}" value="${esc(String(vWeight))}" data-vid="${v.id}" placeholder="Requerido"></td>`;
+          html += `<td><select class="jewd-edit-input jewd-edit-sm" name="v_metal_type_${vi}" data-vid="${v.id}">`;
+          metalTypeOptions.forEach(([val, label]) => {
+            html += `<option value="${val}"${vMetalType === val ? " selected" : ""}>${label}</option>`;
+          });
+          html += `</select></td>`;
+          html += `<td><input class="jewd-edit-input jewd-edit-sm jewd-edit-num" type="number" step="0.01" min="0" max="500" name="v_markup_pct_${vi}" value="${esc(String(vMarkup))}" data-vid="${v.id}" placeholder="Heredar"></td>`;
+          html += `<td class="jewd-right" style="font-weight:600;color:${calcPrice > 0 ? "var(--jewd-success)" : "var(--jewd-text2)"}">`;
+          html += calcPrice > 0 ? `$${parseFloat(calcPrice).toFixed(2)}` : "—";
+          html += `</td>`;
+          html += `<td><input class="jewd-edit-input jewd-edit-sm jewd-edit-num" type="number" step="1" name="v_stock_quantity_${vi}" value="${v.stock_quantity ?? ""}" data-vid="${v.id}"></td>`;
+        } else {
+          // Fixed pricing columns
+          html += `<td><input class="jewd-edit-input jewd-edit-sm jewd-edit-num" type="number" step="0.01" name="v_regular_price_${vi}" value="${esc(v.regular_price || v.price || "")}" data-vid="${v.id}"></td>`;
+          html += `<td><input class="jewd-edit-input jewd-edit-sm jewd-edit-num" type="number" step="0.01" name="v_sale_price_${vi}" value="${esc(v.sale_price || "")}" data-vid="${v.id}"></td>`;
+          html += `<td><input class="jewd-edit-input jewd-edit-sm jewd-edit-num" type="number" step="1" name="v_stock_quantity_${vi}" value="${v.stock_quantity ?? ""}" data-vid="${v.id}"></td>`;
+          html += `<td><input class="jewd-edit-input jewd-edit-sm" name="v_weight_${vi}" value="${esc(v.weight || "")}" data-vid="${v.id}"></td>`;
+        }
         html += "</tr>";
       });
       html += "</tbody></table></div>";
@@ -962,6 +1022,7 @@
           html += '<span class="jewd-price-label">💰 Precio calculado:</span> ';
           html += `<strong class="jewd-price-value">$${parseFloat(d.total).toFixed(2)}</strong>`;
           html += ` <small>(${wt}g × $${parseFloat(d.price_per_gram).toFixed(2)}/g`;
+          if (d.labor_value > 0) html += ` + $${parseFloat(d.labor_value).toFixed(2)} mano de obra`;
           if (mk > 0) html += ` + ${mk}%`;
           html += ")</small></div>";
           previewEl.innerHTML = html;
@@ -1629,24 +1690,62 @@
 
       // Save variations if changed
       const vs = state.variations[editingProduct.id] || [];
+      const parentIsByWeight = ((editingProduct.jewelry_pricing || {}).mode || "fixed") === "by_weight";
       let vSaved = 0;
       for (let vi = 0; vi < vs.length; vi++) {
         const v = vs[vi];
         const vPayload = {};
         const vSku = fd.get(`v_sku_${vi}`);
         if (vSku !== (v.sku || "")) vPayload.sku = vSku;
-        const vRp = fd.get(`v_regular_price_${vi}`);
-        if (vRp !== (v.regular_price || v.price || "")) vPayload.regular_price = vRp;
-        const vSp = fd.get(`v_sale_price_${vi}`);
-        if (vSp !== (v.sale_price || "")) vPayload.sale_price = vSp;
-        const vSq = fd.get(`v_stock_quantity_${vi}`);
-        const curVStock = v.stock_quantity ?? "";
-        if (vSq !== String(curVStock)) {
-          vPayload.stock_quantity = vSq === "" ? null : parseInt(vSq, 10);
-          vPayload.manage_stock = vSq !== "";
+
+        if (parentIsByWeight) {
+          // Dynamic pricing fields for by_weight variations
+          const vjp = v.jewelry_pricing || {};
+          const vMetalWeight = fd.get(`v_metal_weight_${vi}`);
+          const vMetalType = fd.get(`v_metal_type_${vi}`);
+          const vMarkupPct = fd.get(`v_markup_pct_${vi}`);
+
+          const origWeight = vjp.weight_g || parseFloat(v.weight) || 0;
+          const origMetalType = vjp.metal_type || "";
+          const origMarkup = vjp.markup_pct !== null && vjp.markup_pct !== undefined ? String(vjp.markup_pct) : "";
+
+          const newWeight = parseFloat(vMetalWeight) || 0;
+          const pricingChanged =
+            newWeight !== origWeight ||
+            (vMetalType || "") !== origMetalType ||
+            (vMarkupPct || "") !== origMarkup;
+
+          if (pricingChanged) {
+            vPayload.jewelry_pricing = {
+              weight_g: newWeight,
+              metal_type: vMetalType || "",
+              markup_pct: vMarkupPct === "" ? null : parseFloat(vMarkupPct),
+            };
+            // Also set WC weight for shipping
+            vPayload.weight = vMetalWeight || "";
+          }
+
+          const vSq = fd.get(`v_stock_quantity_${vi}`);
+          const curVStock = v.stock_quantity ?? "";
+          if (vSq !== String(curVStock)) {
+            vPayload.stock_quantity = vSq === "" ? null : parseInt(vSq, 10);
+            vPayload.manage_stock = vSq !== "";
+          }
+        } else {
+          // Fixed pricing fields
+          const vRp = fd.get(`v_regular_price_${vi}`);
+          if (vRp !== (v.regular_price || v.price || "")) vPayload.regular_price = vRp;
+          const vSp = fd.get(`v_sale_price_${vi}`);
+          if (vSp !== (v.sale_price || "")) vPayload.sale_price = vSp;
+          const vSq = fd.get(`v_stock_quantity_${vi}`);
+          const curVStock = v.stock_quantity ?? "";
+          if (vSq !== String(curVStock)) {
+            vPayload.stock_quantity = vSq === "" ? null : parseInt(vSq, 10);
+            vPayload.manage_stock = vSq !== "";
+          }
+          const vWt = fd.get(`v_weight_${vi}`);
+          if (vWt !== (v.weight || "")) vPayload.weight = vWt;
         }
-        const vWt = fd.get(`v_weight_${vi}`);
-        if (vWt !== (v.weight || "")) vPayload.weight = vWt;
 
         // Variation image upload.
         if (editVarImages[vi] && editVarImages[vi].file) {
@@ -2547,6 +2646,493 @@
     toast(`CSV exportado: ${rows.length - 1} registros`);
   }
 
+  /* ===== IMPORT FROM SUPPLIER URL (F4-IMPORT-01) ===== */
+
+  /**
+   * Open a modal to import a product from a supplier URL.
+   * Supports Shopify stores (pochyjewelry.com, etc.) and generic sites with OG/JSON-LD.
+   */
+  function openImportFromURL() {
+    const catCheckboxes = state.categories.map((c) =>
+      '<label class="jewd-cat-checkbox"><input type="checkbox" value="' + c.id + '"> ' + esc(c.name) + '</label>'
+    ).join('');
+
+    const overlay = document.createElement('div');
+    overlay.className = 'jewd-modal active';
+    overlay.innerHTML = `
+      <div class="jewd-modal-dialog jewd-modal-lg">
+        <div class="jewd-modal-header">
+          <h2>🔗 Importar Producto desde URL</h2>
+          <button class="jewd-modal-close" id="importClose">&times;</button>
+        </div>
+        <div class="jewd-modal-body" style="padding:20px">
+          <!-- Step 1: URL input -->
+          <div id="importStep1">
+            <p style="color:var(--jewd-text2);margin:0 0 12px;font-size:.88rem">
+              Pega la URL del producto del proveedor. Soporta tiendas Shopify y sitios con datos estructurados.
+            </p>
+            <div style="display:flex;gap:8px;align-items:flex-start">
+              <input class="jewd-edit-input" id="importUrl" type="url"
+                placeholder="https://pochyjewelry.com/products/..."
+                style="flex:1;font-size:.95rem">
+              <button class="jewd-btn jewd-btn-gold" id="importFetch" style="white-space:nowrap">
+                🔍 Obtener datos
+              </button>
+            </div>
+            <div id="importError" style="display:none;color:var(--jewd-danger);margin-top:8px;font-size:.85rem"></div>
+            <div id="importLoading" style="display:none;text-align:center;padding:30px">
+              <div style="font-size:2rem">⏳</div>
+              <p style="color:var(--jewd-text2)">Obteniendo datos del producto...</p>
+            </div>
+          </div>
+
+          <!-- Step 2: Preview & Edit -->
+          <div id="importStep2" style="display:none">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+              <span class="jewd-badge jewd-badge-info" id="importPlatform"></span>
+              <button class="jewd-btn jewd-btn-outline jewd-btn-sm" id="importBack">← Otra URL</button>
+            </div>
+
+            <div id="importPreviewImages" style="display:flex;gap:8px;overflow-x:auto;padding:8px 0;margin-bottom:16px"></div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+              <div class="jewd-edit-field jewd-edit-wide" style="grid-column:1/-1">
+                <label class="jewd-edit-label">Nombre *</label>
+                <input class="jewd-edit-input" id="importName">
+              </div>
+              <div class="jewd-edit-field jewd-edit-wide" style="grid-column:1/-1">
+                <label class="jewd-edit-label">Descripción</label>
+                <textarea class="jewd-edit-input jewd-edit-textarea" id="importDesc" rows="3"></textarea>
+              </div>
+              <div class="jewd-edit-field">
+                <label class="jewd-edit-label">Precio proveedor</label>
+                <input class="jewd-edit-input" id="importPrice" type="number" step="0.01" readonly
+                  style="background:var(--jewd-bg2);opacity:.7" title="Precio del proveedor (referencia)">
+              </div>
+              <div class="jewd-edit-field">
+                <label class="jewd-edit-label">Tu precio de venta *</label>
+                <input class="jewd-edit-input" id="importSalePrice" type="number" step="0.01"
+                  placeholder="Tu precio">
+              </div>
+              <div class="jewd-edit-field">
+                <label class="jewd-edit-label">Quilates</label>
+                <input class="jewd-edit-input" id="importKarat" placeholder="10K, 14K...">
+              </div>
+              <div class="jewd-edit-field">
+                <label class="jewd-edit-label">Peso (g)</label>
+                <input class="jewd-edit-input" id="importWeight" placeholder="0.00">
+              </div>
+              <div class="jewd-edit-field">
+                <label class="jewd-edit-label">Metal</label>
+                <input class="jewd-edit-input" id="importMetal" placeholder="Gold, Silver...">
+              </div>
+              <div class="jewd-edit-field">
+                <label class="jewd-edit-label">Proveedor</label>
+                <input class="jewd-edit-input" id="importVendor" readonly
+                  style="background:var(--jewd-bg2);opacity:.7">
+              </div>
+              <div class="jewd-edit-field">
+                <label class="jewd-edit-label">Tipo de producto</label>
+                <input class="jewd-edit-input" id="importProductType">
+              </div>
+              <div class="jewd-edit-field">
+                <label class="jewd-edit-label">Tags</label>
+                <input class="jewd-edit-input" id="importTags" placeholder="tag1, tag2...">
+              </div>
+            </div>
+
+            <!-- Variants editable table -->
+            <div id="importVariantsSection" style="display:none;margin-top:16px">
+              <div style="display:flex;justify-content:space-between;align-items:center">
+                <div class="jewd-edit-section-title" style="margin:0">Variaciones del proveedor</div>
+                <div style="display:flex;gap:6px;align-items:center">
+                  <button class="jewd-btn jewd-btn-outline jewd-btn-sm" id="importVarSelectAll" title="Seleccionar/deseleccionar todas">☑ Todas</button>
+                  <button class="jewd-btn jewd-btn-outline jewd-btn-sm" id="importVarApplyPrice" title="Aplicar tu precio de venta a todas las variaciones">💲 Aplicar precio</button>
+                </div>
+              </div>
+              <div style="overflow-x:auto;margin-top:8px">
+                <table class="jewd-import-var-table" id="importVariantsTable">
+                  <thead>
+                    <tr>
+                      <th style="width:36px">☑</th>
+                      <th>Opción</th>
+                      <th style="width:100px">Precio</th>
+                      <th style="width:100px">SKU</th>
+                      <th style="width:50px">Stock</th>
+                    </tr>
+                  </thead>
+                  <tbody id="importVariantsBody"></tbody>
+                </table>
+              </div>
+              <p style="font-size:.78rem;color:var(--jewd-text2);margin-top:6px">
+                ☑ = se importará. Edita precios individuales o usa "Aplicar precio" para override masivo.
+              </p>
+            </div>
+
+            <!-- Categories -->
+            <div class="jewd-edit-section" style="margin-top:16px">
+              <div class="jewd-edit-section-title">Categorías</div>
+              <div class="jewd-cat-grid" id="importCatGrid">
+                ${catCheckboxes}
+              </div>
+            </div>
+
+            <div style="margin-top:12px;padding:10px;background:var(--jewd-bg2);border-radius:8px;font-size:.82rem;color:var(--jewd-text2)">
+              📎 Fuente: <a href="#" id="importSourceLink" target="_blank" style="color:var(--jewd-accent)"></a>
+            </div>
+          </div>
+        </div>
+        <div class="jewd-modal-footer" style="display:flex;justify-content:flex-end;gap:8px;padding:16px 20px;border-top:1px solid var(--jewd-border)">
+          <button class="jewd-btn jewd-btn-outline" id="importCancel">Cancelar</button>
+          <button class="jewd-btn jewd-btn-gold" id="importCreate" style="display:none">
+            💾 Crear Producto
+          </button>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(overlay);
+
+    let scrapedData = null;
+    let selectedImages = [];
+
+    const $url = overlay.querySelector('#importUrl');
+    const $fetch = overlay.querySelector('#importFetch');
+    const $error = overlay.querySelector('#importError');
+    const $loading = overlay.querySelector('#importLoading');
+    const $step1 = overlay.querySelector('#importStep1');
+    const $step2 = overlay.querySelector('#importStep2');
+    const $create = overlay.querySelector('#importCreate');
+
+    // --- Fetch product data ---
+    $fetch.addEventListener('click', async () => {
+      const url = $url.value.trim();
+      if (!url) { showImportError('Ingresa una URL'); return; }
+
+      try { new URL(url); } catch { showImportError('URL no válida'); return; }
+
+      $error.style.display = 'none';
+      $fetch.disabled = true;
+      $loading.style.display = 'block';
+
+      try {
+        const res = await JewdAPI.scrapeSupplierProduct(url);
+        scrapedData = res.data;
+
+        if (!scrapedData.success || !scrapedData.data) {
+          showImportError('No se pudieron extraer datos del producto.');
+          return;
+        }
+
+        populateImportPreview(scrapedData.data, scrapedData.platform);
+        $step1.style.display = 'none';
+        $step2.style.display = 'block';
+        $create.style.display = 'inline-flex';
+      } catch (err) {
+        showImportError(err.message || 'Error al obtener datos');
+      } finally {
+        $fetch.disabled = false;
+        $loading.style.display = 'none';
+      }
+    });
+
+    // Allow Enter key in URL field
+    $url.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') { e.preventDefault(); $fetch.click(); }
+    });
+
+    function showImportError(msg) {
+      $error.textContent = '⚠️ ' + msg;
+      $error.style.display = 'block';
+      $fetch.disabled = false;
+      $loading.style.display = 'none';
+    }
+
+    // --- Populate preview ---
+    function populateImportPreview(data, platform) {
+      overlay.querySelector('#importPlatform').textContent =
+        platform === 'shopify' ? '🛍 Shopify' : '🌐 Web';
+
+      overlay.querySelector('#importName').value = data.name || '';
+      overlay.querySelector('#importDesc').value = data.description || '';
+      overlay.querySelector('#importPrice').value = data.price || '';
+      overlay.querySelector('#importSalePrice').value = '';
+      overlay.querySelector('#importKarat').value = data.specs?.karat || '';
+      overlay.querySelector('#importWeight').value = data.specs?.weight || '';
+      overlay.querySelector('#importMetal').value = data.specs?.metal || '';
+      overlay.querySelector('#importVendor').value = data.vendor || data.source_store || '';
+      overlay.querySelector('#importProductType').value = data.product_type || '';
+      overlay.querySelector('#importTags').value = data.tags || '';
+
+      const srcLink = overlay.querySelector('#importSourceLink');
+      srcLink.href = data.source_url || '#';
+      srcLink.textContent = data.source_store || data.source_url || '';
+
+      // Images
+      selectedImages = (data.images || []).map((img, i) => ({ ...img, selected: true, index: i }));
+      renderImportImages();
+
+      // Variants editable table
+      if (data.variants && data.variants.length > 0) {
+        const section = overlay.querySelector('#importVariantsSection');
+        section.style.display = 'block';
+        const tbody = overlay.querySelector('#importVariantsBody');
+
+        // Show option name in title
+        const optionNames = (data.options || []).map((o) => o.name).join(', ');
+        if (optionNames) {
+          section.querySelector('.jewd-edit-section-title').textContent =
+            'Variaciones: ' + esc(optionNames);
+        }
+
+        tbody.innerHTML = data.variants.map(function(v, idx) {
+          var label = v.title || [v.option1, v.option2, v.option3].filter(Boolean).join(' / ');
+          var stockIcon = v.available !== false ? '✅' : '❌';
+          var checked = v.available !== false ? ' checked' : '';
+          return '<tr data-varidx="' + idx + '">' +
+            '<td style="text-align:center"><input type="checkbox" class="import-var-check"' + checked + '></td>' +
+            '<td>' + esc(label) + '</td>' +
+            '<td><input type="number" step="0.01" class="jewd-edit-input import-var-price" value="' + (v.price || '') + '" style="padding:4px 6px;font-size:.82rem"></td>' +
+            '<td><input type="text" class="jewd-edit-input import-var-sku" value="' + esc(v.sku || '') + '" style="padding:4px 6px;font-size:.82rem"></td>' +
+            '<td style="text-align:center">' + stockIcon + '</td>' +
+            '</tr>';
+        }).join('');
+
+        // Select all / deselect all toggle
+        overlay.querySelector('#importVarSelectAll').addEventListener('click', function() {
+          var checks = tbody.querySelectorAll('.import-var-check');
+          var allChecked = Array.from(checks).every(function(cb) { return cb.checked; });
+          checks.forEach(function(cb) { cb.checked = !allChecked; });
+        });
+
+        // Apply sale price to all variant prices
+        overlay.querySelector('#importVarApplyPrice').addEventListener('click', function() {
+          var sp = overlay.querySelector('#importSalePrice').value.trim();
+          if (!sp) { toast('⚠️ Ingresa primero "Tu precio de venta"'); return; }
+          tbody.querySelectorAll('.import-var-price').forEach(function(inp) { inp.value = sp; });
+          toast('💲 Precio $' + sp + ' aplicado a todas las variaciones');
+        });
+      }
+    }
+
+    function renderImportImages() {
+      const container = overlay.querySelector('#importPreviewImages');
+      container.innerHTML = selectedImages.map(function(img, i) {
+        const borderColor = img.selected ? 'var(--jewd-accent)' : 'var(--jewd-border)';
+        const opacity = img.selected ? 1 : 0.4;
+        const title = img.selected ? 'Click para excluir' : 'Click para incluir';
+        const badge = (i === 0 && img.selected) ?
+          '<div style="position:absolute;bottom:0;left:0;right:0;background:var(--jewd-accent);color:#fff;text-align:center;font-size:.65rem;padding:1px">Principal</div>' : '';
+        return '<div style="position:relative;flex-shrink:0;width:90px;height:90px;border-radius:8px;overflow:hidden;' +
+          'border:2px solid ' + borderColor + ';cursor:pointer;opacity:' + opacity + '"' +
+          ' data-imgidx="' + i + '" title="' + title + '">' +
+          '<img src="' + esc(img.src) + '" style="width:100%;height:100%;object-fit:cover" alt="' + esc(img.alt || '') + '">' +
+          badge + '</div>';
+      }).join('');
+
+      container.querySelectorAll('[data-imgidx]').forEach((el) => {
+        el.addEventListener('click', () => {
+          const idx = parseInt(el.dataset.imgidx);
+          selectedImages[idx].selected = !selectedImages[idx].selected;
+          renderImportImages();
+        });
+      });
+    }
+
+    // --- Back button ---
+    overlay.querySelector('#importBack').addEventListener('click', () => {
+      $step1.style.display = 'block';
+      $step2.style.display = 'none';
+      $create.style.display = 'none';
+      scrapedData = null;
+      selectedImages = [];
+    });
+
+    // --- Create product ---
+    $create.addEventListener('click', async () => {
+      const name = overlay.querySelector('#importName').value.trim();
+      if (!name) { toast('⚠️ El nombre es obligatorio'); return; }
+
+      $create.disabled = true;
+      $create.textContent = '⏳ Creando...';
+
+      try {
+        // 1. Sideload selected images into WP media library
+        //    (external CDN URLs fail with WC direct fetch — download via PHP)
+        const imagesToUpload = selectedImages.filter((img) => img.selected);
+        const uploadedImages = [];
+        // Map: original image index → sideloaded attachment id
+        const sideloadedMap = {};
+
+        for (let i = 0; i < imagesToUpload.length; i++) {
+          toast('📷 Descargando imagen ' + (i + 1) + '/' + imagesToUpload.length + '...');
+          try {
+            const imgRes = await JewdAPI.sideloadSupplierImage(
+              imagesToUpload[i].src,
+              imagesToUpload[i].alt || name
+            );
+            uploadedImages.push({ id: imgRes.data.id });
+            sideloadedMap[imagesToUpload[i].index] = imgRes.data.id;
+          } catch (imgErr) {
+            console.warn('Image sideload failed:', imagesToUpload[i].src, imgErr);
+            // Fallback: let WooCommerce try the external URL directly
+            uploadedImages.push({ src: imagesToUpload[i].src, alt: imagesToUpload[i].alt || name });
+          }
+        }
+
+        // 2. Build product data
+        const salePrice = overlay.querySelector('#importSalePrice').value.trim();
+        const supplierPrice = overlay.querySelector('#importPrice').value.trim();
+        const weight = overlay.querySelector('#importWeight').value.trim();
+        const karat = overlay.querySelector('#importKarat').value.trim();
+        const metal = overlay.querySelector('#importMetal').value.trim();
+        const tags = overlay.querySelector('#importTags').value.trim();
+        const categories = Array.from(
+          overlay.querySelectorAll('#importCatGrid input:checked')
+        ).map((cb) => ({ id: parseInt(cb.value) }));
+
+        const hasVariants = scrapedData.data.variants && scrapedData.data.variants.length > 1;
+        const hasMultipleOptions = scrapedData.data.options && scrapedData.data.options.length > 0
+          && scrapedData.data.options[0].values && scrapedData.data.options[0].values.length > 1;
+
+        // Read selected variants from the editable table
+        var checkedVariants = [];
+        if (hasVariants && hasMultipleOptions) {
+          var varRows = overlay.querySelectorAll('#importVariantsBody tr[data-varidx]');
+          varRows.forEach(function(row) {
+            var cb = row.querySelector('.import-var-check');
+            if (cb && cb.checked) {
+              var idx = parseInt(row.dataset.varidx);
+              var orig = scrapedData.data.variants[idx];
+              checkedVariants.push({
+                index: idx,
+                price: row.querySelector('.import-var-price').value.trim() || orig.price || '',
+                sku: row.querySelector('.import-var-sku').value.trim() || '',
+                weight: orig.weight ? String(orig.weight) : '',
+                option1: orig.option1 || '',
+                option2: orig.option2 || '',
+                option3: orig.option3 || '',
+                available: orig.available !== false,
+                image_index: orig.image_index != null ? orig.image_index : null,
+              });
+            }
+          });
+        }
+
+        // Build unique attribute values from SELECTED variants only
+        var selectedOptionValues = {};
+        if (checkedVariants.length > 0) {
+          (scrapedData.data.options || []).forEach(function(opt, oi) {
+            var key = 'option' + (oi + 1);
+            var vals = [];
+            checkedVariants.forEach(function(cv) {
+              if (cv[key] && vals.indexOf(cv[key]) === -1) vals.push(cv[key]);
+            });
+            selectedOptionValues[opt.name] = vals;
+          });
+        }
+
+        const productData = {
+          name: name,
+          type: (hasVariants && hasMultipleOptions) ? 'variable' : 'simple',
+          status: 'draft',
+          description: overlay.querySelector('#importDesc').value.trim(),
+          short_description: overlay.querySelector('#importDesc').value.trim().substring(0, 200),
+          regular_price: salePrice || supplierPrice || undefined,
+          weight: weight || undefined,
+          categories: categories,
+          images: uploadedImages,
+          tags: tags ? tags.split(',').map((t) => ({ name: t.trim() })).filter((t) => t.name) : [],
+          meta_data: [
+            { key: '_supplier_url', value: scrapedData.data.source_url || '' },
+            { key: '_supplier_store', value: scrapedData.data.source_store || '' },
+            { key: '_supplier_price', value: supplierPrice || '' },
+            { key: '_jewelry_karat', value: karat },
+            { key: '_jewelry_metal', value: metal },
+          ],
+        };
+
+        // For variable products, set up attributes from selected variants only
+        if (productData.type === 'variable' && scrapedData.data.options) {
+          productData.regular_price = undefined;
+          productData.attributes = scrapedData.data.options.map(function(opt) {
+            return {
+              name: opt.name,
+              options: selectedOptionValues[opt.name] || opt.values,
+              visible: true,
+              variation: true,
+            };
+          });
+        }
+
+        // Clean undefined
+        Object.keys(productData).forEach((k) => {
+          if (productData[k] === undefined) delete productData[k];
+        });
+
+        toast('💾 Creando producto...');
+        const result = await JewdAPI.createProduct(productData);
+        const newProductId = result.data.id;
+
+// 3. Create variations for variable products (only selected ones)
+        if (productData.type === 'variable' && checkedVariants.length > 0) {
+          toast('🔀 Creando ' + checkedVariants.length + ' variaciones...');
+          var created = 0;
+          var opts = scrapedData.data.options || [];
+          for (var vi = 0; vi < checkedVariants.length; vi++) {
+            var cv = checkedVariants[vi];
+            var varData = {
+              regular_price: cv.price,
+              weight: cv.weight || (weight || ''),
+              sku: cv.sku || '',
+              stock_status: cv.available ? 'instock' : 'outofstock',
+              attributes: [],
+            };
+            if (cv.option1 && opts[0]) varData.attributes.push({ name: opts[0].name, option: cv.option1 });
+            if (cv.option2 && opts[1]) varData.attributes.push({ name: opts[1].name, option: cv.option2 });
+            if (cv.option3 && opts[2]) varData.attributes.push({ name: opts[2].name, option: cv.option3 });
+
+            // Assign variant-specific image if available
+            if (cv.image_index != null && sideloadedMap[cv.image_index] != null) {
+              varData.image = { id: sideloadedMap[cv.image_index] };
+            }
+
+            try {
+              await JewdAPI.createVariation(newProductId, varData);
+              created++;
+            } catch (varErr) {
+              console.warn('Variation failed:', cv.option1, varErr);
+            }
+          }
+          if (created < checkedVariants.length) {
+            toast('⚠️ Variaciones: ' + created + '/' + checkedVariants.length + ' creadas');
+          }
+        }
+
+        overlay.remove();
+        toast('✅ Producto importado: "' + result.data.name + '" (ID: ' + newProductId + ')');
+
+        // Refresh and open edit modal
+        await loadProducts();
+        loadStats();
+        const newProduct = state.products.find((p) => p.id === newProductId);
+        if (newProduct) showEditModal(newProduct);
+
+      } catch (err) {
+        console.error('Import create failed:', err);
+        toast('❌ Error al crear: ' + err.message);
+        $create.disabled = false;
+        $create.textContent = '💾 Crear Producto';
+      }
+    });
+
+    // --- Close ---
+    function closeImport() { overlay.remove(); }
+    overlay.querySelector('#importClose').addEventListener('click', closeImport);
+    overlay.querySelector('#importCancel').addEventListener('click', closeImport);
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) closeImport(); });
+  }
+
   /* ===== REGISTER ON NAMESPACE ===== */
   J.loadCategories = loadCategories;
   J.loadStats = loadStats;
@@ -2559,6 +3145,7 @@
   J.closeModal = closeModal;
   J.closeEditModal = closeEditModal;
   J.openNewProductWizard = openNewProductWizard;
+  J.openImportFromURL = openImportFromURL;
   J.saveProduct = saveProduct;
   J.toggleExpandAll = toggleExpandAll;
   J.exportJSON = exportJSON;

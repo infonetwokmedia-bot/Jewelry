@@ -7,7 +7,7 @@
  * It's external (not inline) so it passes CSP script-src 'self'.
  */
 (function () {
-  var APP_VERSION = '3.34.0';
+  var APP_VERSION = '3.40.0';
   var STORAGE_KEY = 'jewd_app_version';
 
   var stored = localStorage.getItem(STORAGE_KEY);

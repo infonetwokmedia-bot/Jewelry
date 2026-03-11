@@ -1,0 +1,89 @@
+{
+    "_comment": "VS Code 1.110+ — LLM Model Reference (March 2026)",
+    "defaultModel": "claude-sonnet-4-20250514",
+    "fallbackModel": "gpt-4.1-mini",
+    "models": {
+        "claude-sonnet-4-20250514": {
+            "provider": "anthropic",
+            "status": "recommended",
+            "contextWindow": 200000,
+            "maxOutput": 64000,
+            "strengths": [
+                "code-generation",
+                "instruction-following",
+                "agents"
+            ],
+            "cost": "medium"
+        },
+        "claude-opus-4-20250514": {
+            "provider": "anthropic",
+            "status": "recommended",
+            "contextWindow": 200000,
+            "maxOutput": 32000,
+            "strengths": [
+                "deep-reasoning",
+                "planning",
+                "security-review"
+            ],
+            "cost": "high"
+        },
+        "gpt-4.1": {
+            "provider": "openai",
+            "status": "recommended",
+            "contextWindow": 1000000,
+            "maxOutput": 32768,
+            "strengths": [
+                "long-context",
+                "instruction-following",
+                "coding"
+            ],
+            "cost": "medium"
+        },
+        "gpt-4.1-mini": {
+            "provider": "openai",
+            "status": "available",
+            "contextWindow": 1000000,
+            "maxOutput": 16384,
+            "strengths": [
+                "cost-optimized",
+                "fast-response"
+            ],
+            "cost": "low"
+        },
+        "gpt-4o": {
+            "provider": "openai",
+            "status": "available",
+            "contextWindow": 128000,
+            "maxOutput": 16384,
+            "strengths": [
+                "vision",
+                "multimodal",
+                "speed"
+            ],
+            "cost": "medium"
+        },
+        "o3": {
+            "provider": "openai",
+            "status": "available",
+            "contextWindow": 200000,
+            "maxOutput": 100000,
+            "strengths": [
+                "deep-reasoning",
+                "math",
+                "code-verification"
+            ],
+            "cost": "high"
+        },
+        "o4-mini": {
+            "provider": "openai",
+            "status": "available",
+            "contextWindow": 200000,
+            "maxOutput": 100000,
+            "strengths": [
+                "efficient-reasoning",
+                "code-verification"
+            ],
+            "cost": "medium"
+        }
+    }
+}

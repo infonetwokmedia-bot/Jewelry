@@ -676,7 +676,7 @@ phase6_provision() {
     log_section "WooCommerce"
 
     wp_set "woocommerce_default_country"      "US:FL"
-    wp_set "woocommerce_store_address"        "7212 Bird Road"
+    wp_set "woocommerce_store_address"        "5784 Bird Road"
     wp_set "woocommerce_store_city"           "Miami"
     wp_set "woocommerce_store_postcode"       "33155"
     wp_set "woocommerce_currency"             "USD"

@@ -1882,6 +1882,36 @@ body {
   display: block;
 }
 
+/* ===== IMPORT VARIANTS TABLE ===== */
+.jewd-import-var-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: .82rem;
+}
+.jewd-import-var-table th {
+  text-align: left;
+  padding: 6px 8px;
+  font-weight: 600;
+  color: var(--jewd-text2);
+  border-bottom: 2px solid var(--jewd-border);
+  font-size: .78rem;
+  text-transform: uppercase;
+  letter-spacing: .3px;
+}
+.jewd-import-var-table td {
+  padding: 5px 8px;
+  border-bottom: 1px solid var(--jewd-border);
+  vertical-align: middle;
+}
+.jewd-import-var-table tr:hover {
+  background: var(--jewd-bg2);
+}
+.jewd-import-var-table input[type="number"],
+.jewd-import-var-table input[type="text"] {
+  width: 100%;
+  box-sizing: border-box;
+}
+
 /* ===== CATEGORIES GRID ===== */
 .jewd-cat-grid {
   display: grid;
@@ -5967,4 +5997,14 @@ body {
 .jewd-dynamic-price-preview small {
   color: #777;
   font-size: .8rem;
+}
+
+/* ── Labor Cost Info ─────────────────────────────────────────────── */
+.jewd-labor-info {
+  background: #fff3e0;
+  border: 1px solid #ffcc80;
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: .85rem;
+  color: #e65100;
 }
