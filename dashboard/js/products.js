@@ -890,7 +890,7 @@
           });
           html += `</select></td>`;
           html += `<td><input class="jewd-edit-input jewd-edit-sm jewd-edit-num" type="number" step="0.01" min="0" max="500" name="v_markup_pct_${vi}" value="${esc(String(vMarkup))}" data-vid="${v.id}" placeholder="Heredar"></td>`;
-          html += `<td class="jewd-right" style="font-weight:600;color:${calcPrice > 0 ? "var(--jewd-success)" : "var(--jewd-text2)"}">`;
+          html += `<td class="jewd-right jewd-var-calc-price" id="v_calc_price_${vi}" style="font-weight:600;color:${calcPrice > 0 ? "var(--jewd-success)" : "var(--jewd-text2)"}">`;
           html += calcPrice > 0 ? `$${parseFloat(calcPrice).toFixed(2)}` : "—";
           html += `</td>`;
           html += `<td><input class="jewd-edit-input jewd-edit-sm jewd-edit-num" type="number" step="1" name="v_stock_quantity_${vi}" value="${v.stock_quantity ?? ""}" data-vid="${v.id}"></td>`;
@@ -1035,6 +1035,67 @@
     if (metalTypeSelect) metalTypeSelect.addEventListener("change", updatePricePreview);
     if (metalWeightInput) metalWeightInput.addEventListener("input", updatePricePreview);
     if (markupInput) markupInput.addEventListener("input", updatePricePreview);
+
+    // --- Live variation price preview ---
+    initVariationPricingHandlers();
+  }
+
+  /**
+   * Attach live price calculation to each variation row when parent is by_weight.
+   */
+  function initVariationPricingHandlers() {
+    const p = editingProduct;
+    if (!p) return;
+    const parentMode = (p.jewelry_pricing || {}).mode || "fixed";
+    if (parentMode !== "by_weight") return;
+
+    const parentMetal = (p.jewelry_pricing || {}).metal_type || "gold_14k";
+    const parentMarkup = (p.jewelry_pricing || {}).markup_pct || 0;
+    const vs = editingVariations || [];
+    let debounceTimers = {};
+
+    vs.forEach(function (v, vi) {
+      const weightInput = document.querySelector('[name="v_metal_weight_' + vi + '"]');
+      const metalSelect = document.querySelector('[name="v_metal_type_' + vi + '"]');
+      const markupInput = document.querySelector('[name="v_markup_pct_' + vi + '"]');
+      const priceCell = document.getElementById('v_calc_price_' + vi);
+      if (!weightInput || !priceCell) return;
+
+      function calcVariationPrice() {
+        clearTimeout(debounceTimers[vi]);
+        debounceTimers[vi] = setTimeout(async function () {
+          var wt = parseFloat(weightInput.value) || 0;
+          var mt = (metalSelect && metalSelect.value) ? metalSelect.value : parentMetal;
+          var mk = markupInput && markupInput.value !== '' ? parseFloat(markupInput.value) : parentMarkup;
+          if (wt <= 0) {
+            priceCell.textContent = '—';
+            priceCell.style.color = 'var(--jewd-text2)';
+            return;
+          }
+          try {
+            var res = await JewdAPI.calculateDynamicPrice(mt, wt, mk || 0);
+            var d = res.data;
+            if (d && d.success && d.total > 0) {
+              priceCell.textContent = '$' + parseFloat(d.total).toFixed(2);
+              priceCell.style.color = 'var(--jewd-success)';
+              priceCell.title = wt + 'g × $' + parseFloat(d.price_per_gram).toFixed(2) + '/g'
+                + (d.labor_value > 0 ? ' + $' + parseFloat(d.labor_value).toFixed(2) + ' labor' : '')
+                + (mk > 0 ? ' + ' + mk + '% markup' : '');
+            } else {
+              priceCell.textContent = '—';
+              priceCell.style.color = 'var(--jewd-text2)';
+            }
+          } catch (e) {
+            priceCell.textContent = 'Error';
+            priceCell.style.color = 'var(--jewd-danger, #e53e3e)';
+          }
+        }, 400);
+      }
+
+      weightInput.addEventListener('input', calcVariationPrice);
+      if (metalSelect) metalSelect.addEventListener('change', calcVariationPrice);
+      if (markupInput) markupInput.addEventListener('input', calcVariationPrice);
+    });
   }
 
   /* ===== EDIT TABS ===== */
